@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ActionClip – הגדרות</title>
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <header class="top-header">
+    <img src="icons/icon48.png" alt="">
+    <div>
+      <h1>ActionClip</h1>
+      <p class="muted">הגדרות, תבניות הודעה והיסטוריית שליחות</p>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="templates">תבניות הודעה</button>
+      <button class="tab-btn" data-tab="settings">הגדרות</button>
+      <button class="tab-btn" data-tab="history">היסטוריה</button>
+    </nav>
+
+    <section id="tab-templates" class="tab-panel">
+      <p class="muted">ערכו את תבניות ההודעה לכל סוג ליד. הטוקן <code>{שם}</code> יוחלף בשם שיוקלד בפופאפ (או יימחק אם ריק).</p>
+      <div id="list" class="list"></div>
+      <button id="addBtn" class="btn secondary">+ תבנית חדשה</button>
+
+      <div class="default-row">
+        <label for="defaultSelect">תבנית ברירת מחדל (נבחרת אוטומטית בפתיחת הפופאפ):</label>
+        <select id="defaultSelect"></select>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn" class="btn primary">שמור שינויים</button>
+        <button id="resetBtn" class="btn danger">אפס לברירת מחדל</button>
+        <span id="savedMsg" class="saved-msg hidden">נשמר ✓</span>
+      </div>
+    </section>
+
+    <section id="tab-settings" class="tab-panel hidden">
+      <div class="panel">
+        <h2>התרעת כפילות</h2>
+        <p class="muted">אם שולחים הודעה לאותו מספר שוב בתוך חלון הזמן הזה, הפופאפ יציג התרעה (ולא יחסום את השליחה).</p>
+        <label class="row">חלון זמן (בדקות): <input type="number" id="dedupeInput" min="0" max="1440" step="5"></label>
+        <button id="saveSettingsBtn" class="btn primary small">שמור הגדרות</button>
+      </div>
+      <div class="panel">
+        <h2>פתיחה מהירה</h2>
+        <p class="muted">אפשר לפתוח את ActionClip בלי לגעת בעכבר, מכל מקום בדפדפן: קיצור המקלדת <code>Alt+Shift+P</code> (ניתן לשינוי ב-<code>chrome://extensions/shortcuts</code>).</p>
+      </div>
+    </section>
+
+    <section id="tab-history" class="tab-panel hidden">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>היסטוריית שליחות (25 אחרונות)</h2>
+          <div class="panel-head-actions">
+            <button id="exportCsvBtn" class="btn secondary small">ייצוא ל-CSV</button>
+            <button id="clearHistoryBtn" class="btn danger small">נקה היסטוריה</button>
+          </div>
+        </div>
+        <div id="historyList" class="history-list"></div>
+        <p id="historyEmpty" class="muted hidden">עדיין אין שליחות מתועדות.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer class="version-footer">ActionClip <span id="versionLabel"></span></footer>
+
+  <script src="common.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ActionClip</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <img src="icons/icon32.png" alt="" class="logo">
+      <div class="title">
+        <strong>ActionClip</strong>
+        <span class="subtitle">העתק מספר → פתח וואטסאפ</span>
+      </div>
+      <button id="settingsBtn" class="icon-btn" title="הגדרות ותבניות">⚙</button>
+    </header>
+
+    <div class="body">
+      <section id="phoneFoundBlock" class="block hidden">
+        <div class="phone-row">
+          <span class="badge">✓</span>
+          <div class="phone-text">
+            <span class="phone-label">מספר שזוהה</span>
+            <span id="phoneDisplay" class="phone-value"></span>
+          </div>
+        </div>
+      </section>
+
+      <section id="phoneMissingBlock" class="block hidden">
+        <div class="hint-box">
+          <span>⚠</span>
+          <span>לא זוהה מספר טלפון בהעתקה האחרונה. אפשר להדביק/להקליד מספר ידנית:</span>
+        </div>
+        <div class="manual-row">
+          <input id="manualPhone" type="text" placeholder="050-1234567" dir="ltr">
+          <button id="checkManualBtn" class="btn secondary">בדוק</button>
+        </div>
+      </section>
+
+      <section id="dupWarningBlock" class="block hidden">
+        <div class="dup-warning">
+          <span>🔁</span>
+          <span id="dupWarningText"></span>
+        </div>
+      </section>
+
+      <section class="block">
+        <label class="field-label" for="nameInput">שם הליד (אופציונלי)</label>
+        <input id="nameInput" type="text" placeholder="לדוגמה: ישראל ישראלי">
+      </section>
+
+      <section class="block">
+        <label class="field-label" for="templateSelect">תבנית הודעה</label>
+        <select id="templateSelect"></select>
+      </section>
+
+      <section class="block">
+        <label class="field-label" for="messageArea">הודעה</label>
+        <textarea id="messageArea" rows="5"></textarea>
+      </section>
+
+      <button id="sendBtn" class="btn primary" disabled>פתח בוואטסאפ 💬</button>
+
+      <p class="footer-note">כל הפעולה מקומית בדפדפן - שום דבר לא נשלח לשרת חיצוני.</p>
+    </div>
+  </div>
+
+  <script src="common.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

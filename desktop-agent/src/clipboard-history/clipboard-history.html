@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
+<title>ActionClip - היסטוריית העתקות</title>
+<link rel="stylesheet" href="clipboard-history.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <span class="title">📋 היסטוריית העתקות</span>
+      <button id="closeBtn" class="icon-btn" title="סגור">✕</button>
+    </header>
+
+    <div class="toolbar">
+      <input id="searchInput" type="text" placeholder="חיפוש בהיסטוריה (כולל תגיות)...">
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="chip active" data-cat="all">הכל</button>
+      <button class="chip" data-cat="phone">📞 טלפון</button>
+      <button class="chip" data-cat="tracking">📦 מעקב</button>
+      <button class="chip" data-cat="address">🗺️ כתובת</button>
+      <button class="chip" data-cat="url">🔗 קישור</button>
+      <button class="chip" data-cat="email">✉️ מייל</button>
+      <button class="chip" data-cat="custom">⚡ מותאם</button>
+      <button class="chip" data-cat="text">📋 טקסט</button>
+    </div>
+
+    <div class="count-row" id="countLabel"></div>
+
+    <div class="list" id="list"></div>
+    <div class="empty hidden" id="emptyState">אין עדיין העתקות בהיסטוריה</div>
+
+    <footer class="footer">
+      <span class="status">
+        <span id="pauseDot" class="pause-dot"></span>
+        <span id="statusText">מקליט</span>
+        <button id="toggleBtn">השהה</button>
+      </span>
+      <button id="clearBtn">נקה הכל</button>
+    </footer>
+  </div>
+
+  <script src="clipboard-history.js"></script>
+</body>
+</html>
