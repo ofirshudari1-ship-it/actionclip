@@ -1,0 +1,1262 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ActionClip</title>
+<meta name="description" content="Internal tool for the Passportugo sales desk: copying a phone number, tracking number, address, or link opens the right action with one click, and saves a local copy history.">
+<meta name="theme-color" content="#6366f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12121d" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Rubik:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+  /* ============ Tokens ============ */
+  :root {
+    --bg: #f6f6fb;
+    --surface: #ffffff;
+    --surface-alt: #eeeef7;
+    --border: #dfdfef;
+    --border-soft: #e9e9f5;
+    --ink: #17172e;
+    --ink-soft: #4b4b66;
+    --ink-faint: #8888a0;
+    --accent-1: #6366f1;
+    --accent-2: #a855f7;
+    --accent-text: #6d28d9;
+    --accent-wash: rgba(99, 102, 241, 0.10);
+    --accent-wash-strong: rgba(99, 102, 241, 0.16);
+    --warn-bg: #fff7ed;
+    --warn-fg: #b45309;
+    --warn-border: #fde3b6;
+    --agent-ink: #1e1b3a;
+    --shadow-sm: 0 1px 2px rgba(16, 35, 26, 0.06);
+    --shadow-md: 0 10px 28px -10px rgba(16, 35, 26, 0.18);
+    --shadow-lg: 0 24px 60px -20px rgba(16, 35, 26, 0.28);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12121d;
+      --surface: #1a1a2e;
+      --surface-alt: #201f38;
+      --border: #2c2c46;
+      --border-soft: #24243c;
+      --ink: #f0f0fa;
+      --ink-soft: #adadc7;
+      --ink-faint: #6e6e8a;
+      --accent-text: #a78bfa;
+      --accent-wash: rgba(99, 102, 241, 0.14);
+      --accent-wash-strong: rgba(99, 102, 241, 0.22);
+      --warn-bg: #2a2010;
+      --warn-fg: #fbbf24;
+      --warn-border: #473714;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 10px 28px -10px rgba(0, 0, 0, 0.55);
+      --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12121d;
+    --surface: #1a1a2e;
+    --surface-alt: #201f38;
+    --border: #2c2c46;
+    --border-soft: #24243c;
+    --ink: #f0f0fa;
+    --ink-soft: #adadc7;
+    --ink-faint: #6e6e8a;
+    --accent-text: #a78bfa;
+    --accent-wash: rgba(99, 102, 241, 0.14);
+    --accent-wash-strong: rgba(99, 102, 241, 0.22);
+    --warn-bg: #2a2010;
+    --warn-fg: #fbbf24;
+    --warn-border: #473714;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 10px 28px -10px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  }
+
+  /* ============ Base ============ */
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Rubik", "Segoe UI", -apple-system, system-ui, Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono {
+    font-family: "JetBrains Mono", ui-monospace, "Courier New", monospace;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 700; }
+  p { margin: 0; }
+  a { color: inherit; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-inline: 24px; }
+  section { padding-block: 88px; }
+  .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+  .section-head { max-width: 640px; margin-bottom: 48px; }
+  .section-head h2 { font-size: clamp(26px, 3.4vw, 34px); margin-top: 10px; }
+  .section-head p { color: var(--ink-soft); font-size: 16px; margin-top: 12px; }
+
+  /* ============ i18n ============ */
+  html[data-lang="en"] .lang-he { display: none; }
+  html[data-lang="he"] .lang-en { display: none; }
+  .lang-toggle {
+    font-family: "JetBrains Mono", monospace; font-size: 12.5px; letter-spacing: 0.02em;
+    background: none; border: 1px solid var(--border); color: var(--ink-soft);
+    padding: 5px 11px; border-radius: 999px; cursor: pointer; margin-inline-start: 12px;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .lang-toggle:hover, .lang-toggle:focus-visible { border-color: var(--accent-text); color: var(--accent-text); }
+
+  /* ============ Header ============ */
+  header.site {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .site-nav {
+    max-width: 1040px; margin: 0 auto; padding: 14px 24px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .brand-mark {
+    width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .brand-mark svg { width: 17px; height: 17px; }
+  .brand-word { font-family: "Secular One", "Rubik", sans-serif; font-size: 19px; letter-spacing: 0.01em; }
+  .ver-badge {
+    font-family: "JetBrains Mono", monospace; font-size: 11.5px; direction: ltr;
+    background: var(--accent-wash); color: var(--accent-text);
+    border: 1px solid var(--accent-wash-strong);
+    padding: 3px 9px; border-radius: 999px; font-weight: 600;
+  }
+  nav.links { display: flex; gap: 22px; font-size: 14px; color: var(--ink-soft); }
+  nav.links a { text-decoration: none; transition: color 0.15s ease; }
+  nav.links a:hover, nav.links a:focus-visible { color: var(--accent-text); }
+  @media (max-width: 720px) { nav.links { display: none; } }
+
+  /* ============ Hero ============ */
+  .hero { padding-block: 64px 96px; }
+  .hero-grid {
+    display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center;
+  }
+  @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+  .hero h1 {
+    font-size: clamp(34px, 5.2vw, 54px);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-top: 14px;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent-text); }
+  .hero .lede { font-size: 18px; color: var(--ink-soft); margin-top: 20px; max-width: 52ch; }
+  .stat-row { display: flex; align-items: baseline; gap: 18px; margin-top: 36px; flex-wrap: wrap; }
+  .stat-num { font-family: "Secular One", sans-serif; font-size: clamp(40px, 6vw, 58px); line-height: 1; direction: ltr; }
+  .stat-num.old { color: var(--ink-faint); text-decoration: line-through; text-decoration-thickness: 3px; text-decoration-color: var(--warn-fg); }
+  .stat-arrow { color: var(--ink-faint); font-size: 26px; }
+  .stat-num.new { color: var(--accent-text); }
+  .stat-cap { font-size: 13px; color: var(--ink-faint); margin-top: 4px; }
+  .cta-row { display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border-radius: var(--radius-sm); font-size: 14.5px; font-weight: 600;
+    text-decoration: none; border: 1px solid transparent; cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .btn.primary {
+    background: linear-gradient(120deg, var(--accent-1), var(--accent-2)); color: #fff;
+    box-shadow: 0 10px 24px -8px rgba(168, 85, 247, 0.5);
+  }
+  .btn.primary:hover { transform: translateY(-1px); }
+  .btn.ghost { border-color: var(--border); color: var(--ink); background: var(--surface); }
+  .btn.ghost:hover { border-color: var(--accent-text); color: var(--accent-text); }
+
+  /* ---- Hero mockup: a faithful mini recreation of the real popup ---- */
+  .mock-wrap { display: flex; justify-content: center; }
+  .mock-popup {
+    width: 100%; max-width: 336px;
+    border-radius: 16px; overflow: hidden;
+    background: var(--agent-ink);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255,255,255,0.06);
+    font-family: "Rubik", sans-serif;
+  }
+  .mock-head {
+    background: linear-gradient(120deg, var(--accent-1), var(--accent-2));
+    color: #fff; padding: 13px 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .mock-head .badge { width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .mock-head .t { flex: 1; font-size: 12.5px; font-weight: 700; }
+  .mock-head .icon { width: 20px; height: 20px; border-radius: 6px; background: rgba(255,255,255,0.16); }
+  .mock-body { padding: 13px 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .mock-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(99,102,241,0.14); border: 1px solid rgba(99,102,241,0.4);
+    border-radius: 9px; padding: 9px 11px;
+  }
+  .mock-chip .dot { width: 18px; height: 18px; border-radius: 50%; background: rgba(99,102,241,0.3); color: #6ee7a8; font-size: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .mock-chip .num-label { font-size: 9.5px; color: #9fb3a6; }
+  .mock-chip .num { font-family: "JetBrains Mono", monospace; direction: ltr; color: #fff; font-weight: 600; font-size: 13px; }
+  .mock-field-label { font-size: 10px; color: #8ea198; }
+  .mock-input, .mock-select {
+    background: #202b25; border: 1px solid #2d3a32; border-radius: 8px;
+    color: #6b7c73; font-size: 12px; padding: 7px 9px;
+  }
+  .mock-select { color: #dfe8e2; display: flex; align-items: center; justify-content: space-between; }
+  .mock-msg {
+    background: #202b25; border: 1px solid #2d3a32; border-radius: 8px;
+    color: #cdd8d1; font-size: 11.5px; line-height: 1.5; padding: 10px; min-height: 64px;
+  }
+  .mock-send {
+    background: linear-gradient(120deg, var(--accent-1), var(--accent-2));
+    color: #fff; text-align: center; padding: 10px; border-radius: 9px;
+    font-size: 13px; font-weight: 700; box-shadow: 0 8px 18px -6px rgba(168,85,247,0.6);
+  }
+  .mock-caption { text-align: center; font-size: 12px; color: var(--ink-faint); margin-top: 14px; }
+
+  /* ============ How it works ============ */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+  @media (max-width: 800px) { .steps { grid-template-columns: 1fr; gap: 28px; } }
+  .steps::before {
+    content: ""; position: absolute; top: 22px; right: 12.5%; left: 12.5%; height: 2px;
+    background: repeating-linear-gradient(to left, var(--border) 0 8px, transparent 8px 14px);
+  }
+  @media (max-width: 800px) { .steps::before { display: none; } }
+  .step { position: relative; padding-inline-end: 18px; }
+  .step .n {
+    width: 44px; height: 44px; border-radius: 50%; position: relative; z-index: 1;
+    background: var(--surface); border: 2px solid var(--accent-1);
+    color: var(--accent-text); font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+  }
+  .step h3 { font-size: 16px; margin-bottom: 6px; }
+  .step p { color: var(--ink-soft); font-size: 14px; }
+
+  /* ============ Components ============ */
+  .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 760px) { .comp-grid { grid-template-columns: 1fr; } }
+  .comp-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 26px; box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .comp-card .icon-row { display: flex; align-items: center; gap: 12px; }
+  .comp-icon {
+    width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: var(--accent-wash); color: var(--accent-text); font-size: 20px; flex-shrink: 0;
+  }
+  .comp-card h3 { font-size: 19px; }
+  .comp-card .sub { font-size: 13px; color: var(--ink-faint); }
+  .comp-facts { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .comp-fact { display: flex; gap: 10px; font-size: 13.5px; align-items: baseline; }
+  .comp-fact .k { color: var(--ink-faint); flex-shrink: 0; width: 68px; }
+  .comp-fact .v { color: var(--ink); }
+  .comp-fact .v code { font-family: "JetBrains Mono", monospace; font-size: 12.5px; direction: ltr; unicode-bidi: isolate; background: var(--surface-alt); border-radius: 5px; padding: 1px 6px; }
+  .pill-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+  .pill { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; background: var(--surface-alt); color: var(--ink-soft); border: 1px solid var(--border-soft); }
+
+  /* ============ Features ============ */
+  .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 860px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .feat-grid { grid-template-columns: 1fr; } }
+  .feat {
+    background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md);
+    padding: 20px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .feat .fi { font-size: 22px; }
+  .feat h3 { font-size: 15px; }
+  .feat p { font-size: 13.5px; color: var(--ink-soft); }
+
+  /* ============ Versions ============ */
+  .timeline { position: relative; padding-inline-start: 0; }
+  .tl-item { position: relative; padding-inline-end: 32px; padding-bottom: 40px; border-inline-end: 2px solid var(--border); }
+  .tl-item:last-child { border-color: transparent; padding-bottom: 0; }
+  .tl-item::before {
+    content: ""; position: absolute; inset-inline-end: -7px; top: 4px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--accent-1);
+  }
+  .tl-item.current::before { background: var(--accent-1); }
+  .tl-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .tl-ver { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 17px; direction: ltr; }
+  .tl-item.current .tl-ver { color: var(--accent-text); }
+  .tl-date { font-size: 12.5px; color: var(--ink-faint); direction: ltr; }
+  .tl-title { font-size: 14.5px; color: var(--ink-soft); margin-bottom: 10px; }
+  .tl-list { display: flex; flex-direction: column; gap: 6px; }
+  .tl-list li { font-size: 13.5px; color: var(--ink-soft); list-style: none; position: relative; padding-inline-start: 16px; }
+  .tl-list li::before { content: "–"; position: absolute; inset-inline-start: 0; color: var(--ink-faint); }
+  .tl-list b { color: var(--ink); font-weight: 600; }
+  .tag-fix { font-size: 10.5px; font-weight: 700; background: var(--warn-bg); color: var(--warn-fg); border: 1px solid var(--warn-border); border-radius: 999px; padding: 2px 8px; margin-inline-start: 4px; }
+
+  /* ============ Install ============ */
+  .install-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 760px) { .install-grid { grid-template-columns: 1fr; } }
+  .install-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 26px; box-shadow: var(--shadow-sm); }
+  .install-card h3 { font-size: 17px; margin-bottom: 4px; }
+  .install-card .path { display: block; margin: 14px 0; font-family: "JetBrains Mono", monospace; font-size: 12.5px; direction: ltr; text-align: left; background: var(--surface-alt); border: 1px solid var(--border-soft); border-radius: 8px; padding: 9px 12px; overflow-x: auto; }
+  .install-steps { display: flex; flex-direction: column; gap: 10px; counter-reset: step; }
+  .install-steps li { list-style: none; font-size: 13.5px; color: var(--ink-soft); display: flex; gap: 10px; }
+  .install-steps li::before {
+    counter-increment: step; content: counter(step);
+    width: 20px; height: 20px; border-radius: 50%; background: var(--accent-wash); color: var(--accent-text);
+    font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+  .install-note { font-size: 12.5px; color: var(--ink-faint); margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); }
+
+  /* ============ Footer ============ */
+  footer { border-top: 1px solid var(--border-soft); padding-block: 36px; }
+  footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-faint); }
+  footer .paths { display: flex; gap: 14px; flex-wrap: wrap; }
+  footer code { font-family: "JetBrains Mono", monospace; direction: ltr; unicode-bidi: isolate; }
+</style>
+</head>
+<body>
+
+<!-- ============================== ENGLISH (default) ============================== -->
+<div class="lang-en">
+
+<header class="site">
+  <div class="site-nav">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="6.5" y="5" width="11" height="15" rx="2.2" fill="none" stroke="#fff" stroke-width="1.4"/><rect x="9.5" y="3.5" width="5" height="2.6" rx="1" fill="#fff"/><path d="M13.2 8.5 L8.8 14.5 L11.3 14.5 L10 19.5 L15.2 12.7 L12.6 12.7 Z" fill="#fde68a"/></svg>
+      </span>
+      <span class="brand-word">ActionClip</span>
+      <span class="ver-badge">v2.5.0</span>
+    </div>
+    <nav class="links">
+      <a href="#how">How it works</a>
+      <a href="#detectors">What's detected</a>
+      <a href="#components">Components</a>
+      <a href="#features">Features</a>
+      <a href="#versions">Changelog</a>
+      <a href="#install">Install</a>
+    </nav>
+    <button class="lang-toggle" onclick="setSiteLang('he')" aria-label="Switch to Hebrew">🌐 עברית</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Internal tool · Passportugo sales desk</p>
+      <h1>Copy something.<br>Get the <em>right action</em>.<br>That's it.</h1>
+      <p class="lede">
+        A phone number opens a WhatsApp chat with a ready-made message based
+        on lead type. A tracking number opens tracking with the right
+        carrier. An address opens navigation. A link opens in your browser.
+        And everything you copy — even if nothing was detected — is saved
+        to a local clipboard history you can search and paste back, just
+        like Windows' built-in Win+V.
+      </p>
+      <div class="stat-row">
+        <span class="stat-num old">90s</span>
+        <span class="stat-arrow">←</span>
+        <span class="stat-num new">5s</span>
+      </div>
+      <p class="stat-cap">Average time to reach out to a lead: from finding the number to hitting send</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#how">How it works ↓</a>
+        <a class="btn ghost" href="#install">Go to install</a>
+      </div>
+    </div>
+
+    <div class="mock-wrap">
+      <div>
+        <div class="mock-popup">
+          <div class="mock-head">
+            <span class="badge">📎</span>
+            <span class="t">ActionClip</span>
+            <span class="icon"></span>
+          </div>
+          <div class="mock-body">
+            <div class="mock-chip">
+              <span class="dot">✓</span>
+              <div>
+                <div class="num-label">Number detected</div>
+                <div class="num">050-1234567</div>
+              </div>
+            </div>
+            <div>
+              <div class="mock-field-label">Lead name (optional)</div>
+              <div class="mock-input" style="margin-top:4px">Dana Cohen</div>
+            </div>
+            <div>
+              <div class="mock-field-label">Message template</div>
+              <div class="mock-select" style="margin-top:4px">New lead <span>⌄</span></div>
+            </div>
+            <div class="mock-msg">Hi Dana, this is the service desk 🙂<br>I saw you left your details with us and wanted to follow up on your request…</div>
+            <div class="mock-send">Open in WhatsApp 💬</div>
+          </div>
+        </div>
+        <p class="mock-caption">The real phone popup — the richest example among the four detectors</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">The process</p>
+      <h2>Four steps, without leaving the keyboard</h2>
+      <p>The same process for every detection type — only the final action differs.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">01</div>
+        <h3>Copy</h3>
+        <p>Any text — phone, tracking number, address, link, or just plain text.</p>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <h3>Detect</h3>
+        <p>The right detector wins (phone/tracking/address/link), and normalizes the value.</p>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <h3>Popup opens</h3>
+        <p>For phone — a message template with a name. For the rest — a ready action button.</p>
+      </div>
+      <div class="step">
+        <div class="n">04</div>
+        <h3>Click, done</h3>
+        <p>WhatsApp / Maps / tracking site / the link opens — one click and that's it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="detectors" style="background:var(--surface-alt); border-block:1px solid var(--border-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">What's detected</p>
+      <h2>Four built-in detectors, plus your own custom rules</h2>
+      <p>All active by default in the desktop agent, each can be turned off individually. The browser extension currently detects phone numbers only. A copied number with a non-Israeli <span class="mono">+</span> country code now also opens WhatsApp instead of being ignored.</p>
+    </div>
+    <div class="comp-grid" style="grid-template-columns: repeat(5, 1fr);">
+      <div class="feat">
+        <span class="fi">📞</span>
+        <h3>Phone</h3>
+        <p><span class="mono">050-1234567</span> → opens WhatsApp with a message template based on lead type.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">📦</span>
+        <h3>Tracking number</h3>
+        <p><span class="mono">RR123456789IL</span> (Israel Post/UPS/DHL/FedEx) → tracking with the carrier + fallback to 17track.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🗺️</span>
+        <h3>Address</h3>
+        <p><span class="mono">12 Herzl St</span> → a Google Maps button and a Waze button.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🔗</span>
+        <h3>Single link</h3>
+        <p>Only when the copied text is <em>exclusively</em> a link → opens in the default browser.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">⚡</span>
+        <h3>Custom rules</h3>
+        <p>Define your own regex pattern → URL template (e.g. an internal order number → your CRM's lookup page) in Settings ▸ "Custom rules" — up to 30 rules, checked after the built-in detectors.</p>
+      </div>
+    </div>
+    <div class="install-note" style="margin-top:28px; max-width:640px;">
+      💡 <b>Even what isn't detected is saved.</b> Every copy is logged to a
+      local clipboard history (like Win+V) — search, filter by category,
+      and paste back with one click. See "Clipboard history" in the
+      capabilities table below.
+    </div>
+  </div>
+</section>
+
+<section id="components">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Two components</p>
+      <h2>Same experience, two entry points</h2>
+      <p>Install one component or both together — they don't depend on each other.</p>
+    </div>
+    <div class="comp-grid">
+      <div class="comp-card">
+        <div class="icon-row">
+          <span class="comp-icon">🧩</span>
+          <div>
+            <h3>Chrome extension</h3>
+            <div class="sub">For reps who work mainly from the browser</div>
+          </div>
+        </div>
+        <div class="comp-facts">
+          <div class="comp-fact"><span class="k">Detects</span><span class="v">Phone only (for now)</span></div>
+          <div class="comp-fact"><span class="k">Trigger</span><span class="v">Click the icon, or <code>Alt+Shift+P</code></span></div>
+          <div class="comp-fact"><span class="k">Best for</span><span class="v">Web-based CRM, Gmail, social profiles</span></div>
+          <div class="comp-fact"><span class="k">Install</span><span class="v">Load the folder in Chrome (Load unpacked)</span></div>
+        </div>
+        <div class="pill-row">
+          <span class="pill">No EXE file</span>
+          <span class="pill">chrome.storage.sync</span>
+        </div>
+      </div>
+      <div class="comp-card">
+        <div class="icon-row">
+          <span class="comp-icon">🖥️</span>
+          <div>
+            <h3>Desktop agent</h3>
+            <div class="sub">When the number comes from anywhere else</div>
+          </div>
+        </div>
+        <div class="comp-facts">
+          <div class="comp-fact"><span class="k">Detects</span><span class="v">Phone + tracking + address + link + your own custom rules</span></div>
+          <div class="comp-fact"><span class="k">Trigger</span><span class="v">Automatic (in the background), or <code>Ctrl+Alt+P</code> anytime</span></div>
+          <div class="comp-fact"><span class="k">Best for</span><span class="v">Excel, documents, any desktop app</span></div>
+          <div class="comp-fact"><span class="k">Install</span><span class="v">A real Setup.exe file (NSIS), standard uninstall</span></div>
+        </div>
+        <div class="pill-row">
+          <span class="pill">System tray</span>
+          <span class="pill">Recent actions quick-repeat</span>
+          <span class="pill">Clipboard history (Win+V)</span>
+          <span class="pill">Auto-starts with Windows</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" style="background:var(--surface-alt); border-block:1px solid var(--border-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Capabilities</p>
+      <h2>What's inside</h2>
+    </div>
+    <div class="feat-grid">
+      <div class="feat">
+        <span class="fi">🔍</span>
+        <h3>Number detection & normalization</h3>
+        <p>Mobile and landline, with or without a dash, <span class="mono">+972</span> or a leading zero — output is always normalized to the format WhatsApp requires.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">✍️</span>
+        <h3>Templates by lead type</h3>
+        <p>5 default templates — new lead, follow-up, reminder, and more — fully editable, with a dynamic <span class="mono">{name}</span> token.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🔁</span>
+        <h3>Duplicate-send alert</h3>
+        <p>"A message was already sent to this number 6 min ago" — not blocking, just a reminder before an accidental double send.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">📋</span>
+        <h3>WhatsApp send history + CSV</h3>
+        <p>Last 25 sends, local only. One-click export to Excel, in an encoding that supports Hebrew.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🕑</span>
+        <h3>Clipboard history (Win+V), on the agent</h3>
+        <p>Every copy is logged — not just what was detected. Search, filter by category, and paste back with one click. Open with <span class="mono">Ctrl+Alt+V</span>.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">⌨️</span>
+        <h3>Open manually, anytime</h3>
+        <p>Even without a number on the clipboard — a keyboard shortcut opens the popup with a manual entry field.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🔒</span>
+        <h3>Everything local</h3>
+        <p>No external server. The only outbound action is opening a link (WhatsApp/Maps/Waze/tracking) in the browser — including sensitive copies (passwords), which are automatically skipped from history.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="versions">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Changelog</p>
+      <h2>What changed, and why</h2>
+      <p>Full documentation in <span class="mono">CHANGELOG.md</span>. Here — the summary.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item current">
+        <div class="tl-head">
+          <span class="tl-ver">v2.5.0</span>
+          <span class="tl-date">2026-09-15</span>
+        </div>
+        <p class="tl-title">Custom action rules, international phone fallback, tray quick-repeat</p>
+        <ul class="tl-list">
+          <li><b>Custom action rules:</b> define your own regex pattern → URL template (Settings ▸ "Custom rules"), for cases the 5 built-in detectors don't cover — e.g. an internal order number opening your CRM's lookup page. Up to 30 rules, only <span class="mono">http(s)://</span> templates are honored.</li>
+          <li><b>International phone fallback:</b> a copied number with an explicit non-Israeli <span class="mono">+</span> country code now opens WhatsApp too, instead of being silently ignored. Israeli-number detection is unchanged.</li>
+          <li><b>Tray "Recent actions" submenu:</b> the last 5 actionable copies, one click to re-fire the action without reopening the full history panel.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.0.0</span>
+          <span class="tl-date">2026-09-13</span>
+        </div>
+        <p class="tl-title">Renamed — PingClip became ActionClip, new visual identity</p>
+        <ul class="tl-list">
+          <li>Full rebrand: code, installer files, icon (replacing the WhatsApp symbol, which no longer reflected a product with multiple destinations), and a new brand gradient — indigo-purple instead of green-teal, across all four app windows and this page.</li>
+          <li>Past data (templates/settings/history) doesn't migrate automatically — the local data file was renamed along with the product.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.4.1</span>
+          <span class="tl-date">2026-09-13</span>
+          <span class="tag-fix">Root-cause fix</span>
+        </div>
+        <p class="tl-title">Desktop agent — clipboard detection silently broken since 1.3.1</p>
+        <ul class="tl-list">
+          <li><b>Root cause found:</b> Electron 44 made <span class="mono">clipboard.readText()</span> Promise-based; the code called it as if synchronous, so every check actually got a Promise object instead of a string — 1.3.1 "fixed" this in a way that stopped the crash, but made detection fail completely and silently.</li>
+          <li>Fixed with a real <span class="mono">await</span> on every clipboard call, and verified directly on the same Electron version + a real install on the machine.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.4.0</span>
+          <span class="tl-date">2026-09-13</span>
+        </div>
+        <p class="tl-title">Full clipboard history (Win+V) <span class="tag-fix">fix</span></p>
+        <ul class="tl-list">
+          <li>New copy-history panel — every copied text is logged, not just what was detected. Search, filter by category, paste back.</li>
+          <li><b>Fixed:</b> Israel Post tracking numbers (9 digits) were being swallowed by landline phone detection since 1.3.0 — detector check order is now reversed (general before phone).</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.3.1</span>
+          <span class="tl-date">2026-09-11</span>
+        </div>
+        <p class="tl-title">Crash fix (partial — the full diagnosis came only in 1.4.1)</p>
+        <ul class="tl-list">
+          <li>Non-string input from the clipboard caused a repeating error dialog every 800ms. Stopped, but the root cause (the Promise API) was only correctly diagnosed later.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.3.0</span>
+          <span class="tl-date">2026-09-10</span>
+        </div>
+        <p class="tl-title">ActionClip engine — tracking, address, link</p>
+        <ul class="tl-list">
+          <li>Three new detectors in the desktop agent, each with its own compact action popup. Settings ▸ "Detection types" to toggle each detector independently.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">packaging</span>
+          <span class="tl-date">2026-09-07</span>
+        </div>
+        <p class="tl-title">Folder cleanup</p>
+        <ul class="tl-list">
+          <li>Removed the combined <span class="mono">Setup.exe</span> that also installed the Chrome extension — Chrome doesn't allow silent extension installs anyway, so the wizard wasn't saving a real step.</li>
+          <li>Cleaned up duplicates: an old installer version and an intermediate build folder of about 370MB.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.2.0</span>
+          <span class="tl-date">2026-09-07</span>
+        </div>
+        <p class="tl-title">Manual open, CSV export <span class="tag-fix">critical fix</span></p>
+        <ul class="tl-list">
+          <li><b>Fixed:</b> broken Hebrew encoding in the previous installer wizard — WhatsApp text appeared as gibberish. Only caught by checking Unicode code points, not at compile time.</li>
+          <li>Manual popup open anytime (<span class="mono">Ctrl+Alt+P</span> / tray menu), with a manual number-entry field in the desktop agent.</li>
+          <li>Export send history to CSV, and the version number is shown in settings.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.1.0</span>
+          <span class="tl-date">2026-09-07</span>
+        </div>
+        <p class="tl-title">Modern design and quality improvements</p>
+        <ul class="tl-list">
+          <li>Full redesign: gradient banner, cards, dark/light mode.</li>
+          <li>Duplicate-send alert, local history, auto-start with Windows.</li>
+          <li>First graphical installer for the desktop agent.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.0.0</span>
+          <span class="tl-date">2026-09-07</span>
+        </div>
+        <p class="tl-title">First release</p>
+        <ul class="tl-list">
+          <li>Detection and normalization of Israeli phone numbers, 5 message templates by lead type.</li>
+          <li>Two independent launch components: Chrome extension and desktop agent.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install" style="background:var(--surface-alt); border-block:1px solid var(--border-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Installation</p>
+      <h2>Getting started</h2>
+      <p>Choose one component or both — each stands on its own. Full guide + troubleshooting: <span class="mono">README.md</span>.</p>
+    </div>
+    <div class="install-grid">
+      <div class="install-card">
+        <h3>🧩 Chrome extension</h3>
+        <span class="path">chrome-extension/</span>
+        <ol class="install-steps">
+          <li>In Chrome, open <span class="mono">chrome://extensions</span></li>
+          <li>Enable Developer mode (top right)</li>
+          <li>Click Load unpacked, and select the folder</li>
+          <li>Pin the ActionClip icon to the toolbar</li>
+        </ol>
+        <p class="install-note">About 30 seconds, once per device. Updating: same steps, or click refresh on the extension card.</p>
+      </div>
+      <div class="install-card">
+        <h3>🖥️ Desktop agent</h3>
+        <span class="path">ActionClip-Setup-2.5.0.exe</span>
+        <ol class="install-steps">
+          <li>Run the Setup file (per-user install, no admin rights needed)</li>
+          <li>Go through the standard Windows wizard steps</li>
+          <li>The agent launches automatically — icon in the system tray</li>
+        </ol>
+        <p class="install-note">Windows may show a SmartScreen warning for unsigned internal software — click "More info" → "Run anyway".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="background:var(--surface-alt); border-block:1px solid var(--border-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">FAQ</p>
+      <h2>Before you install</h2>
+    </div>
+    <div class="install-grid">
+      <div class="install-card">
+        <h3>Is my data sent to the cloud?</h3>
+        <p class="install-note">No. There's no ActionClip server at all — no analytics, no telemetry, no AI calls. The only thing that leaves the device is opening a <span class="mono">wa.me</span> link in the browser, exactly like typing the URL yourself. Full details: <span class="mono">PRIVACY.md</span>.</p>
+      </div>
+      <div class="install-card">
+        <h3>Do I need administrator rights?</h3>
+        <p class="install-note">Not required — the installer automatically falls back to a per-user install under <span class="mono">%LOCALAPPDATA%</span> if there are no admin rights. The Chrome extension needs no permissions beyond Chrome's standard extension-load confirmation.</p>
+      </div>
+      <div class="install-card">
+        <h3>Where are templates and history stored?</h3>
+        <p class="install-note">Locally only: the agent stores data in <span class="mono">%APPDATA%\ActionClip</span>; the extension stores data in <span class="mono">chrome.storage</span> (synced through your own Google account, not an ActionClip account).</p>
+      </div>
+      <div class="install-card">
+        <h3>What happens if I close the agent window?</h3>
+        <p class="install-note">The agent keeps running in the background (system tray icon) to detect copies — the X doesn't quit the app. To actually quit: right-click the tray icon → Exit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>ActionClip · built for the Passportugo sales desk</span>
+    <span class="paths">
+      <span>Spec: <code>SPEC.md</code></span>
+      <span>User guide: <code>USER-GUIDE.md</code></span>
+      <span>Changelog: <code>CHANGELOG.md</code></span>
+      <span>Privacy policy: <code>PRIVACY.md</code></span>
+    </span>
+  </div>
+  <div class="wrap" style="margin-top:6px;font-size:11px;opacity:0.55">© 2024–2026 ActionClip. All rights reserved.</div>
+</footer>
+
+</div>
+
+<!-- ============================== HEBREW ============================== -->
+<div class="lang-he" dir="rtl" lang="he">
+
+<header class="site">
+  <div class="site-nav">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="6.5" y="5" width="11" height="15" rx="2.2" fill="none" stroke="#fff" stroke-width="1.4"/><rect x="9.5" y="3.5" width="5" height="2.6" rx="1" fill="#fff"/><path d="M13.2 8.5 L8.8 14.5 L11.3 14.5 L10 19.5 L15.2 12.7 L12.6 12.7 Z" fill="#fde68a"/></svg>
+      </span>
+      <span class="brand-word">ActionClip</span>
+      <span class="ver-badge">v2.5.0</span>
+    </div>
+    <nav class="links">
+      <a href="#how-he">איך זה עובד</a>
+      <a href="#detectors-he">מה מזהים</a>
+      <a href="#components-he">רכיבים</a>
+      <a href="#features-he">יכולות</a>
+      <a href="#versions-he">גרסאות</a>
+      <a href="#install-he">התקנה</a>
+    </nav>
+    <button class="lang-toggle" onclick="setSiteLang('en')" aria-label="Switch to English">🌐 English</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">כלי פנימי · מוקד המכירות של פספורטוגו</p>
+      <h1>מעתיקים משהו.<br>מקבלים את <em>הפעולה הנכונה</em>.<br>זהו.</h1>
+      <p class="lede">
+        מספר טלפון פותח שיחת WhatsApp עם הודעה מוכנה לפי סוג הליד. מספר
+        מעקב משלוח פותח מעקב אצל החברה המשלחת. כתובת פותחת ניווט. קישור
+        נפתח בדפדפן. וכל מה שמעתיקים — גם אם לא זוהה כלום — נשמר בהיסטוריית
+        העתקות מקומית שאפשר לחפש ולהדביק חזרה, כמו ה-Win+V המובנה של
+        Windows.
+      </p>
+      <div class="stat-row">
+        <span class="stat-num old">90s</span>
+        <span class="stat-arrow">←</span>
+        <span class="stat-num new">5s</span>
+      </div>
+      <p class="stat-cap">זמן ממוצע לפנייה לליד: מחיפוש המספר ועד לחיצת שליחה</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#how-he">איך זה עובד ↓</a>
+        <a class="btn ghost" href="#install-he">להתקנה</a>
+      </div>
+    </div>
+
+    <div class="mock-wrap">
+      <div>
+        <div class="mock-popup">
+          <div class="mock-head">
+            <span class="badge">📎</span>
+            <span class="t">ActionClip</span>
+            <span class="icon"></span>
+          </div>
+          <div class="mock-body">
+            <div class="mock-chip">
+              <span class="dot">✓</span>
+              <div>
+                <div class="num-label">מספר שזוהה</div>
+                <div class="num">050-1234567</div>
+              </div>
+            </div>
+            <div>
+              <div class="mock-field-label">שם הליד (אופציונלי)</div>
+              <div class="mock-input" style="margin-top:4px">דנה כהן</div>
+            </div>
+            <div>
+              <div class="mock-field-label">תבנית הודעה</div>
+              <div class="mock-select" style="margin-top:4px">ליד חדש <span>⌄</span></div>
+            </div>
+            <div class="mock-msg">היי דנה, מדבר/ת ממוקד השירות 🙂<br>ראיתי שהשארת פרטים אצלנו ורציתי לחזור אליך לגבי הבקשה שלך…</div>
+            <div class="mock-send">פתח בוואטסאפ 💬</div>
+          </div>
+        </div>
+        <p class="mock-caption">חלונית הטלפון האמיתית — הדוגמה העשירה ביותר מבין ארבעת הגלאים</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how-he">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">התהליך</p>
+      <h2>ארבעה שלבים, בלי לעזוב את המקלדת</h2>
+      <p>אותו תהליך בדיוק לכל סוגי הזיהוי — רק הפעולה בסוף שונה.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">01</div>
+        <h3>מעתיקים</h3>
+        <p>כל טקסט — טלפון, מספר מעקב, כתובת, קישור, או סתם טקסט רגיל.</p>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <h3>מזהים</h3>
+        <p>הגלאי המתאים מנצח (טלפון/מעקב/כתובת/קישור), ומנרמל את הערך.</p>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <h3>נפתחת חלונית</h3>
+        <p>לטלפון — תבנית הודעה עם שם. לשאר — כפתור פעולה מוכן.</p>
+      </div>
+      <div class="step">
+        <div class="n">04</div>
+        <h3>לוחצים, נגמר</h3>
+        <p>וואטסאפ / מפות / אתר מעקב / הקישור נפתח — לחיצה אחת וזהו.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="detectors-he" style="background:var(--surface-alt); border-block:1px solid var(--border-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">מה מזהים</p>
+      <h2>ארבעה גלאים מובנים, ועוד כללים משלך</h2>
+      <p>כולם פעילים כברירת מחדל בסוכן שולחן העבודה, כל אחד ניתן לכיבוי בנפרד. התוסף לדפדפן מזהה טלפון בלבד כרגע. מספר שהועתק עם קידומת <span class="mono">+</span> בינלאומית שאינה ישראלית פותח כעת גם הוא WhatsApp, במקום להתעלם ממנו.</p>
+    </div>
+    <div class="comp-grid" style="grid-template-columns: repeat(5, 1fr);">
+      <div class="feat">
+        <span class="fi">📞</span>
+        <h3>טלפון</h3>
+        <p><span class="mono">050-1234567</span> → פתיחת WhatsApp עם תבנית הודעה לפי סוג ליד.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">📦</span>
+        <h3>מספר מעקב</h3>
+        <p><span class="mono">RR123456789IL</span> (דואר ישראל/UPS/DHL/FedEx) → מעקב אצל החברה + נפילה ל-17track.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🗺️</span>
+        <h3>כתובת</h3>
+        <p><span class="mono">רחוב הרצל 12</span> → כפתור Google Maps וכפתור Waze.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🔗</span>
+        <h3>קישור בודד</h3>
+        <p>רק כשההעתקה היא <em>אך ורק</em> קישור → פתיחה בדפדפן ברירת המחדל.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">⚡</span>
+        <h3>כללים מותאמים אישית</h3>
+        <p>הגדרת תבנית regex משלך → כתובת URL (הגדרות ▸ "כללים מותאמים אישית") — עד 30 כללים, נבדקים אחרי הגלאים המובנים.</p>
+      </div>
+    </div>
+    <div class="install-note" style="margin-top:28px; max-width:640px;">
+      💡 <b>גם מה שלא זוהה נשמר.</b> כל העתקה מתועדת בהיסטוריית לוח מקומית
+      (כמו Win+V) - חיפוש, סינון לפי קטגוריה, והדבקה חוזרת בלחיצה. ראו
+      "היסטוריית לוח" בטבלת היכולות למטה.
+    </div>
+  </div>
+</section>
+
+<section id="components-he">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">שני רכיבים</p>
+      <h2>אותה חוויה, שתי נקודות כניסה</h2>
+      <p>אפשר להתקין רכיב אחד או את שניהם יחד — הם לא תלויים זה בזה.</p>
+    </div>
+    <div class="comp-grid">
+      <div class="comp-card">
+        <div class="icon-row">
+          <span class="comp-icon">🧩</span>
+          <div>
+            <h3>תוסף Chrome</h3>
+            <div class="sub">לנציג שעובד בעיקר מתוך הדפדפן</div>
+          </div>
+        </div>
+        <div class="comp-facts">
+          <div class="comp-fact"><span class="k">מזהה</span><span class="v">טלפון בלבד (כרגע)</span></div>
+          <div class="comp-fact"><span class="k">טריגר</span><span class="v">לחיצה על האייקון, או <code>Alt+Shift+P</code></span></div>
+          <div class="comp-fact"><span class="k">מתאים ל</span><span class="v">CRM מבוסס-ווב, Gmail, פרופילים ברשתות</span></div>
+          <div class="comp-fact"><span class="k">התקנה</span><span class="v">טעינת התיקייה ב-Chrome (Load unpacked)</span></div>
+        </div>
+        <div class="pill-row">
+          <span class="pill">ללא קובץ EXE</span>
+          <span class="pill">chrome.storage.sync</span>
+        </div>
+      </div>
+      <div class="comp-card">
+        <div class="icon-row">
+          <span class="comp-icon">🖥️</span>
+          <div>
+            <h3>סוכן שולחן עבודה</h3>
+            <div class="sub">כשהמספר מגיע מכל מקום אחר</div>
+          </div>
+        </div>
+        <div class="comp-facts">
+          <div class="comp-fact"><span class="k">מזהה</span><span class="v">טלפון + מעקב + כתובת + קישור + כללים מותאמים אישית</span></div>
+          <div class="comp-fact"><span class="k">טריגר</span><span class="v">אוטומטי (ברקע), או <code>Ctrl+Alt+P</code> בכל רגע</span></div>
+          <div class="comp-fact"><span class="k">מתאים ל</span><span class="v">Excel, מסמכים, כל אפליקציה שולחנית</span></div>
+          <div class="comp-fact"><span class="k">התקנה</span><span class="v">קובץ Setup.exe אמיתי (NSIS), הסרה רגילה</span></div>
+        </div>
+        <div class="pill-row">
+          <span class="pill">מגש המערכת</span>
+          <span class="pill">תפריט פעולות אחרונות</span>
+          <span class="pill">היסטוריית לוח (Win+V)</span>
+          <span class="pill">הפעלה אוטומטית עם Windows</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features-he" style="background:var(--surface-alt); border-block:1px solid var(--border-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">יכולות</p>
+      <h2>מה יש בפנים</h2>
+    </div>
+    <div class="feat-grid">
+      <div class="feat">
+        <span class="fi">🔍</span>
+        <h3>זיהוי ונירמול מספרים</h3>
+        <p>נייד וקווי, עם או בלי מקף, <span class="mono">+972</span> או אפס מוביל — הפלט תמיד מנורמל לפורמט ש-WhatsApp דורש.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">✍️</span>
+        <h3>תבניות לפי סוג ליד</h3>
+        <p>5 תבניות ברירת מחדל — ליד חדש, פולואפ, תזכורת ועוד — לגמרי ניתנות לעריכה, עם טוקן <span class="mono">{שם}</span> דינמי.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🔁</span>
+        <h3>התרעת כפילות שליחה</h3>
+        <p>"כבר נשלחה הודעה למספר הזה לפני 6 דק'" — לא חוסם, רק מזכיר לפני שליחה כפולה בטעות.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">📋</span>
+        <h3>היסטוריית שליחות WhatsApp + CSV</h3>
+        <p>25 השליחות האחרונות, מקומי בלבד. ייצוא ל-Excel בלחיצה, בקידוד שתומך בעברית.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🕑</span>
+        <h3>היסטוריית לוח (Win+V), בסוכן</h3>
+        <p>כל העתקה נרשמת — לא רק מה שזוהה. חיפוש, סינון לפי קטגוריה, והדבקה חוזרת בלחיצה. פתיחה עם <span class="mono">Ctrl+Alt+V</span>.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">⌨️</span>
+        <h3>פתיחה ידנית בכל רגע</h3>
+        <p>גם בלי מספר בלוח ההעתקה — קיצור מקלדת פותח את החלונית עם שדה הזנה ידני.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">🔒</span>
+        <h3>הכל מקומי</h3>
+        <p>אין שרת חיצוני. הפעולה היחידה כלפי חוץ היא פתיחת קישור (WhatsApp/Maps/Waze/מעקב) בדפדפן — כולל העתקות רגישות (סיסמאות) שמדולגות אוטומטית מההיסטוריה.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="versions-he">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">יומן שינויים</p>
+      <h2>מה השתנה, ולמה</h2>
+      <p>תיעוד מלא ב-<span class="mono">CHANGELOG.md</span>. כאן — התמצית.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item current">
+        <div class="tl-head">
+          <span class="tl-ver">v2.5.0</span>
+          <span class="tl-date">2026-09-15</span>
+        </div>
+        <p class="tl-title">כללים מותאמים אישית, תמיכה בטלפונים בינלאומיים, תפריט מגש לפעולות אחרונות</p>
+        <ul class="tl-list">
+          <li><b>כללים מותאמים אישית:</b> הגדרת תבנית regex משלך → כתובת URL (הגדרות ▸ "כללים מותאמים אישית"), למקרים שחמשת הגלאים המובנים לא מכסים — למשל מספר הזמנה פנימי שפותח את עמוד ה-CRM. עד 30 כללים, רק תבניות <span class="mono">http(s)://</span> מאושרות.</li>
+          <li><b>תמיכה בטלפונים בינלאומיים:</b> מספר שהועתק עם קידומת <span class="mono">+</span> בינלאומית שאינה ישראלית פותח כעת גם הוא WhatsApp, במקום להתעלם ממנו בשקט. זיהוי מספרים ישראליים לא השתנה.</li>
+          <li><b>תפריט מגש "פעולות אחרונות":</b> חמש ההעתקות האחרונות עם פעולה מזוהה, לחיצה אחת להפעלה חוזרת בלי לפתוח את פאנל ההיסטוריה המלא.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.0.0</span>
+          <span class="tl-date">2026-09-13</span>
+        </div>
+        <p class="tl-title">שינוי שם — PingClip הפך ל-ActionClip, זהות ויזואלית חדשה</p>
+        <ul class="tl-list">
+          <li>מיתוג מלא: קוד, קבצי התקנה, אייקון (במקום סמל WhatsApp שכבר לא שיקף מוצר עם כמה יעדים), וגרדיאנט מותג חדש — אינדיגו-סגול במקום ירוק-טורקיז, בכל ארבעת חלונות האפליקציה ובדף הזה.</li>
+          <li>נתוני העבר (תבניות/הגדרות/היסטוריה) לא עוברים אוטומטית — קובץ הנתונים המקומי שינה שם יחד עם המוצר.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.4.1</span>
+          <span class="tl-date">2026-09-13</span>
+          <span class="tag-fix">תיקון שורש</span>
+        </div>
+        <p class="tl-title">סוכן שולחן העבודה — זיהוי הלוח לא עבד בשקט מאז 1.3.1</p>
+        <ul class="tl-list">
+          <li><b>נמצא הגורם האמיתי:</b> Electron 44 הפך את <span class="mono">clipboard.readText()</span> ל-Promise-based; הקוד קרא לו כאילו הוא סינכרוני, כך שבפועל התקבל אובייקט Promise במקום מחרוזת בכל בדיקה — 1.3.1 "תיקן" את זה בצורה שעצרה את הקריסה, אבל גרמה לזיהוי להיכשל בשקט לחלוטין.</li>
+          <li>תוקן עם <span class="mono">await</span> אמיתי על כל קריאות הלוח, ואומת ישירות על אותה גרסת Electron + התקנה אמיתית על המכונה.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.4.0</span>
+          <span class="tl-date">2026-09-13</span>
+        </div>
+        <p class="tl-title">היסטוריית לוח מלאה (Win+V) <span class="tag-fix">תיקון</span></p>
+        <ul class="tl-list">
+          <li>פאנל היסטוריית העתקות חדש — כל טקסט שמועתק נרשם, לא רק מה שזוהה. חיפוש, סינון לפי קטגוריה, הדבקה חוזרת.</li>
+          <li><b>תוקן:</b> מספרי מעקב דואר ישראל (9 ספרות) נבלעו בטעות ע"י זיהוי טלפון קווי מאז 1.3.0 — סדר בדיקת הגלאים הפוך עכשיו (כלליים לפני טלפון).</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.3.1</span>
+          <span class="tl-date">2026-09-11</span>
+        </div>
+        <p class="tl-title">תיקון קריסה (חלקי — האבחון המלא הגיע רק ב-1.4.1)</p>
+        <ul class="tl-list">
+          <li>קלט לא-מחרוזתי מהלוח גרם ל-dialog שגיאה חוזר כל 800ms. נעצר, אך שורש הבעיה (Promise API) אובחן נכון רק מאוחר יותר.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.3.0</span>
+          <span class="tl-date">2026-09-10</span>
+        </div>
+        <p class="tl-title">מנוע ActionClip — מעקב, כתובת, קישור</p>
+        <ul class="tl-list">
+          <li>שלושה גלאים חדשים בסוכן שולחן העבודה, כל אחד עם חלונית פעולה קומפקטית משלו. הגדרות ▸ "סוגי זיהוי" לכיבוי עצמאי לכל גלאי.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">packaging</span>
+          <span class="tl-date">2026-09-07</span>
+        </div>
+        <p class="tl-title">סדר בתיקייה</p>
+        <ul class="tl-list">
+          <li>הוסר קובץ ה-<span class="mono">Setup.exe</span> המשולב שהתקין גם את תוסף ה-Chrome — כרום ממילא לא מאפשר התקנה שקטה לתוסף, כך שהאשף לא חסך שלב אמיתי.</li>
+          <li>נוקו כפילויות: גרסת התקנה ישנה ותיקיית build ביניים של כ-370MB.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.2.0</span>
+          <span class="tl-date">2026-09-07</span>
+        </div>
+        <p class="tl-title">פתיחה ידנית, ייצוא CSV <span class="tag-fix">תיקון קריטי</span></p>
+        <ul class="tl-list">
+          <li><b>תוקן:</b> קידוד עברית שבור באשף ההתקנה הקודם — טקסט הוואטסאפ הופיע כג'יבריש. התגלה רק בבדיקת קוד-נקודות יוניקוד, לא בקומפילציה.</li>
+          <li>פתיחה ידנית של החלונית בכל רגע (<span class="mono">Ctrl+Alt+P</span> / תפריט המגש), עם שדה הזנת מספר ידני בסוכן שולחן העבודה.</li>
+          <li>ייצוא היסטוריית שליחות ל-CSV, ומספר גרסה מוצג בהגדרות.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.1.0</span>
+          <span class="tl-date">2026-09-07</span>
+        </div>
+        <p class="tl-title">עיצוב מודרני ושיפורי איכות</p>
+        <ul class="tl-list">
+          <li>עיצוב מחדש מלא: באנר גרדיאנט, כרטיסים, מצב כהה/בהיר.</li>
+          <li>התרעת כפילות שליחה, היסטוריה מקומית, הפעלה אוטומטית עם Windows.</li>
+          <li>קובץ התקנה גרפי ראשון לסוכן שולחן העבודה.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v1.0.0</span>
+          <span class="tl-date">2026-09-07</span>
+        </div>
+        <p class="tl-title">גרסה ראשונה</p>
+        <ul class="tl-list">
+          <li>זיהוי ונירמול מספרי טלפון ישראליים, 5 תבניות הודעה לפי סוג ליד.</li>
+          <li>שני רכיבי הפעלה עצמאיים: תוסף Chrome וסוכן שולחן עבודה.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install-he" style="background:var(--surface-alt); border-block:1px solid var(--border-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">התקנה</p>
+      <h2>איך מתחילים</h2>
+      <p>בוחרים רכיב אחד או את שניהם — כל אחד עומד בפני עצמו. מדריך מפורט + פתרון תקלות: <span class="mono">README.md</span>.</p>
+    </div>
+    <div class="install-grid">
+      <div class="install-card">
+        <h3>🧩 תוסף Chrome</h3>
+        <span class="path">chrome-extension/</span>
+        <ol class="install-steps">
+          <li>ב-Chrome, פותחים <span class="mono">chrome://extensions</span></li>
+          <li>מפעילים Developer mode (למעלה מימין)</li>
+          <li>לוחצים Load unpacked, ובוחרים את התיקייה</li>
+          <li>מצמידים את אייקון ActionClip לסרגל הכלים</li>
+        </ol>
+        <p class="install-note">כ-30 שניות, פעם אחת למכשיר. עדכון גרסה: אותם שלבים, או לחיצה על רענון בכרטיס התוסף.</p>
+      </div>
+      <div class="install-card">
+        <h3>🖥️ סוכן שולחן עבודה</h3>
+        <span class="path">ActionClip-Setup-2.5.0.exe</span>
+        <ol class="install-steps">
+          <li>מריצים את קובץ ה-Setup (התקנה לפי משתמש, ללא הרשאות מנהל)</li>
+          <li>עוברים את שלבי האשף הרגילים של Windows</li>
+          <li>הסוכן עולה אוטומטית — אייקון במגש המערכת</li>
+        </ol>
+        <p class="install-note">Windows עשוי להציג אזהרת SmartScreen לתוכנה פנימית לא חתומה — "More info" ← "Run anyway".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq-he" style="background:var(--surface-alt); border-block:1px solid var(--border-soft);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">שאלות נפוצות</p>
+      <h2>לפני שמתקינים</h2>
+    </div>
+    <div class="install-grid">
+      <div class="install-card">
+        <h3>האם המידע שלי נשלח לענן?</h3>
+        <p class="install-note">לא. אין שרת של ActionClip בכלל — לא analytics, לא telemetry, לא קריאת AI. הפעולה היחידה שיוצאת מהמכשיר היא פתיחת קישור <span class="mono">wa.me</span> בדפדפן, בדיוק כמו הקלדת ה-URL בעצמך. פירוט מלא: <span class="mono">PRIVACY.md</span>.</p>
+      </div>
+      <div class="install-card">
+        <h3>האם צריך הרשאות מנהל (Admin)?</h3>
+        <p class="install-note">לא חובה — המתקין נופל אוטומטית להתקנה per-user ב-<span class="mono">%LOCALAPPDATA%</span> אם אין הרשאות. תוסף ה-Chrome לא דורש הרשאות כלל מעבר לאישור הרגיל של Chrome בטעינת תוסף.</p>
+      </div>
+      <div class="install-card">
+        <h3>איפה נשמרות התבניות וההיסטוריה?</h3>
+        <p class="install-note">מקומית בלבד: הסוכן שומר ב-<span class="mono">%APPDATA%\ActionClip</span>; התוסף שומר ב-<span class="mono">chrome.storage</span> (מסונכרן דרך חשבון Google שלך, לא חשבון ActionClip).</p>
+      </div>
+      <div class="install-card">
+        <h3>מה קורה אם סוגרים את חלון הסוכן?</h3>
+        <p class="install-note">הסוכן ממשיך לרוץ ברקע (אייקון במגש המערכת) כדי לזהות העתקות — X לא יוצא מהתוכנה. יציאה אמיתית: קליק ימני על אייקון המגש ← יציאה.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>ActionClip · נבנה עבור מוקד המכירות של פספורטוגו</span>
+    <span class="paths">
+      <span>מסמך אפיון: <code>SPEC.md</code></span>
+      <span>מדריך שימוש: <code>USER-GUIDE.md</code></span>
+      <span>יומן שינויים: <code>CHANGELOG.md</code></span>
+      <span>מדיניות פרטיות: <code>PRIVACY.md</code></span>
+    </span>
+  </div>
+  <div class="wrap" style="margin-top:6px;font-size:11px;opacity:0.55">© 2024–2026 ActionClip. All rights reserved.</div>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  function setSiteLang(lang){
+    var html = document.documentElement;
+    html.setAttribute('data-lang', lang);
+    html.setAttribute('lang', lang === 'he' ? 'he' : 'en');
+    html.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
+    try { localStorage.setItem('actionclip_site_lang', lang); } catch(e){}
+  }
+  window.setSiteLang = setSiteLang;
+  var saved = null;
+  try { saved = localStorage.getItem('actionclip_site_lang'); } catch(e){}
+  setSiteLang(saved === 'he' ? 'he' : 'en');
+})();
+</script>
+
+</body>
+</html>

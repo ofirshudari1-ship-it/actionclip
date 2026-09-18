@@ -1,0 +1,98 @@
+{
+  "name": "actionclip",
+  "version": "2.5.6",
+  "description": "ActionClip desktop agent - a full clipboard-history manager (like Windows' own Win+V) that also pops up a one-click action for what you just copied: phone -> WhatsApp, tracking number -> shipment tracking, address -> navigation, link -> open.",
+  "private": true,
+  "main": "src/main.js",
+  "author": "ActionClip",
+  "scripts": {
+    "start": "electron .",
+    "icons": "node build-resources/generate-installer-header.cjs",
+    "dist": "electron-builder --win nsis",
+    "test": "jest --colors",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
+    "electron": "^44.0.0",
+    "electron-builder": "^26.0.0",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "moduleNameMapper": {
+      "^electron$": "<rootDir>/tests/__mocks__/electron.js",
+      "^electron-store$": "<rootDir>/tests/__mocks__/electron-store.js"
+    }
+  },
+  "build": {
+    "appId": "com.actionclip.app",
+    "productName": "ActionClip",
+    "copyright": "Copyright © 2024-2026 ActionClip",
+    "asar": true,
+    "compression": "maximum",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build-resources"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "ofirshudari1-ship-it",
+      "repo": "actionclip"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/app.ico",
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerHeaderIcon": "assets/app.ico",
+      "installerIcon": "assets/app.ico",
+      "uninstallerIcon": "assets/app.ico",
+      "installerHeader": "build-resources/installerHeader.bmp",
+      "installerSidebar": "build-resources/installer-sidebar.bmp",
+      "uninstallerSidebar": "build-resources/installer-sidebar.bmp",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "menuCategory": "ActionClip",
+      "shortcutName": "ActionClip",
+      "license": "build-resources/license.txt",
+      "artifactName": "ActionClip-Setup-${version}.exe",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "displayLanguageSelector": true,
+      "installerLanguages": [
+        "en_US",
+        "he_IL"
+      ],
+      "language": "1033",
+      "include": "build-resources/installer.nsh"
+    }
+  },
+  "allowScripts": {
+    "electron@44.2.0": true,
+    "electron-winstaller@5.4.0": true
+  }
+}

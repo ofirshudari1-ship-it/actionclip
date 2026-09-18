@@ -1,0 +1,52 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "color": {
+    "brand-start":    { "$value": "#6366f1", "$type": "color" },
+    "brand-end":      { "$value": "#a855f7", "$type": "color" },
+    "brand-dark":     { "$value": "#3730a3", "$type": "color" },
+    "dark": {
+      "bg-primary":   { "$value": "#0f172a", "$type": "color" },
+      "bg-secondary": { "$value": "#1e293b", "$type": "color" },
+      "text-primary": { "$value": "#f1f5f9", "$type": "color" },
+      "text-secondary":{ "$value": "#94a3b8", "$type": "color" },
+      "border":       { "$value": "#334155", "$type": "color" }
+    },
+    "light": {
+      "bg-primary":   { "$value": "#f8fafc", "$type": "color" },
+      "bg-secondary": { "$value": "#ffffff", "$type": "color" },
+      "text-primary": { "$value": "#0f172a", "$type": "color" },
+      "text-secondary":{ "$value": "#64748b", "$type": "color" },
+      "border":       { "$value": "#e2e8f0", "$type": "color" }
+    },
+    "success": { "$value": "#22c55e", "$type": "color" },
+    "warning": { "$value": "#f59e0b", "$type": "color" },
+    "danger":  { "$value": "#ef4444", "$type": "color" }
+  },
+  "spacing": {
+    "xs":  { "$value": "4px",  "$type": "dimension" },
+    "sm":  { "$value": "8px",  "$type": "dimension" },
+    "md":  { "$value": "12px", "$type": "dimension" },
+    "lg":  { "$value": "16px", "$type": "dimension" },
+    "xl":  { "$value": "24px", "$type": "dimension" },
+    "2xl": { "$value": "32px", "$type": "dimension" }
+  },
+  "borderRadius": {
+    "sm":   { "$value": "6px",  "$type": "dimension" },
+    "md":   { "$value": "8px",  "$type": "dimension" },
+    "lg":   { "$value": "12px", "$type": "dimension" },
+    "full": { "$value": "9999px","$type": "dimension" }
+  },
+  "motion": {
+    "fast":   { "$value": "150ms ease", "$type": "other" },
+    "normal": { "$value": "200ms ease", "$type": "other" },
+    "slow":   { "$value": "300ms ease", "$type": "other" }
+  },
+  "fontSize": {
+    "xs": { "$value": "11px", "$type": "dimension" },
+    "sm": { "$value": "12px", "$type": "dimension" },
+    "md": { "$value": "13px", "$type": "dimension" },
+    "lg": { "$value": "14px", "$type": "dimension" },
+    "xl": { "$value": "16px", "$type": "dimension" },
+    "2xl":{ "$value": "18px", "$type": "dimension" }
+  }
+}

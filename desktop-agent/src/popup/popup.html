@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
+<title>ActionClip</title>
+<link rel="stylesheet" href="popup.css">
+<script src="../lib/i18n-renderer.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="header-brand">
+        <span class="header-logo">📎</span>
+        <span class="title" data-i18n="popup.title">ActionClip</span>
+      </div>
+      <div class="header-actions">
+        <button id="settingsBtn" class="icon-btn" data-i18n-title="popup.settings" title="הגדרות">⚙</button>
+        <button id="closeBtn" class="icon-btn" data-i18n-title="popup.close" title="סגור">✕</button>
+      </div>
+    </header>
+
+    <div class="body">
+
+      <!-- Phone detected -->
+      <section id="phoneFoundBlock" class="phone-row hidden">
+        <span class="badge">✓</span>
+        <div class="phone-text">
+          <span class="phone-label" data-i18n="popup.detected">מספר שזוהה</span>
+          <span id="phoneDisplay" class="phone-value" dir="ltr"></span>
+        </div>
+      </section>
+
+      <!-- Phone missing -->
+      <section id="phoneMissingBlock" class="hint-box hidden">
+        <div class="hint-text">
+          <span>📞</span>
+          <span data-i18n="popup.phoneMissing">הדבק/הקלד מספר טלפון:</span>
+        </div>
+        <div class="manual-row">
+          <input id="manualPhone" type="text" placeholder="050-1234567" dir="ltr">
+          <button id="checkManualBtn" class="btn secondary small" data-i18n="popup.check">בדוק</button>
+        </div>
+      </section>
+
+      <!-- Duplicate warning -->
+      <section id="dupWarningBlock" class="dup-warning hidden">
+        <span>🔁</span>
+        <span id="dupWarningText"></span>
+        <button id="dupConfirmBtn" class="btn small secondary" data-i18n="popup.sendAnyway">שלח בכל זאת</button>
+      </section>
+
+      <!-- Lead fields -->
+      <div class="fields-grid">
+        <div class="field-group">
+          <label class="field-label" for="nameInput" data-i18n="popup.name">שם</label>
+          <input id="nameInput" type="text" placeholder="ישראל ישראלי">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="roleInput" data-i18n="popup.role">תפקיד</label>
+          <input id="roleInput" type="text" placeholder="מנהל מכירות">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="sourceSelect" data-i18n="popup.source">מקור</label>
+          <select id="sourceSelect">
+            <option value="LinkedIn" data-i18n="popup.source.linkedin">LinkedIn</option>
+            <option value="Facebook" data-i18n="popup.source.facebook">Facebook</option>
+            <option value="Instagram" data-i18n="popup.source.instagram">Instagram</option>
+            <option value="WhatsApp" data-i18n="popup.source.whatsapp">WhatsApp נכנס</option>
+            <option value="הפניה" data-i18n="popup.source.referral">הפניה</option>
+            <option value="אחר" data-i18n="popup.source.other">אחר</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- WhatsApp template (shown only when WhatsApp channel active) -->
+      <div id="whatsappSection" class="wa-section">
+        <div class="field-group">
+          <label class="field-label" for="templateSelect" data-i18n="popup.template">תבנית הודעה</label>
+          <select id="templateSelect"></select>
+        </div>
+        <div class="field-group grow">
+          <label class="field-label" for="messageArea" data-i18n="popup.message">הודעה</label>
+          <textarea id="messageArea" rows="4"></textarea>
+        </div>
+      </div>
+
+      <!-- AI assist -->
+      <button id="aiImproveBtn" class="btn ai-btn hidden" data-i18n="popup.aiImprove">✨ שפר עם AI</button>
+      <div id="aiStatus" class="ai-status hidden"></div>
+
+      <!-- Channel buttons -->
+      <div id="channelBtns" class="channel-btns">
+        <button id="btnWhatsapp" class="btn channel-btn ch-wa hidden" data-ch="whatsapp">💬 WhatsApp</button>
+        <button id="btnWebhook" class="btn channel-btn ch-wh hidden" data-ch="webhook">🔗 Webhook</button>
+        <button id="btnSlack"   class="btn channel-btn ch-sl hidden" data-ch="slack">💼 Slack</button>
+        <button id="btnEmail"   class="btn channel-btn ch-em hidden" data-ch="email" data-i18n="popup.email">✉️ מייל</button>
+        <button id="btnCopy"    class="btn channel-btn ch-cp hidden" data-ch="copy" data-i18n="popup.copy">📋 העתק</button>
+      </div>
+
+      <!-- Send all -->
+      <button id="sendAllBtn" class="btn primary send-all hidden" data-i18n="popup.sendAll">שלח לכל הערוצים</button>
+
+      <!-- No channels configured -->
+      <div id="noChannelsNotice" class="hint-box hint-inline hidden">
+        <span>⚙️</span>
+        <span data-i18n="popup.noChannels">לא הוגדרו ערוצי שליחה.</span>
+        <a id="openLeadSettingsLink" href="#" data-i18n="popup.openSettings">פתח הגדרות לידים</a>
+      </div>
+
+      <!-- Status -->
+      <div id="sendStatus" class="send-status hidden"></div>
+
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

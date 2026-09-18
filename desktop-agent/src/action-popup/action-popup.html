@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
+<title>ActionClip</title>
+<link rel="stylesheet" href="action-popup.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <span class="title" id="titleLabel">📎 ActionClip</span>
+      <button id="settingsBtn" class="icon-btn" title="הגדרות">⚙</button>
+      <button id="closeBtn" class="icon-btn" title="סגור">✕</button>
+    </header>
+
+    <div class="body">
+      <section class="detect-row">
+        <span class="badge">✓</span>
+        <div class="detect-text">
+          <span class="detect-label" id="detectLabel">זוהה</span>
+          <span class="detect-value" id="detectValue"></span>
+        </div>
+      </section>
+
+      <div class="actions" id="actionsList"></div>
+    </div>
+  </div>
+
+  <script src="action-popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+node_modules/
+desktop-agent/dist/
+build/dist/
+dist/
+*.exe
+*.blockmap
+*.zip
+*.log
+.DS_Store
+Thumbs.db

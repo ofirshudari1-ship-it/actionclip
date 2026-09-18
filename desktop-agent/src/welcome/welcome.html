@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
+<title>ברוכים הבאים ל-ActionClip</title>
+<link rel="stylesheet" href="welcome.css">
+<script src="../lib/i18n-renderer.js"></script>
+</head>
+<body>
+  <div class="app">
+
+    <!-- Gradient header -->
+    <div class="welcome-header">
+      <span class="brand-logo">📋</span>
+      <div>
+        <div class="brand-name">ActionClip</div>
+        <div class="brand-sub" data-i18n="header.subtitle">סוכן לוח ההעתקה החכם שלך</div>
+      </div>
+      <div class="header-tools">
+        <button id="langToggleBtn" class="hdr-pill" title="שנה שפה / Change language">🌐 EN</button>
+        <button id="themeToggleBtn" class="hdr-pill" title="ערכת נושא">🌙</button>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:25%"></div></div>
+
+    <!-- Steps -->
+    <div class="steps">
+
+      <section class="step active" data-step="0">
+        <div class="icon">📋⚡</div>
+        <h1 data-i18n="welcome.step0.title">ברוכים הבאים ל-ActionClip</h1>
+        <p class="lede" data-i18n="welcome.step0.body">
+          תוכנת רקע קטנה שרצה במגש המערכת. ברגע שאתה מעתיק משהו שהיא מזהה,
+          קופצת חלונית ליד הסמן עם כפתור לפעולה הנכונה — בלי לעבור בין אפליקציות.
+        </p>
+      </section>
+
+      <section class="step" data-step="1">
+        <div class="icon">📞📦🗺️🔗✉️</div>
+        <h1 data-i18n="welcome.step1.title">מה מזוהה אוטומטית</h1>
+        <ul class="feature-list">
+          <li><span class="feat-icon">📞</span><span><b data-i18n="welcome.feat.phone">טלפון</b> <span data-i18n="welcome.feat.phone.desc">← פתיחת WhatsApp עם הודעה מוכנה</span></span></li>
+          <li><span class="feat-icon">📦</span><span><b data-i18n="welcome.feat.tracking">מספר מעקב משלוח</b> <span data-i18n="welcome.feat.tracking.desc">← מעקב אצל חברת השילוח</span></span></li>
+          <li><span class="feat-icon">🗺️</span><span><b data-i18n="welcome.feat.address">כתובת</b> <span data-i18n="welcome.feat.address.desc">← ניווט ב-Google Maps / Waze</span></span></li>
+          <li><span class="feat-icon">🔗</span><span><b data-i18n="welcome.feat.link">קישור</b> <span data-i18n="welcome.feat.link.desc">← פתיחה בדפדפן</span></span></li>
+          <li><span class="feat-icon">✉️</span><span><b data-i18n="welcome.feat.email">אימייל</b> <span data-i18n="welcome.feat.email.desc">← פתיחת מייל חדש אליו</span></span></li>
+        </ul>
+        <p class="lede muted" data-i18n="welcome.step1.footer">כל גלאי ניתן לכיבוי בנפרד בהגדרות.</p>
+      </section>
+
+      <section class="step" data-step="2">
+        <div class="icon">🕘</div>
+        <h1 data-i18n="welcome.step2.title">היסטוריית לוח מלאה</h1>
+        <p class="lede" data-i18n="welcome.step2.body">
+          <b>כל</b> העתקה נשמרת — כמו ה-Win+V המובנה, רק עם חיפוש, סינון לפי קטגוריה ותגיות, והדבקה חוזרת בלחיצה.
+        </p>
+        <p class="lede">
+          <span data-i18n="welcome.step2.shortcut.prefix">פותחים עם</span>
+          <code>Ctrl+Alt+V</code>
+          <span data-i18n="welcome.step2.shortcut.suffix">או עם Win+V לאחר כיבוי היסטוריית הלוח המובנית.</span>
+        </p>
+      </section>
+
+      <section class="step" data-step="3">
+        <div class="icon">⚙️</div>
+        <h1 data-i18n="welcome.step3.title">הכל ניתן להתאמה</h1>
+        <p class="lede" data-i18n="welcome.step3.body">
+          לחיצה ימנית על האייקון במגש פותחת את ההגדרות — שם אפשר לשנות קיצורי מקלדת,
+          להגדיר תגיות אוטומטיות, לערוך תבניות הודעה ולשלוט על כל היסטוריה בנפרד.
+        </p>
+        <p class="lede muted" data-i18n="welcome.step3.footer">הכל רץ מקומית בלבד — שום נתון לא יוצא מהמחשב.</p>
+      </section>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="dots" id="dots"></div>
+      <div class="nav-buttons">
+        <button id="skipBtn" class="btn ghost" data-i18n="welcome.btn.skip">דלג</button>
+        <button id="backBtn" class="btn secondary" disabled data-i18n="welcome.btn.back">הקודם</button>
+        <button id="nextBtn" class="btn primary" data-i18n="welcome.btn.next">הבא →</button>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:11px;color:#666;padding:6px 0 10px;">© 2024–2026 ActionClip</div>
+  </div>
+
+  <script src="welcome.js"></script>
+  <script>
+    // Apply language and theme from main process settings
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        if (window.actionclipWelcome && window.actionclipWelcome.getSettings) {
+          const s = await window.actionclipWelcome.getSettings();
+          if (s) {
+            const lang = s.language || 'en';
+            const theme = s.theme || 'dark';
+            if (typeof window.i18n !== 'undefined') window.i18n.applyI18n(lang);
+            document.documentElement.setAttribute('data-theme', theme);
+            updateLangBtn(lang);
+            updateThemeBtn(theme);
+          }
+        }
+      } catch(e) {}
+
+      // Language toggle
+      const langBtn = document.getElementById('langToggleBtn');
+      const themeBtn = document.getElementById('themeToggleBtn');
+
+      langBtn && langBtn.addEventListener('click', () => {
+        const cur = document.documentElement.lang || 'en';
+        const next = cur === 'he' ? 'en' : 'he';
+        if (typeof window.i18n !== 'undefined') window.i18n.applyI18n(next);
+        updateLangBtn(next);
+        if (window.actionclipWelcome && window.actionclipWelcome.saveSetting) {
+          window.actionclipWelcome.saveSetting('language', next);
+        }
+      });
+
+      themeBtn && themeBtn.addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        updateThemeBtn(next);
+        if (window.actionclipWelcome && window.actionclipWelcome.saveSetting) {
+          window.actionclipWelcome.saveSetting('theme', next);
+        }
+      });
+    });
+
+    function updateLangBtn(lang) {
+      const btn = document.getElementById('langToggleBtn');
+      if (btn) btn.textContent = lang === 'he' ? '🌐 EN' : '🌐 עב';
+    }
+    function updateThemeBtn(theme) {
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+  </script>
+</body>
+</html>
