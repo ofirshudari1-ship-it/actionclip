@@ -600,6 +600,18 @@
     <div class="timeline">
       <div class="tl-item current">
         <div class="tl-head">
+          <span class="tl-ver">v2.5.6</span>
+          <span class="tl-date">2026-09-18</span>
+        </div>
+        <p class="tl-title">Real automatic updates via electron-updater</p>
+        <ul class="tl-list">
+          <li><b>electron-updater wired in:</b> the agent checks GitHub Releases in the background a few seconds after launch, downloads any update automatically, and prompts "Restart Now / Later" once it's ready.</li>
+          <li>Fails silently offline or if GitHub is unreachable — logged to the local log file, never blocks startup.</li>
+          <li><span class="mono">artifactName</span> fixed to include the version number in the built installer's filename (was missing it before).</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
           <span class="tl-ver">v2.5.0</span>
           <span class="tl-date">2026-09-15</span>
         </div>
@@ -735,13 +747,37 @@
       </div>
       <div class="install-card">
         <h3>🖥️ Desktop agent</h3>
-        <span class="path">ActionClip-Setup-2.5.0.exe</span>
+        <span class="path">ActionClip-Setup-2.5.6.exe</span>
         <ol class="install-steps">
-          <li>Run the Setup file (per-user install, no admin rights needed)</li>
+          <li>Run the Setup file (admin rights required — the agent installs per-machine)</li>
           <li>Go through the standard Windows wizard steps</li>
           <li>The agent launches automatically — icon in the system tray</li>
         </ol>
-        <p class="install-note">Windows may show a SmartScreen warning for unsigned internal software — click "More info" → "Run anyway".</p>
+        <p class="install-note">Windows may show a SmartScreen warning for unsigned internal software — click "More info" → "Run anyway". After this first install, future updates download and install themselves automatically — see "Automatic updates" below.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="auto-update">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Automatic updates</p>
+      <h2>Stays current on its own</h2>
+      <p>From v2.5.6 onward, the desktop agent checks GitHub Releases for a newer build a few seconds after it starts — no manual re-download for routine updates.</p>
+    </div>
+    <div class="install-grid">
+      <div class="install-card">
+        <h3>🔄 Background check</h3>
+        <p class="install-note">A few seconds after launch, ActionClip quietly checks for a newer release — no delay to startup, no prompt if there's nothing new.</p>
+      </div>
+      <div class="install-card">
+        <h3>⬇️ Auto-download + confirm</h3>
+        <p class="install-note">If an update exists, it downloads in the background, then a small dialog offers "Restart Now" or "Later" — pick Later and it installs automatically on the next normal quit.</p>
+      </div>
+      <div class="install-card">
+        <h3>🔌 Fails quietly offline</h3>
+        <p class="install-note">No connection or GitHub unreachable? The check fails silently and is logged to the local log file — the agent keeps working normally either way.</p>
       </div>
     </div>
   </div>
@@ -1053,6 +1089,18 @@
     <div class="timeline">
       <div class="tl-item current">
         <div class="tl-head">
+          <span class="tl-ver">v2.5.6</span>
+          <span class="tl-date">2026-09-18</span>
+        </div>
+        <p class="tl-title">עדכונים אוטומטיים אמיתיים דרך electron-updater</p>
+        <ul class="tl-list">
+          <li><b>electron-updater מחובר:</b> הסוכן בודק ב-GitHub Releases ברקע כמה שניות אחרי ההפעלה, מוריד עדכון אוטומטית, ומציע "התקן עכשיו / מאוחר יותר" כשהוא מוכן.</li>
+          <li>נכשל בשקט אם אין רשת או ש-GitHub לא זמין — נרשם לקובץ הלוג המקומי, לעולם לא חוסם את ההפעלה.</li>
+          <li>תוקן <span class="mono">artifactName</span> כך שיכלול את מספר הגרסה בשם קובץ ההתקנה (היה חסר קודם).</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
           <span class="tl-ver">v2.5.0</span>
           <span class="tl-date">2026-09-15</span>
         </div>
@@ -1188,13 +1236,37 @@
       </div>
       <div class="install-card">
         <h3>🖥️ סוכן שולחן עבודה</h3>
-        <span class="path">ActionClip-Setup-2.5.0.exe</span>
+        <span class="path">ActionClip-Setup-2.5.6.exe</span>
         <ol class="install-steps">
-          <li>מריצים את קובץ ה-Setup (התקנה לפי משתמש, ללא הרשאות מנהל)</li>
+          <li>מריצים את קובץ ה-Setup (נדרשות הרשאות מנהל — ההתקנה היא ברמת המחשב)</li>
           <li>עוברים את שלבי האשף הרגילים של Windows</li>
           <li>הסוכן עולה אוטומטית — אייקון במגש המערכת</li>
         </ol>
-        <p class="install-note">Windows עשוי להציג אזהרת SmartScreen לתוכנה פנימית לא חתומה — "More info" ← "Run anyway".</p>
+        <p class="install-note">Windows עשוי להציג אזהרת SmartScreen לתוכנה פנימית לא חתומה — "More info" ← "Run anyway". אחרי ההתקנה הראשונית, עדכונים עתידיים יורדים ומתקינים את עצמם אוטומטית — ראו "עדכונים אוטומטיים" למטה.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="auto-update-he">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">עדכונים אוטומטיים</p>
+      <h2>נשאר מעודכן לבד</h2>
+      <p>מגרסה 2.5.6 ואילך, הסוכן בודק ב-GitHub Releases אם יש גרסה חדשה כמה שניות אחרי שהוא עולה — בלי צורך בהורדה ידנית לעדכונים שגרתיים.</p>
+    </div>
+    <div class="install-grid">
+      <div class="install-card">
+        <h3>🔄 בדיקה ברקע</h3>
+        <p class="install-note">כמה שניות אחרי העלייה, ActionClip בודק בשקט אם יצאה גרסה חדשה — בלי לעכב את ההפעלה, ובלי הודעה אם אין חדש.</p>
+      </div>
+      <div class="install-card">
+        <h3>⬇️ הורדה אוטומטית + אישור</h3>
+        <p class="install-note">אם יש עדכון, הוא יורד ברקע, ואז חלונית קטנה מציעה "התקן עכשיו" או "מאוחר יותר" — בחירה ב"מאוחר יותר" מתקינה אוטומטית ביציאה הבאה הרגילה.</p>
+      </div>
+      <div class="install-card">
+        <h3>🔌 נכשל בשקט אם אין רשת</h3>
+        <p class="install-note">אין חיבור או ש-GitHub לא זמין? הבדיקה נכשלת בשקט ונרשמת לקובץ הלוג המקומי — הסוכן ממשיך לעבוד רגיל בכל מקרה.</p>
       </div>
     </div>
   </div>
