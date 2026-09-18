@@ -1,122 +1,44 @@
-# ActionClip - Desktop Agent
+# ActionClip
 
-A small background app (system tray, no visible window) that watches your
-clipboard everywhere on the computer - not just in the browser. Copy
-something, and ActionClip does the right next thing with it:
+**Copy something on Windows, get the right next step automatically — built for call centers.**
 
-| You copied | ActionClip offers |
-|---|---|
-| An Israeli phone number | Open WhatsApp with a ready-made message (own popup, name field, template picker) |
-| A shipment tracking number (דואר ישראל / UPS / DHL / FedEx) | Track the package on the carrier's site (+ 17track fallback) |
-| An address (Hebrew or English) | Navigate with Google Maps or Waze |
-| A bare link | Open it in your browser |
-| Anything else | Nothing pops up, but it's still logged - see **Clipboard history** below |
+## What it does
 
-See [`../docs/ACTIONCLIP-SPEC.md`](../docs/ACTIONCLIP-SPEC.md) for the
-design behind the multi-detector engine, and
-[`../docs/SPEC.md`](../docs/SPEC.md) for the original phone → WhatsApp spec.
+ActionClip is a small Windows background app (it lives in the system tray, no visible window) that watches your clipboard everywhere on the computer, not just inside a browser tab. It's built for the fast copy-paste workflow of a call center: copy a customer's phone number and a WhatsApp composer pops up ready to send; copy a shipment tracking number and it offers to open the carrier's tracking page; copy an address and it offers Google Maps or Waze; copy a plain link and it offers to open it. Everything else you copy is still quietly logged to a searchable local clipboard history (like Windows' own Win+V), so nothing is ever lost even when no action fires. Detection and history are entirely local — the only thing ActionClip ever sends out is opening the link you actually clicked, in your normal browser.
 
-## Install (recommended: the built installer)
+## Download & install
 
-Run [`../ActionClip/ActionClip-Setup-<version>.exe`](../ActionClip/README.md).
-A real Windows installer (NSIS, via `electron-builder`): per-user install
-(no admin required), desktop + start menu shortcuts, and a normal uninstall
-entry in Windows Settings. No Node/npm needed on the target machine.
+Get the latest installer from the GitHub Releases page:
 
-## Setup (developer / running from source)
+**[Download the latest version](https://github.com/ofirshudari1-ship-it/actionclip/releases/latest)**
 
-```bash
-cd desktop-agent
-npm install
-npm start
-```
+1. Download `ActionClip-Setup-<version>.exe` from the release's Assets.
+2. Run the installer — no administrator rights required (per-user install).
+3. Follow the setup wizard: choose English or Hebrew, then finish.
+4. ActionClip starts automatically and adds an icon to your system tray (it may be hidden under the "^" arrow the first time).
+5. Copy a phone number, address, tracking number, or link to try it out.
 
-A ActionClip icon appears in the Windows system tray (bottom-right, may be
-under the "^" hidden-icons arrow the first time). Right-click it for the
-menu: toggle monitoring, open settings/templates, open clipboard history,
-or quit. Its tooltip and menu label reflect whether monitoring is currently
-active or paused.
+**System requirements:** Windows 10/11.
 
-## Using it
+## Key features
 
-1. Copy anything - a phone number, a tracking number, an address, a link,
-   or just regular text.
-2. If it matched a detector, a small window appears near your cursor
-   within about a second, showing what was detected and one or two action
-   buttons (phone numbers get the richer WhatsApp composer - name field,
-   template picker, message preview; everything else gets a compact
-   "action(s) for this" popup).
-3. Click the action - it opens in your default browser, and the popup
-   closes.
+- **Phone number → WhatsApp**: a ready-made message composer with a name field and template picker, for Israeli numbers by default with an international fallback for numbers copied with an explicit `+countrycode` prefix.
+- **Tracking number → carrier tracking page** (Israel Post, UPS, DHL, FedEx, with a 17track fallback).
+- **Address → Google Maps or Waze** navigation, Hebrew or English.
+- **Plain link → opens in your default browser.**
+- **Custom action rules**: define your own regex pattern → URL template rules for formats specific to your business (e.g. an internal order number that opens your CRM), on top of the five built-in detectors.
+- **Clipboard history** (`Ctrl+Alt+V`): a searchable, filterable log of everything you copy, not just what triggered a popup — re-copy or re-run any past item's action with one click. Anything your system already flags as a sensitive copy (like a password) is never logged.
+- **Message templates** per lead type, and a send-history log (last 25 WhatsApp sends) exportable to CSV.
+- **Tray quick-repeat menu** for instantly re-firing the last few detected actions.
+- Full bilingual **English/Hebrew UI**, auto-launch on Windows startup, and configurable popup timing.
 
-The window closes itself after a short delay (configurable in Settings),
-or with the ✕ button / Escape key.
+## Automatic updates
 
-**Nothing in the clipboard, or monitoring is paused?** Press `Ctrl+Alt+P`
-from anywhere, or right-click the tray icon → **פתח ידנית** - re-reads the
-clipboard right now regardless of settings; for a phone number this shows
-the same paste/type-a-number fallback the Chrome extension has.
-
-## Clipboard history (Win+V-style)
-
-ActionClip also keeps a running log of everything you copy - not just what
-triggered an action popup - searchable and filterable by type, the same
-idea as Windows' own Win+V. Open it with `Ctrl+Alt+V` or the tray menu
-(Windows' native Win+V shortcut only opens ActionClip's version once you've
-turned off Windows' own Clipboard History in Settings ▸ System ▸ Clipboard -
-covered in-app in Settings ▸ "היסטוריית לוח (Win+V)").
-
-Click an item to re-copy it, or the ▶ button to run its action directly.
-Anything a password manager (1Password, Bitwarden, Windows' own Clipboard
-History) marks as sensitive is skipped and never logged - same standard
-those apps already use for "don't remember this copy" (a copied password).
-Turn history recording off entirely, or clear it, from Settings.
-
-## Settings
-
-Right-click the tray icon → **הגדרות ותבניות...** - five tabs:
-
-- **תבניות הודעה** - add/edit/delete WhatsApp message templates per lead
-  type (`{שם}` token), and pick the default one.
-- **סוגי זיהוי** - turn each detector on/off independently (phone,
-  tracking, address, url) - all on by default.
-- **הגדרות** - clipboard monitoring on/off, auto-launch on Windows startup,
-  scan interval, repeat-popup cooldown, popup auto-close delay, and the
-  WhatsApp duplicate-send warning window (minutes).
-- **היסטוריית לוח (Win+V)** - clipboard-history recording on/off, how many
-  items to keep, clear it, and how to free up the real Win+V shortcut.
-- **היסטוריית שליחות** - the last 25 WhatsApp sends (number, name,
-  template, when), with buttons to export to CSV (Excel-friendly, UTF-8
-  with BOM) or clear it. This is separate from clipboard history above -
-  it only logs actual WhatsApp sends, not every copy.
-
-Settings, templates, and both histories are stored locally (via
-`electron-store`, a JSON file under your Windows user profile) - nothing
-leaves the machine except whichever link (WhatsApp/Maps/Waze/carrier
-site/the link itself) you choose to open.
-
-## Building the installer (for maintainers)
-
-```bash
-npm run dist
-```
-
-Produces `dist/ActionClip-Setup-<version>.exe` (electron-builder, NSIS
-target - config lives in `package.json`'s `"build"` field). Copy the result
-into `../ActionClip/`, and delete the previous version's file from both
-`dist/` and `../ActionClip/` so a stale build doesn't linger - also worth
-clearing `dist/win-unpacked/` (a large intermediate directory `npm run dist`
-regenerates each time, not needed once the installer exists).
+ActionClip checks GitHub for new versions automatically in the background and offers to install them for you (via electron-updater), so you don't need to manually re-download the installer for routine updates. You can always find the latest release yourself on the [Releases page](https://github.com/ofirshudari1-ship-it/actionclip/releases).
 
 ## Privacy
 
-- Clipboard text is only ever inspected in memory to look for a phone /
-  tracking / address / URL pattern; detection is entirely local.
-- Clipboard history (if enabled) is written to disk locally
-  (`electron-store`) so it survives a restart, same as any other local app
-  setting - never uploaded anywhere. Turn it off or clear it anytime from
-  Settings. Copies flagged sensitive by the source app are never logged.
-- The only outbound action is opening a link in your default browser
-  (WhatsApp, Maps, Waze, a carrier's tracking page, or the copied link
-  itself) - the same as clicking that link by hand.
-- Turn off monitoring anytime from the tray menu.
+- Clipboard text is only ever inspected in memory to check for a phone/tracking/address/URL pattern — detection is entirely local, nothing is sent anywhere to be analyzed.
+- Clipboard history, if enabled, is stored locally on your machine and never uploaded. Turn it off or clear it anytime from Settings.
+- The only outbound action ActionClip ever takes is opening a link in your default browser (WhatsApp, Maps, Waze, a carrier's tracking page, or the link you copied) — exactly the same as clicking that link yourself.
+- You can pause monitoring anytime from the tray menu.
