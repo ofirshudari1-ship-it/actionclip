@@ -55,6 +55,34 @@ describe('getSettings / saveSettings', () => {
     const store = freshStore();
     expect(store.getSettings().soundOnDetect).toBe(false);
   });
+
+  test('closeToTray defaults to true (X hides to tray, not full quit)', () => {
+    const store = freshStore();
+    expect(store.getSettings().closeToTray).toBe(true);
+  });
+
+  test('trayClickAction defaults to history, trayHideHintSeen defaults to false, startPaused defaults to false', () => {
+    const store = freshStore();
+    const s = store.getSettings();
+    expect(s.trayClickAction).toBe('history');
+    expect(s.trayHideHintSeen).toBe(false);
+    expect(s.startPaused).toBe(false);
+  });
+
+  test('saves and retrieves trayClickAction / startPaused without wiping other keys', () => {
+    const store = freshStore();
+    store.saveSettings({ trayClickAction: 'settings', startPaused: true });
+    const s = store.getSettings();
+    expect(s.trayClickAction).toBe('settings');
+    expect(s.startPaused).toBe(true);
+    expect(s.closeToTray).toBe(true); // untouched
+  });
+
+  test('trayHideHintSeen flips and stays true once saved', () => {
+    const store = freshStore();
+    store.saveSettings({ trayHideHintSeen: true });
+    expect(store.getSettings().trayHideHintSeen).toBe(true);
+  });
 });
 
 // ─── getLeadSettings / saveLeadSettings ───────────────────────────────────────

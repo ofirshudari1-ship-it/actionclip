@@ -38,6 +38,7 @@ const { findPhone, fillTemplate, buildWhatsAppUrl } = require('./lib/phone');
 const { findGenericAction } = require('./lib/detectors');
 const store = require('./lib/store');
 const { postJson, cleanupLeadWithAi, buildShareText, buildMailtoUrl } = require('./lib/lead-delivery');
+const { shouldHideToTray, shouldShowTrayHideHint, autoLaunchNeedsReconcile, resolveTrayClickTarget } = require('./lib/window-behavior');
 const { version: APP_VERSION } = require('../package.json');
 const { buildDate: APP_BUILD_DATE } = (() => { try { return require('../../version.json'); } catch { return {}; } })();
 
@@ -57,6 +58,14 @@ const DEFAULT_SHORTCUTS = {
 // now, so Settings can show live status ("✓ פעיל" vs "✗ תפוס") instead of
 // the user having to guess why a key combo silently does nothing.
 let shortcutStatus = { manual: false, history: false, historyFallback: false };
+
+// True only while an actual app quit is in progress (tray "יציאה", the
+// auto-updater installing an update, etc.) — see shouldHideToTray in
+// lib/window-behavior.js for why this flag exists: without it, "יציאה"
+// would silently fail to quit whenever the Settings window happened to be
+// open, because app.quit() closes windows the same way the user's own X
+// button does, and would hit the same closeToTray interception.
+let isQuitting = false;
 
 let tray = null;
 let popupWindow = null;
@@ -558,13 +567,31 @@ function openSettingsWindow() {
   settingsWindow.setMenuBarVisibility(false);
   settingsWindow.loadFile(path.join(__dirname, 'settings', 'settings.html'));
   settingsWindow.on('close', (e) => {
-    const { closeToTray } = store.getSettings();
-    if (closeToTray !== false && tray && !tray.isDestroyed()) {
+    const settings = store.getSettings();
+    if (shouldHideToTray({ closeToTray: settings.closeToTray, isQuitting, hasTray: tray && !tray.isDestroyed() })) {
       e.preventDefault();
       settingsWindow.hide();
+      maybeShowTrayHideHint(settings);
     }
   });
   settingsWindow.on('closed', () => { settingsWindow = null; });
+}
+
+// First time (only) a window is hidden instead of closed, tell the user
+// where it went via a tray balloon — directly answers the "wait, did it
+// close?" confusion a tray app's two kinds of 'close' can otherwise cause.
+function maybeShowTrayHideHint(settings) {
+  if (!shouldShowTrayHideHint({ hideHintSeen: settings.trayHideHintSeen, showTrayNotification: settings.showTrayNotification })) return;
+  store.saveSettings({ trayHideHintSeen: true });
+  if (tray && !tray.isDestroyed()) {
+    tray.displayBalloon({
+      iconType: 'info',
+      title: 'ActionClip ממשיך לרוץ',
+      content: 'החלון נסגר אבל ActionClip עדיין פעיל במגש. ליציאה מלאה: קליק ימני על האייקון > יציאה.',
+      largeIcon: false,
+      noSound: true
+    });
+  }
 }
 
 const CATEGORY_TRAY_ICON = { phone: '📞', tracking: '📦', address: '🗺️', url: '🔗', email: '✉️', custom: '⚡', text: '📋' };
@@ -635,13 +662,36 @@ function buildTrayMenu() {
     },
     { label: 'מה זה ActionClip? (הדרכה)', click: openWelcomeWindow },
     { type: 'separator' },
-    { label: 'יציאה', click: () => app.quit() }
+    {
+      label: 'יציאה',
+      click: () => {
+        // Must be set before app.quit(): see the isQuitting comment at its
+        // declaration and shouldHideToTray in lib/window-behavior.js. Without
+        // this, quitting while the Settings window is open would hit its
+        // closeToTray interception and silently cancel the whole quit.
+        isQuitting = true;
+        app.quit();
+      }
+    }
   ]);
+}
+
+function handleTrayClick() {
+  const settings = store.getSettings();
+  const target = resolveTrayClickTarget(settings.trayClickAction);
+  if (target === 'history') openHistoryWindow();
+  else if (target === 'settings') openSettingsWindow();
 }
 
 function createTray() {
   tray = new Tray(path.join(ASSETS_DIR, 'tray.png'));
   tray.setContextMenu(buildTrayMenu());
+  // Left single-click: configurable via Settings ▸ הגדרות (trayClickAction) -
+  // defaults to opening the clipboard-history panel, the most commonly
+  // reached-for action. Right-click always shows the full context menu
+  // (Electron's default, unaffected by this) - that's still the only path
+  // to "יציאה" so quitting is never one accidental click away.
+  tray.on('click', handleTrayClick);
   tray.on('double-click', openSettingsWindow);
 }
 
@@ -884,7 +934,7 @@ const SETTINGS_ALLOWLIST = new Set([
   'actionPreferences', 'detectors',
   'startMinimized', 'closeToTray', 'showTrayNotification', 'soundOnDetect',
   'quietHours', 'historyEnabled', 'historyStorageLimit', 'historyPreviewLimit',
-  'language', 'theme',
+  'language', 'theme', 'trayClickAction', 'startPaused',
 ]);
 
 ipcMain.on('settings:save-settings', (_event, settings) => {
@@ -984,10 +1034,37 @@ ipcMain.handle('settings:export-lead-history-csv', async () => {
   return { canceled: false, filePath };
 });
 
+// Sets Windows' Startup-at-login entry to match Settings ▸ "הפעלה אוטומטית
+// עם Windows", then reads it back via getLoginItemSettings() to confirm it
+// actually took (round-trip verification instead of trusting the write
+// blindly). Called on every app startup and every settings save, which is
+// also what makes this self-healing: if the user (or Windows itself, e.g.
+// via Task Manager's Startup tab, or a clean like a Windows reset) removes
+// the registry entry behind the app's back, the next launch or settings
+// save re-applies the stored preference rather than silently drifting out
+// of sync with what Settings shows.
 function applyAutoLaunch() {
   if (process.platform === 'linux') return; // not supported by Electron on Linux
   const { autoLaunch } = store.getSettings();
   app.setLoginItemSettings({ openAtLogin: autoLaunch, path: process.execPath });
+  try {
+    const actual = app.getLoginItemSettings({ path: process.execPath }).openAtLogin;
+    if (autoLaunchNeedsReconcile({ desired: autoLaunch, actualOpenAtLogin: actual })) {
+      // One retry - covers a transient failure (e.g. AV/policy blocking the
+      // registry write on the first attempt). If it still doesn't match
+      // after this, it's logged so it's visible in the log file rather than
+      // failing silently; Settings still reflects what the user asked for.
+      app.setLoginItemSettings({ openAtLogin: autoLaunch, path: process.execPath });
+      const reconfirmed = app.getLoginItemSettings({ path: process.execPath }).openAtLogin;
+      if (autoLaunchNeedsReconcile({ desired: autoLaunch, actualOpenAtLogin: reconfirmed })) {
+        log(LOG_LEVELS.WARN, 'ActionClip: Windows Startup entry did not match the saved autoLaunch setting after retry.', { desired: autoLaunch, actual: reconfirmed });
+      } else {
+        log(LOG_LEVELS.INFO, 'ActionClip: Windows Startup entry re-applied to match saved setting.', { autoLaunch });
+      }
+    }
+  } catch (err) {
+    log(LOG_LEVELS.WARN, 'ActionClip: could not read back Windows Startup entry.', { message: err?.message });
+  }
 }
 
 // --- App lifecycle ---
@@ -1087,8 +1164,25 @@ if (!gotSingleInstanceLock) {
     openSettingsWindow();
   });
 
+  // Catch-all for every quit path, not just the tray's "יציאה" item -
+  // autoUpdater.quitAndInstall(), a future Cmd/Alt+Q, etc. all fire
+  // 'before-quit' too, and shouldHideToTray needs isQuitting set before any
+  // window's 'close' handler runs so it doesn't intercept a real quit.
+  app.on('before-quit', () => { isQuitting = true; });
+
   app.whenReady().then(() => {
     createTray();
+    // Shared/work-PC option: force monitoring off at this specific launch
+    // regardless of whatever `enabled` was left at last time, without
+    // changing the user's actual saved preference for next time... except it
+    // IS the saved preference (there's no separate "session-only" state in
+    // this store), so this intentionally persists enabled:false until the
+    // user turns monitoring back on themselves - that's the point of
+    // "start paused" for a machine other people also use.
+    const startupSettings = store.getSettings();
+    if (startupSettings.startPaused && startupSettings.enabled) {
+      store.saveSettings({ enabled: false });
+    }
     startClipboardWatcher();
     applyAutoLaunch();
     registerAllShortcuts();

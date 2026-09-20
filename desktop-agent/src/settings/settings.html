@@ -248,6 +248,21 @@
             </div>
             <span class="switch"><input type="checkbox" id="soundOnDetectCheck"><span class="slider"></span></span>
           </label>
+          <label class="switch-row">
+            <div class="label-text">
+              <span data-i18n="settings.startPaused">התחל במצב מושהה</span>
+              <span class="label-sub" data-i18n="settings.startPaused.sub">בכל הפעלה מחדש, הניטור מתחיל כבוי - שימושי במחשב משותף</span>
+            </div>
+            <span class="switch"><input type="checkbox" id="startPausedCheck"><span class="slider"></span></span>
+          </label>
+          <div class="field-row">
+            <div class="field-label" data-i18n="settings.trayClick">לחיצה בודדת על אייקון המגש</div>
+            <select id="trayClickSelect">
+              <option value="history" data-i18n="settings.trayClick.history">פתח היסטוריית העתקות</option>
+              <option value="settings" data-i18n="settings.trayClick.settings">פתח הגדרות</option>
+              <option value="none" data-i18n="settings.trayClick.none">ללא פעולה</option>
+            </select>
+          </div>
           <div class="divider"></div>
           <div class="field-row">
             <div class="field-label" data-i18n="settings.poll">מרווח סריקה (מ״ש)</div>

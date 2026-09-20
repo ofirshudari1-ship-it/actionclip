@@ -129,7 +129,23 @@ const DEFAULT_SETTINGS = {
   // Startup & window behavior
   startMinimized: false,  // launch straight to tray, skip popup window
   closeToTray: true,      // X button hides instead of quitting
-  showTrayNotification: true  // balloon notification on phone detection
+  showTrayNotification: true,  // balloon notification on phone detection
+  // Shown once, the first time a window is ever hidden (not closed) to the
+  // tray — a short balloon explaining that ActionClip is still running and
+  // how to actually quit it. Flips true after it's shown once; never shown
+  // again after that regardless of how many more times a window is hidden.
+  trayHideHintSeen: false,
+  // What a single left-click on the tray icon does. Right-click always opens
+  // the full context menu (with the separate, unambiguous "יציאה"/Exit item)
+  // regardless of this setting. 'history' | 'settings' | 'none'.
+  trayClickAction: 'history',
+  // Shared/work-PC option: every launch starts with monitoring paused,
+  // regardless of whatever `enabled` was left at when the app last closed -
+  // useful on a machine other people also use, so ActionClip doesn't start
+  // silently watching the clipboard by default. Toggling "ניטור לוח פעיל"
+  // back on from the tray/Settings after launch works as normal; this only
+  // affects the state at startup.
+  startPaused: false
 };
 
 const store = new Store({
