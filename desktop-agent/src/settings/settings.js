@@ -225,6 +225,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.startMinimizedCheck = document.getElementById('startMinimizedCheck');
   s.closeToTrayCheck = document.getElementById('closeToTrayCheck');
   s.showTrayNotificationCheck = document.getElementById('showTrayNotificationCheck');
+  s.soundOnDetectCheck = document.getElementById('soundOnDetectCheck');
+  s.quietHoursEnabledCheck = document.getElementById('quietHoursEnabledCheck');
+  s.quietHoursStartInput = document.getElementById('quietHoursStartInput');
+  s.quietHoursEndInput = document.getElementById('quietHoursEndInput');
+  s.saveQuietHoursBtn = document.getElementById('saveQuietHoursBtn');
+  s.savedQuietHoursMsg = document.getElementById('savedQuietHoursMsg');
   s.languageSeg = document.getElementById('languageSeg');
   s.themeSeg = document.getElementById('themeSeg');
   s.langToggleBtn = document.getElementById('langToggleBtn');
@@ -275,6 +281,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.addCustomRuleBtn = document.getElementById('addCustomRuleBtn');
   s.saveCustomRulesBtn = document.getElementById('saveCustomRulesBtn');
   s.savedCustomRulesMsg = document.getElementById('savedCustomRulesMsg');
+  s.prefPhoneSelect = document.getElementById('prefPhoneSelect');
   s.prefAddressSelect = document.getElementById('prefAddressSelect');
   s.prefTrackingSelect = document.getElementById('prefTrackingSelect');
   s.prefEmailSelect = document.getElementById('prefEmailSelect');
@@ -321,6 +328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.clipHistoryPreviewInput.value = settings.historyPreviewLimit || 50;
 
   const prefs = settings.actionPreferences || {};
+  s.prefPhoneSelect.value = prefs.phone || '';
   s.prefAddressSelect.value = prefs.address || '';
   s.prefTrackingSelect.value = prefs.tracking || '';
   s.prefEmailSelect.value = prefs.email || '';
@@ -331,6 +339,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (s.startMinimizedCheck) s.startMinimizedCheck.checked = settings.startMinimized === true;
   if (s.closeToTrayCheck) s.closeToTrayCheck.checked = settings.closeToTray !== false;
   if (s.showTrayNotificationCheck) s.showTrayNotificationCheck.checked = settings.showTrayNotification !== false;
+  if (s.soundOnDetectCheck) s.soundOnDetectCheck.checked = settings.soundOnDetect === true;
+
+  const quietHours = settings.quietHours || {};
+  if (s.quietHoursEnabledCheck) s.quietHoursEnabledCheck.checked = quietHours.enabled === true;
+  if (s.quietHoursStartInput) s.quietHoursStartInput.value = quietHours.start || '18:00';
+  if (s.quietHoursEndInput) s.quietHoursEndInput.value = quietHours.end || '08:00';
 
   // Language & theme
   const currentLang = settings.language || 'en';
@@ -358,6 +372,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.saveTemplatesBtn.addEventListener('click', onSaveTemplates);
   s.resetBtn.addEventListener('click', onReset);
   s.saveSettingsBtn.addEventListener('click', onSaveSettings);
+  if (s.saveQuietHoursBtn) s.saveQuietHoursBtn.addEventListener('click', onSaveQuietHours);
   s.saveDetectorsBtn.addEventListener('click', onSaveDetectors);
   s.saveClipHistorySettingsBtn.addEventListener('click', onSaveClipHistorySettings);
   s.clearClipHistoryBtn.addEventListener('click', onClearClipHistory);
@@ -567,12 +582,24 @@ function onSaveSettings() {
     startMinimized: s.startMinimizedCheck ? s.startMinimizedCheck.checked : false,
     closeToTray: s.closeToTrayCheck ? s.closeToTrayCheck.checked : true,
     showTrayNotification: s.showTrayNotificationCheck ? s.showTrayNotificationCheck.checked : true,
+    soundOnDetect: s.soundOnDetectCheck ? s.soundOnDetectCheck.checked : false,
     pollMs: Math.max(200, Number(s.pollInput.value) || 800),
     dedupeSeconds: Math.max(0, Number(s.dedupeInput.value) || 0),
     autoCloseSeconds: Math.max(0, Number(s.autoCloseInput.value) || 0),
     sendDedupeMinutes: Math.max(0, Number(s.sendDedupeInput.value) || 0)
   });
   flashMsg(s.savedSettingsMsg);
+}
+
+function onSaveQuietHours() {
+  window.actionclipSettings.saveSettings({
+    quietHours: {
+      enabled: s.quietHoursEnabledCheck ? s.quietHoursEnabledCheck.checked : false,
+      start: (s.quietHoursStartInput && s.quietHoursStartInput.value) || '18:00',
+      end: (s.quietHoursEndInput && s.quietHoursEndInput.value) || '08:00'
+    }
+  });
+  flashMsg(s.savedQuietHoursMsg);
 }
 
 function applyAppLanguage(lang) {
@@ -634,6 +661,7 @@ function onClearClipHistory() {
 function onSaveActionPrefs() {
   window.actionclipSettings.saveSettings({
     actionPreferences: {
+      phone: s.prefPhoneSelect.value,
       address: s.prefAddressSelect.value,
       tracking: s.prefTrackingSelect.value,
       email: s.prefEmailSelect.value

@@ -209,7 +209,9 @@ async function checkClipboard() {
     const lastSeen = lastGenericNotifiedAt.get(dedupeKey) || 0;
     if (Date.now() - lastSeen < dedupeMs) return;
     lastGenericNotifiedAt.set(dedupeKey, Date.now());
+    if (isQuietHoursNow(settings)) return; // still logged to history above, just no popup
     currentGenericAction = applyActionPreference(action, settings);
+    playDetectSound(settings);
     openActionPopupWindow();
     return;
   }
@@ -220,9 +222,37 @@ async function checkClipboard() {
       const lastSeen = lastNotifiedAt.get(found.normalized) || 0;
       if (Date.now() - lastSeen < dedupeMs) return;
       lastNotifiedAt.set(found.normalized, Date.now());
-      currentPopupPhone = found;
-      openPopupWindow();
+      if (isQuietHoursNow(settings)) return;
+      playDetectSound(settings);
+      handlePhoneDetected(found, settings);
     }
+  }
+}
+
+// True when "now" (local time) falls inside the configured quiet-hours
+// window. Handles overnight ranges (e.g. 18:00 -> 08:00) by treating them
+// as "outside [end, start)" instead of the usual "inside [start, end)".
+function isQuietHoursNow(settings) {
+  const qh = settings.quietHours;
+  if (!qh || !qh.enabled) return false;
+  const toMinutes = (hhmm) => {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || '');
+    if (!m) return null;
+    return (parseInt(m[1], 10) % 24) * 60 + (parseInt(m[2], 10) % 60);
+  };
+  const start = toMinutes(qh.start);
+  const end = toMinutes(qh.end);
+  if (start == null || end == null || start === end) return false;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  if (start < end) return nowMin >= start && nowMin < end;
+  // Overnight window (crosses midnight)
+  return nowMin >= start || nowMin < end;
+}
+
+function playDetectSound(settings) {
+  if (settings.soundOnDetect) {
+    try { shell.beep(); } catch (_) { /* not fatal - just skip the beep */ }
   }
 }
 
@@ -253,12 +283,27 @@ async function triggerManualPopup() {
 
   const phone = detectorsCfg.phone !== false ? findPhone(text) : null;
   if (phone) {
-    currentPopupPhone = phone;
-    openPopupWindow();
+    handlePhoneDetected(phone, store.getSettings());
     return;
   }
 
   currentPopupPhone = null;
+  openPopupWindow();
+}
+
+function handlePhoneDetected(phone, settings) {
+  const action = (settings.actionPreferences || {}).phone || 'popup';
+  if (action === 'none') return;
+  if (action === 'call') {
+    shell.openExternal('tel:' + phone.normalized);
+    return;
+  }
+  if (action === 'whatsapp') {
+    shell.openExternal(buildWhatsAppUrl(phone.normalized, ''));
+    return;
+  }
+  // default: 'popup'
+  currentPopupPhone = phone;
   openPopupWindow();
 }
 
@@ -825,12 +870,20 @@ ipcMain.on('settings:save-templates', (_event, { templates, defaultTemplateId })
 
 ipcMain.on('settings:reset-templates', () => store.resetTemplates());
 
+// Keys the settings UI is actually allowed to write via the generic
+// 'settings:save-settings' channel - kept in sync with every key sent from
+// desktop-agent/src/settings/settings.js's various onSave* handlers. (This
+// list previously used a different, older naming scheme - e.g.
+// `monitorEnabled`/`detectPhone`/`defaultPhoneAction` - that no longer
+// matched what the UI sends, silently dropping saves for the General,
+// Detectors, Clipboard History and Default Action panels. If you add a new
+// setting field, add its top-level key here too or it won't persist.)
 const SETTINGS_ALLOWLIST = new Set([
-  'monitorEnabled', 'autoLaunch', 'pollMs', 'dedupeSeconds', 'autoCloseSeconds',
+  'enabled', 'autoLaunch', 'pollMs', 'dedupeSeconds', 'autoCloseSeconds',
   'sendDedupeMinutes', 'autoRunAction', 'autoRunDelaySeconds',
-  'defaultPhoneAction', 'defaultTrackingAction', 'defaultAddressAction',
-  'detectPhone', 'detectTracking', 'detectAddress', 'detectUrl', 'detectEmail',
-  'startMinimized', 'closeToTray', 'showTrayNotification',
+  'actionPreferences', 'detectors',
+  'startMinimized', 'closeToTray', 'showTrayNotification', 'soundOnDetect',
+  'quietHours', 'historyEnabled', 'historyStorageLimit', 'historyPreviewLimit',
   'language', 'theme',
 ]);
 

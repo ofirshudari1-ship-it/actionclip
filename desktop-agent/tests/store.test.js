@@ -34,6 +34,27 @@ describe('getSettings / saveSettings', () => {
     expect(s.detectors.phone).toBe(false);
     expect(s.detectors.tracking).toBe(true); // untouched
   });
+
+  test('quietHours defaults to disabled with a sensible overnight window', () => {
+    const store = freshStore();
+    const s = store.getSettings();
+    expect(s.quietHours.enabled).toBe(false);
+    expect(s.quietHours.start).toBe('18:00');
+    expect(s.quietHours.end).toBe('08:00');
+  });
+
+  test('merges quietHours deep — does not wipe other quietHours keys', () => {
+    const store = freshStore();
+    store.saveSettings({ quietHours: { enabled: true } });
+    const s = store.getSettings();
+    expect(s.quietHours.enabled).toBe(true);
+    expect(s.quietHours.start).toBe('18:00'); // untouched
+  });
+
+  test('soundOnDetect defaults to false', () => {
+    const store = freshStore();
+    expect(store.getSettings().soundOnDetect).toBe(false);
+  });
 });
 
 // ─── getLeadSettings / saveLeadSettings ───────────────────────────────────────

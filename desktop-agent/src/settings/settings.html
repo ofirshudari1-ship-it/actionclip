@@ -241,6 +241,13 @@
             </div>
             <span class="switch"><input type="checkbox" id="showTrayNotificationCheck"><span class="slider"></span></span>
           </label>
+          <label class="switch-row">
+            <div class="label-text">
+              <span data-i18n="settings.sound">צליל בזיהוי</span>
+              <span class="label-sub" data-i18n="settings.sound.sub">משמיע צליל מערכת קצר כשמזוהה משהו אוטומטית</span>
+            </div>
+            <span class="switch"><input type="checkbox" id="soundOnDetectCheck"><span class="slider"></span></span>
+          </label>
           <div class="divider"></div>
           <div class="field-row">
             <div class="field-label" data-i18n="settings.poll">מרווח סריקה (מ״ש)</div>
@@ -285,9 +292,43 @@
         </div>
 
         <div class="panel">
+          <div class="panel-title" data-i18n="settings.quietHours.title">שעות שקטות</div>
+          <p class="muted" data-i18n="settings.quietHours.sub">בטווח השעות האלה ActionClip ממשיך לתעד בהיסטוריה, אבל לא פותח חלונית אוטומטית — פתיחה ידנית (Ctrl+Alt+P) תמיד עובדת.</p>
+          <label class="switch-row">
+            <div class="label-text">
+              <span data-i18n="settings.quietHours.enabled">הפעל שעות שקטות</span>
+            </div>
+            <span class="switch"><input type="checkbox" id="quietHoursEnabledCheck"><span class="slider"></span></span>
+          </label>
+          <div class="prefs-grid cols-2">
+            <div class="pref-item">
+              <label data-i18n="settings.quietHours.start">משעה</label>
+              <input type="time" id="quietHoursStartInput">
+            </div>
+            <div class="pref-item">
+              <label data-i18n="settings.quietHours.end">עד שעה</label>
+              <input type="time" id="quietHoursEndInput">
+            </div>
+          </div>
+          <div class="actions">
+            <button id="saveQuietHoursBtn" class="btn primary small" data-i18n="settings.save">שמור הגדרות</button>
+            <span id="savedQuietHoursMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+          </div>
+        </div>
+
+        <div class="panel">
           <div class="panel-title" data-i18n="settings.actions.title">פעולת ברירת מחדל</div>
           <p class="muted" data-i18n="settings.actions.sub">לגלאים עם יותר מפעולה אחת — בוחרים מה יהיה הכפתור הראשי.</p>
           <div class="prefs-grid">
+            <div class="pref-item">
+              <label data-i18n="settings.pref.phone.label">📞 טלפון</label>
+              <select id="prefPhoneSelect">
+                <option value="" data-i18n="settings.pref.phone.popup">פתח חלון לכידת ליד (ברירת מחדל)</option>
+                <option value="whatsapp" data-i18n="settings.pref.phone.whatsapp">פתח WhatsApp ישירות</option>
+                <option value="call" data-i18n="settings.pref.phone.call">חייג ישירות (Click to Call)</option>
+                <option value="none" data-i18n="settings.pref.phone.none">לא לבצע כלום</option>
+              </select>
+            </div>
             <div class="pref-item">
               <label data-i18n="settings.pref.address.label">🗺️ כתובת</label>
               <select id="prefAddressSelect">

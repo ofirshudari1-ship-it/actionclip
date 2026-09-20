@@ -92,6 +92,24 @@ const DEFAULT_SETTINGS = {
   // First-run onboarding (see welcome-window). False until the user
   // finishes or skips it once.
   welcomeSeen: false,
+  // Plays a short system beep (Electron's built-in shell.beep(), no asset
+  // file needed) whenever a popup opens from an automatic clipboard
+  // detection - off by default since a silent popup is the existing/
+  // expected behavior and some users run this on a shared/quiet machine.
+  soundOnDetect: false,
+  // Do-not-disturb window: suppresses the *automatic* clipboard-triggered
+  // popup (phone/tracking/address/etc.) during a daily time range, e.g. for
+  // meetings or off-hours - the clipboard is still watched and still logged
+  // to history, only the interrupting popup is skipped. `start`/`end` are
+  // "HH:MM" 24h local time; `end` < `start` means it wraps past midnight
+  // (e.g. 18:00 -> 08:00). Manual triggers (shortcut/tray click) always
+  // still open the popup regardless of this window - it only guards the
+  // unattended/background path.
+  quietHours: {
+    enabled: false,
+    start: '18:00',
+    end: '08:00'
+  },
   // Which action is "primary" (the big button, and what auto-run below
   // fires) for detectors that offer more than one - e.g. address offers
   // both Maps and Waze. Keyed by detector type -> action id (see the `id`
@@ -156,7 +174,8 @@ function getSettings() {
     ...saved,
     detectors: { ...DEFAULT_SETTINGS.detectors, ...(saved.detectors || {}) },
     shortcuts: { ...DEFAULT_SETTINGS.shortcuts, ...(saved.shortcuts || {}) },
-    actionPreferences: { ...DEFAULT_SETTINGS.actionPreferences, ...(saved.actionPreferences || {}) }
+    actionPreferences: { ...DEFAULT_SETTINGS.actionPreferences, ...(saved.actionPreferences || {}) },
+    quietHours: { ...DEFAULT_SETTINGS.quietHours, ...(saved.quietHours || {}) }
   };
   // Migrate: old default was 20s; clamp down to 5s for anyone who still has it
   if (merged.autoCloseSeconds === 20) merged.autoCloseSeconds = 5;
@@ -170,7 +189,8 @@ function saveSettings(settings) {
     ...settings,
     detectors: { ...current.detectors, ...(settings.detectors || {}) },
     shortcuts: { ...current.shortcuts, ...(settings.shortcuts || {}) },
-    actionPreferences: { ...current.actionPreferences, ...(settings.actionPreferences || {}) }
+    actionPreferences: { ...current.actionPreferences, ...(settings.actionPreferences || {}) },
+    quietHours: { ...current.quietHours, ...(settings.quietHours || {}) }
   });
 }
 

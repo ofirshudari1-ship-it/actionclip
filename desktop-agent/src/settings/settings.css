@@ -263,6 +263,7 @@ code {
 input[type="number"],
 input[type="text"],
 input[type="password"],
+input[type="time"],
 select {
   background: var(--input-bg);
   border: 1px solid var(--border-light);
@@ -275,6 +276,8 @@ select {
   font-family: inherit;
 }
 input[type="number"] { width: 90px; text-align: center; }
+input[type="time"] { width: 120px; color-scheme: dark; }
+[data-theme="light"] input[type="time"] { color-scheme: light; }
 select { min-width: 160px; }
 input:focus, select:focus {
   border-color: var(--brand-start);
