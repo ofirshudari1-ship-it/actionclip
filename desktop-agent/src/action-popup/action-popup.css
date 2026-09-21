@@ -62,8 +62,12 @@ html, body {
   gap: 10px;
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-app-region: no-drag;
 }
+.body::-webkit-scrollbar { width: 4px; }
+.body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
 .detect-row {
   display: flex;

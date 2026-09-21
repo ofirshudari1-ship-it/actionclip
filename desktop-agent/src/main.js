@@ -383,10 +383,15 @@ function openActionPopupWindow() {
   const cursor = screen.getCursorScreenPoint();
   const display = screen.getDisplayNearestPoint(cursor);
   const width = 320;
-  const height = 130 + 46 * ((currentGenericAction && currentGenericAction.actions.length) || 1);
+  const bounds = display.workArea;
+  // Long/wrapped custom-rule action labels can push actual content past this
+  // estimate; the popup body scrolls internally (action-popup.css) as a
+  // safety net, but we still cap the window itself to the visible work area
+  // so it never tries to render off-screen on small/scaled displays.
+  const estimatedHeight = 130 + 46 * ((currentGenericAction && currentGenericAction.actions.length) || 1);
+  const height = Math.min(estimatedHeight, bounds.height - 16);
   let x = cursor.x + 12;
   let y = cursor.y + 12;
-  const bounds = display.workArea;
   if (x + width > bounds.x + bounds.width) x = bounds.x + bounds.width - width - 8;
   if (y + height > bounds.y + bounds.height) y = bounds.y + bounds.height - height - 8;
   x = Math.max(bounds.x + 8, x);

@@ -20,6 +20,7 @@ const els = {};
 document.addEventListener('DOMContentLoaded', async () => {
   els.list = document.getElementById('list');
   els.emptyState = document.getElementById('emptyState');
+  els.emptyStateText = document.getElementById('emptyStateText');
   els.searchInput = document.getElementById('searchInput');
   els.filters = document.getElementById('filters');
   els.closeBtn = document.getElementById('closeBtn');
@@ -115,6 +116,12 @@ function render() {
 
   els.list.replaceChildren();
   els.emptyState.classList.toggle('hidden', filtered.length > 0);
+  if (filtered.length === 0) {
+    const isFiltered = Boolean(searchTerm) || activeCategory !== 'all';
+    els.emptyStateText.textContent = isFiltered
+      ? 'לא נמצאו תוצאות תואמות'
+      : 'אין עדיין העתקות בהיסטוריה';
+  }
   els.countLabel.textContent = total > items.length
     ? `מציג ${items.length} מתוך ${total}`
     : `${total} פריטים`;
