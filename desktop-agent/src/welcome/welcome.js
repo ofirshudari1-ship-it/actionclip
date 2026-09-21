@@ -10,7 +10,16 @@ document.addEventListener('DOMContentLoaded', () => {
   steps.forEach((_, i) => {
     const dot = document.createElement('span');
     dot.className = 'dot' + (i === 0 ? ' active' : '');
+    // Keyboard-operable step jump, not just a mouse target.
+    dot.tabIndex = 0;
+    dot.setAttribute('role', 'button');
+    dot.setAttribute('aria-label', `${i + 1}/${steps.length}`);
     dot.addEventListener('click', () => goTo(i));
+    dot.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      goTo(i);
+    });
     dotsEl.appendChild(dot);
   });
   const dots = Array.from(dotsEl.children);

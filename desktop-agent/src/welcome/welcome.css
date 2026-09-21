@@ -85,7 +85,7 @@ html, body {
 
 /* top-right buttons */
 .header-tools {
-  margin-right: auto;
+  margin-inline-start: auto;
   display: flex;
   gap: 5px;
   position: relative;
@@ -103,6 +103,7 @@ html, body {
   transition: background 0.14s ease;
 }
 .hdr-pill:hover { background: rgba(255,255,255,0.26); }
+.hdr-pill:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
 
 /* ─── Progress bar ─── */
 .progress-bar {
@@ -169,7 +170,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  text-align: right;
+  text-align: start;
   width: 100%;
   max-width: 340px;
 }
@@ -214,6 +215,8 @@ html, body {
   width: 18px;
   border-radius: 4px;
 }
+.dot:hover:not(.active) { background: var(--border-light); }
+.dot:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 2px; }
 
 .nav-buttons { display: flex; gap: 10px; width: 100%; max-width: 320px; }
 .btn {
@@ -224,7 +227,7 @@ html, body {
   font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.08s ease, box-shadow 0.15s ease, opacity 0.15s ease, background 0.12s ease;
   font-family: inherit;
   display: inline-flex;
   align-items: center;
@@ -240,7 +243,10 @@ html, body {
 .btn.primary:active { transform: translateY(0); }
 .btn.secondary { background: var(--surface2); color: var(--fg); border: 1px solid var(--border-light); }
 .btn.secondary:hover { background: var(--border); border-color: var(--brand-start); }
+.btn.ghost { background: transparent; color: var(--muted); }
+.btn.ghost:hover { background: var(--surface2); color: var(--fg); }
 .btn:disabled { opacity: 0.38; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+.btn:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 2px; }
 
 /* ─── Light theme adjustments ─── */
 [data-theme="light"] .app { box-shadow: 0 10px 40px rgba(0,0,0,0.15); }

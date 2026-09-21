@@ -170,7 +170,7 @@ const STRINGS = {
     'welcome.step3.body': 'לחיצה ימנית על האייקון במגש פותחת את ההגדרות — שם אפשר לשנות קיצורי מקלדת, להגדיר תגיות אוטומטיות, לערוך תבניות הודעה ולשלוט על כל היסטוריה בנפרד.',
     'welcome.step3.footer': 'הכל רץ מקומית בלבד — שום נתון לא יוצא מהמחשב.',
     'welcome.btn.skip': 'דלג',
-    'welcome.btn.back': 'הקודם',
+    'welcome.btn.back': '← הקודם',
     'welcome.btn.next': 'הבא →',
     // Nav — About
     'nav.group.about': 'אודות',

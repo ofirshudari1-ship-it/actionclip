@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   settingsBtn.addEventListener('click', () => window.actionclipAction.openSettings());
   closeBtn.addEventListener('click', () => window.actionclipAction.dismiss());
 
+  // Esc dismisses the popup, same as every other ActionClip window/popup.
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.actionclipAction.dismiss(); });
+
   ['keydown', 'click'].forEach((evt) =>
     document.addEventListener(evt, () => window.actionclipAction.notifyActivity())
   );

@@ -145,6 +145,11 @@ function render() {
 function buildRow(item) {
   const row = document.createElement('div');
   row.className = 'item';
+  // Keyboard-operable, not just clickable: Tab reaches the row, Enter/Space
+  // copies it — matching what a mouse click does (see keydown handler below).
+  row.tabIndex = 0;
+  row.setAttribute('role', 'button');
+  row.setAttribute('aria-label', item.text);
 
   const icon = document.createElement('span');
   icon.className = 'icon';
@@ -181,6 +186,7 @@ function buildRow(item) {
     const goBtn = document.createElement('button');
     goBtn.className = 'go';
     goBtn.title = item.actions[0].label;
+    goBtn.setAttribute('aria-label', item.actions[0].label);
     goBtn.textContent = '▶';
     goBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -191,6 +197,7 @@ function buildRow(item) {
 
   const delBtn = document.createElement('button');
   delBtn.title = 'מחק';
+  delBtn.setAttribute('aria-label', 'מחק');
   delBtn.textContent = '✕';
   delBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -206,6 +213,12 @@ function buildRow(item) {
   row.appendChild(actions);
 
   row.addEventListener('click', () => window.actionclipHistory.copyItem(item.id));
+  row.addEventListener('keydown', (e) => {
+    if (e.target !== row) return; // let the go/delete buttons handle their own Enter/Space
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault(); // Space must not also scroll the list
+    window.actionclipHistory.copyItem(item.id);
+  });
 
   return row;
 }

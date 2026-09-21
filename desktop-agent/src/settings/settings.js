@@ -485,6 +485,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.testWebhookBtn.addEventListener('click', () => onTestChannel('webhook'));
   s.testSlackBtn.addEventListener('click', () => onTestChannel('slack'));
 
+  // Esc closes the Settings window, same as every other ActionClip window/
+  // popup — but not while a keyboard-shortcut field is actively capturing a
+  // key combo (there, Escape is a candidate key for the shortcut itself).
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (document.querySelector('.shortcut-input.capturing')) return;
+    window.close();
+  });
+
   await renderLeadHistory();
 });
 
