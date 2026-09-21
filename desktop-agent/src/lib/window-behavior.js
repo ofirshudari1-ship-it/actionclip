@@ -49,9 +49,29 @@ function resolveTrayClickTarget(action) {
   return 'history';
 }
 
+// Desktop widget: shown at startup, and live-toggled from Settings, purely
+// off the persisted `widgetEnabled` flag — defaults ON (undefined/anything
+// but an explicit `false` shows it), matching every other "on by default"
+// toggle in this store (see DEFAULT_SETTINGS in lib/store.js).
+function resolveWidgetVisibility({ widgetEnabled }) {
+  return widgetEnabled !== false;
+}
+
+// Default corner for the widget the first time it's ever shown (no saved
+// `widgetPosition` yet): bottom-right of the given work area, inset by
+// `margin` so it never touches the screen edge or the taskbar.
+function widgetDefaultPosition({ workArea, width, height, margin = 24 }) {
+  return {
+    x: workArea.x + workArea.width - width - margin,
+    y: workArea.y + workArea.height - height - margin
+  };
+}
+
 module.exports = {
   shouldHideToTray,
   shouldShowTrayHideHint,
   autoLaunchNeedsReconcile,
-  resolveTrayClickTarget
+  resolveTrayClickTarget,
+  resolveWidgetVisibility,
+  widgetDefaultPosition
 };

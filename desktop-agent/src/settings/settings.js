@@ -227,6 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.showTrayNotificationCheck = document.getElementById('showTrayNotificationCheck');
   s.soundOnDetectCheck = document.getElementById('soundOnDetectCheck');
   s.startPausedCheck = document.getElementById('startPausedCheck');
+  s.widgetEnabledCheck = document.getElementById('widgetEnabledCheck');
   s.trayClickSelect = document.getElementById('trayClickSelect');
   s.quietHoursEnabledCheck = document.getElementById('quietHoursEnabledCheck');
   s.quietHoursStartInput = document.getElementById('quietHoursStartInput');
@@ -343,6 +344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (s.showTrayNotificationCheck) s.showTrayNotificationCheck.checked = settings.showTrayNotification !== false;
   if (s.soundOnDetectCheck) s.soundOnDetectCheck.checked = settings.soundOnDetect === true;
   if (s.startPausedCheck) s.startPausedCheck.checked = settings.startPaused === true;
+  if (s.widgetEnabledCheck) s.widgetEnabledCheck.checked = settings.widgetEnabled !== false;
   if (s.trayClickSelect) s.trayClickSelect.value = settings.trayClickAction || 'history';
 
   const quietHours = settings.quietHours || {};
@@ -597,6 +599,7 @@ function onSaveSettings() {
     showTrayNotification: s.showTrayNotificationCheck ? s.showTrayNotificationCheck.checked : true,
     soundOnDetect: s.soundOnDetectCheck ? s.soundOnDetectCheck.checked : false,
     startPaused: s.startPausedCheck ? s.startPausedCheck.checked : false,
+    widgetEnabled: s.widgetEnabledCheck ? s.widgetEnabledCheck.checked : true,
     trayClickAction: s.trayClickSelect ? s.trayClickSelect.value : 'history',
     pollMs: Math.max(200, Number(s.pollInput.value) || 800),
     dedupeSeconds: Math.max(0, Number(s.dedupeInput.value) || 0),

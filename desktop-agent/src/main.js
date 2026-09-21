@@ -38,7 +38,7 @@ const { findPhone, fillTemplate, buildWhatsAppUrl } = require('./lib/phone');
 const { findGenericAction } = require('./lib/detectors');
 const store = require('./lib/store');
 const { postJson, cleanupLeadWithAi, buildShareText, buildMailtoUrl } = require('./lib/lead-delivery');
-const { shouldHideToTray, shouldShowTrayHideHint, autoLaunchNeedsReconcile, resolveTrayClickTarget } = require('./lib/window-behavior');
+const { shouldHideToTray, shouldShowTrayHideHint, autoLaunchNeedsReconcile, resolveTrayClickTarget, resolveWidgetVisibility, widgetDefaultPosition } = require('./lib/window-behavior');
 const { version: APP_VERSION } = require('../package.json');
 const { buildDate: APP_BUILD_DATE } = (() => { try { return require('../../version.json'); } catch { return {}; } })();
 
@@ -72,6 +72,7 @@ let popupWindow = null;
 let actionPopupWindow = null;
 let historyWindow = null;
 let settingsWindow = null;
+let widgetWindow = null;
 let clipboardTimer = null;
 let autoCloseTimer = null;
 let autoRunTimer = null;
@@ -195,6 +196,7 @@ async function checkClipboard() {
     // rebuild it wouldn't change.
     if (actions && actions.length && tray && !tray.isDestroyed()) {
       tray.setContextMenu(buildTrayMenu());
+      notifyWidget(); // refresh the widget's "recent action" row
     }
   }
 
@@ -482,6 +484,104 @@ function openHistoryWindow() {
   historyWindow.on('closed', () => { historyWindow = null; });
 }
 
+// --- Persistent desktop widget (src/widget/) ---
+//
+// Small, frameless, always-on-top status panel — the app's only persistent
+// visible presence beyond the tray icon, since ActionClip is otherwise
+// tray-first with zero windows on most launches. Shown/hidden purely off
+// Settings ▸ "הצג ווידג'ט על שולחן העבודה" (widgetEnabled, on by default -
+// see resolveWidgetVisibility in lib/window-behavior.js).
+
+const WIDGET_WIDTH = 240;
+const WIDGET_HEIGHT = 156;
+let widgetPositionSaveTimer = null;
+
+// Single source of truth for pausing/resuming monitoring, shared by BOTH the
+// tray menu's "ניטור לוח פעיל" checkbox and the widget's pause/resume
+// button — neither reimplements this, they both call it, so the two
+// surfaces can never drift out of sync with each other.
+function toggleMonitoring(forceValue) {
+  const settings = store.getSettings();
+  const next = typeof forceValue === 'boolean' ? forceValue : !settings.enabled;
+  store.saveSettings({ enabled: next });
+  if (tray && !tray.isDestroyed()) tray.setContextMenu(buildTrayMenu());
+  notifyWidget();
+  return next;
+}
+
+function notifyWidget() {
+  if (widgetWindow && !widgetWindow.isDestroyed()) {
+    widgetWindow.webContents.send('widget:state-changed');
+  }
+}
+
+function createWidgetWindow() {
+  if (widgetWindow && !widgetWindow.isDestroyed()) return;
+
+  const settings = store.getSettings();
+  const saved = settings.widgetPosition;
+  const pos = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)
+    ? saved
+    : widgetDefaultPosition({
+        workArea: screen.getPrimaryDisplay().workArea,
+        width: WIDGET_WIDTH,
+        height: WIDGET_HEIGHT
+      });
+
+  widgetWindow = new BrowserWindow({
+    width: WIDGET_WIDTH,
+    height: WIDGET_HEIGHT,
+    x: pos.x,
+    y: pos.y,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    movable: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'widget', 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true
+    }
+  });
+
+  widgetWindow.loadFile(path.join(__dirname, 'widget', 'widget.html'));
+  widgetWindow.once('ready-to-show', () => {
+    // showInactive(): visible immediately without stealing focus from
+    // whatever window/app the user is currently working in.
+    if (widgetWindow && !widgetWindow.isDestroyed()) widgetWindow.showInactive();
+  });
+
+  // Persists the dragged position (debounced - 'moved' fires continuously
+  // while dragging) using the same settings store every other window in
+  // this app already uses.
+  widgetWindow.on('moved', () => {
+    if (!widgetWindow || widgetWindow.isDestroyed()) return;
+    const [x, y] = widgetWindow.getPosition();
+    clearTimeout(widgetPositionSaveTimer);
+    widgetPositionSaveTimer = setTimeout(() => store.saveSettings({ widgetPosition: { x, y } }), 400);
+  });
+
+  widgetWindow.on('closed', () => { widgetWindow = null; });
+}
+
+// Applies the current widgetEnabled setting: shows (creating it on first
+// use) or hides the widget window. Called on startup and live from
+// Settings, so toggling "הצג ווידג'ט על שולחן העבודה" takes effect
+// immediately without a restart.
+function applyWidgetVisibility() {
+  const show = resolveWidgetVisibility(store.getSettings());
+  if (show) {
+    if (!widgetWindow || widgetWindow.isDestroyed()) createWidgetWindow();
+    else if (!widgetWindow.isVisible()) widgetWindow.showInactive();
+  } else if (widgetWindow && !widgetWindow.isDestroyed()) {
+    widgetWindow.hide();
+  }
+}
+
 function resetAutoCloseTimer() {
   clearAutoCloseTimer();
   const { autoCloseSeconds } = store.getSettings();
@@ -704,6 +804,11 @@ function maybeShowTrayHideHint(settings) {
 
 const CATEGORY_TRAY_ICON = { phone: '📞', tracking: '📦', address: '🗺️', url: '🔗', email: '✉️', custom: '⚡', text: '📋' };
 
+// Widget's "recent action" row label — deliberately a category label only
+// (never the copied text itself), since the widget sits visibly on the
+// desktop at all times and isn't the place to surface clipboard content.
+const CATEGORY_WIDGET_LABEL = { phone: 'מספר טלפון', tracking: 'מספר מעקב', address: 'כתובת', url: 'קישור', email: 'אימייל', custom: 'פעולה' };
+
 // Tray-menu label for one recent-actions entry: icon + a short preview of
 // what was copied, truncated so it doesn't blow out the menu's width.
 function trayActionLabel(item) {
@@ -742,10 +847,7 @@ function buildTrayMenu() {
       label: 'ניטור לוח פעיל',
       type: 'checkbox',
       checked: settings.enabled,
-      click: (menuItem) => {
-        store.saveSettings({ enabled: menuItem.checked });
-        tray.setContextMenu(buildTrayMenu());
-      }
+      click: (menuItem) => toggleMonitoring(menuItem.checked)
     },
     { label: `פתח ידנית (${configured.manual.replace('CommandOrControl', 'Ctrl')})`, click: triggerManualPopup },
     { label: 'פעולות אחרונות', submenu: buildRecentActionsSubmenu() },
@@ -993,6 +1095,35 @@ ipcMain.on('history-panel:dismiss', () => {
   if (historyWindow && !historyWindow.isDestroyed()) historyWindow.close();
 });
 
+// --- IPC: desktop widget ---
+
+ipcMain.handle('widget:get-init-data', () => {
+  const settings = store.getSettings();
+  const recent = store.getRecentActionableHistory(1)[0] || null;
+  return {
+    enabled: settings.enabled,
+    recent: recent
+      ? {
+          icon: CATEGORY_TRAY_ICON[recent.category] || '📋',
+          label: CATEGORY_WIDGET_LABEL[recent.category] || 'פעולה',
+          copiedAt: recent.copiedAt
+        }
+      : null
+  };
+});
+
+// Reuses toggleMonitoring — the exact same function the tray menu's
+// "ניטור לוח פעיל" checkbox calls - so the two surfaces never drift apart.
+ipcMain.handle('widget:toggle-monitoring', () => toggleMonitoring());
+
+// Reuses openHistoryWindow — the exact same function the tray menu's
+// "היסטוריית העתקות" item calls.
+ipcMain.on('widget:open-history', () => openHistoryWindow());
+
+ipcMain.on('widget:hide', () => {
+  if (widgetWindow && !widgetWindow.isDestroyed()) widgetWindow.hide();
+});
+
 // --- IPC: welcome / onboarding window ---
 
 ipcMain.on('welcome:finish', () => {
@@ -1042,7 +1173,7 @@ const SETTINGS_ALLOWLIST = new Set([
   'actionPreferences', 'detectors',
   'startMinimized', 'closeToTray', 'showTrayNotification', 'soundOnDetect',
   'quietHours', 'historyEnabled', 'historyStorageLimit', 'historyPreviewLimit',
-  'language', 'theme', 'trayClickAction', 'startPaused',
+  'language', 'theme', 'trayClickAction', 'startPaused', 'widgetEnabled',
 ]);
 
 ipcMain.on('settings:save-settings', (_event, settings) => {
@@ -1055,6 +1186,9 @@ ipcMain.on('settings:save-settings', (_event, settings) => {
   applyAutoLaunch();
   registerAllShortcuts();
   if (tray) tray.setContextMenu(buildTrayMenu());
+  // Live toggle: takes effect immediately, without a restart, whether the
+  // widget is being shown for the first time or hidden.
+  if (Object.prototype.hasOwnProperty.call(safe, 'widgetEnabled')) applyWidgetVisibility();
 });
 
 ipcMain.handle('settings:save-shortcuts', (_event, shortcuts) => {
@@ -1294,6 +1428,7 @@ if (!gotSingleInstanceLock) {
     startClipboardWatcher();
     applyAutoLaunch();
     registerAllShortcuts();
+    applyWidgetVisibility(); // persistent widget - on by default, see widgetEnabled
     const { startMinimized } = store.getSettings();
     if (!startMinimized) {
       maybeShowWelcome();

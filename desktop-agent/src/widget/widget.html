@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none';">
+<title>ActionClip</title>
+<link rel="stylesheet" href="widget.css">
+</head>
+<body>
+  <div class="widget" id="widget">
+    <button class="close-btn" id="closeBtn" title="הסתר ווידג'ט" aria-label="הסתר ווידג'ט">✕</button>
+
+    <div class="header">
+      <img class="logo" src="../../assets/logo.png" alt="ActionClip">
+      <span class="app-name">ActionClip</span>
+    </div>
+
+    <div class="status-row">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">טוען…</span>
+    </div>
+
+    <div class="recent-row hidden" id="recentRow">
+      <span class="recent-icon" id="recentIcon"></span>
+      <span class="recent-text" id="recentText"></span>
+    </div>
+
+    <div class="actions-row">
+      <button class="widget-btn primary" id="toggleBtn">⏸ השהה</button>
+      <button class="widget-btn" id="historyBtn">🕘 היסטוריה</button>
+    </div>
+  </div>
+
+  <script src="widget.js"></script>
+</body>
+</html>

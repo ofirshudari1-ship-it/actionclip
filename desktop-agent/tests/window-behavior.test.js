@@ -6,7 +6,9 @@ const {
   shouldHideToTray,
   shouldShowTrayHideHint,
   autoLaunchNeedsReconcile,
-  resolveTrayClickTarget
+  resolveTrayClickTarget,
+  resolveWidgetVisibility,
+  widgetDefaultPosition
 } = require('../src/lib/window-behavior');
 
 describe('shouldHideToTray', () => {
@@ -75,5 +77,39 @@ describe('resolveTrayClickTarget', () => {
   test('falls back to history for unset/unknown values', () => {
     expect(resolveTrayClickTarget(undefined)).toBe('history');
     expect(resolveTrayClickTarget('bogus')).toBe('history');
+  });
+});
+
+describe('resolveWidgetVisibility', () => {
+  test('shows the widget by default (on) when unset', () => {
+    expect(resolveWidgetVisibility({ widgetEnabled: undefined })).toBe(true);
+  });
+
+  test('shows the widget when explicitly enabled', () => {
+    expect(resolveWidgetVisibility({ widgetEnabled: true })).toBe(true);
+  });
+
+  test('hides the widget only when explicitly disabled', () => {
+    expect(resolveWidgetVisibility({ widgetEnabled: false })).toBe(false);
+  });
+});
+
+describe('widgetDefaultPosition', () => {
+  test('anchors to the bottom-right corner of the work area, inset by the margin', () => {
+    const workArea = { x: 0, y: 0, width: 1920, height: 1080 };
+    const pos = widgetDefaultPosition({ workArea, width: 240, height: 156, margin: 24 });
+    expect(pos).toEqual({ x: 1920 - 240 - 24, y: 1080 - 156 - 24 });
+  });
+
+  test('accounts for a non-zero work area origin (e.g. a taskbar on the left/top monitor)', () => {
+    const workArea = { x: 100, y: 50, width: 1600, height: 900 };
+    const pos = widgetDefaultPosition({ workArea, width: 240, height: 156, margin: 24 });
+    expect(pos).toEqual({ x: 100 + 1600 - 240 - 24, y: 50 + 900 - 156 - 24 });
+  });
+
+  test('defaults margin to 24 when not provided', () => {
+    const workArea = { x: 0, y: 0, width: 1000, height: 800 };
+    const pos = widgetDefaultPosition({ workArea, width: 200, height: 100 });
+    expect(pos).toEqual({ x: 1000 - 200 - 24, y: 800 - 100 - 24 });
   });
 });

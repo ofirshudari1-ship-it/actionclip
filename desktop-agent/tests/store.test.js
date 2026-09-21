@@ -83,6 +83,36 @@ describe('getSettings / saveSettings', () => {
     store.saveSettings({ trayHideHintSeen: true });
     expect(store.getSettings().trayHideHintSeen).toBe(true);
   });
+
+  test('widgetEnabled defaults to true, widgetPosition defaults to null', () => {
+    const store = freshStore();
+    const s = store.getSettings();
+    expect(s.widgetEnabled).toBe(true);
+    expect(s.widgetPosition).toBeNull();
+  });
+
+  test('saves and retrieves widgetEnabled without wiping other keys', () => {
+    const store = freshStore();
+    store.saveSettings({ widgetEnabled: false });
+    const s = store.getSettings();
+    expect(s.widgetEnabled).toBe(false);
+    expect(s.closeToTray).toBe(true); // untouched
+  });
+
+  test('widgetEnabled persists across separate getSettings() calls (survives "restart")', () => {
+    const store = freshStore();
+    store.saveSettings({ widgetEnabled: false });
+    expect(store.getSettings().widgetEnabled).toBe(false);
+    expect(store.getSettings().widgetEnabled).toBe(false);
+  });
+
+  test('saves and retrieves widgetPosition', () => {
+    const store = freshStore();
+    store.saveSettings({ widgetPosition: { x: 120, y: 340 } });
+    const s = store.getSettings();
+    expect(s.widgetPosition).toEqual({ x: 120, y: 340 });
+    expect(s.widgetEnabled).toBe(true); // untouched
+  });
 });
 
 // ─── getLeadSettings / saveLeadSettings ───────────────────────────────────────
