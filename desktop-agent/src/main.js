@@ -519,9 +519,112 @@ function clearAutoRunTimer() {
 }
 
 let welcomeWindow = null;
+let splashWindow = null;
+
+// STANDARDS.md §19: minimum on-screen time (avoids a flash-of-splash on a
+// fast local load) and a safety timeout (guarantees the splash can never get
+// stuck forever if something upstream hangs).
+const SPLASH_MIN_MS = 800;
+const SPLASH_SAFETY_TIMEOUT_MS = 8000;
 
 function maybeShowWelcome() {
-  if (!store.isWelcomeSeen()) openWelcomeWindow();
+  // ActionClip is a tray-first background agent — on every launch after the
+  // very first one, isWelcomeSeen() is true and the app goes straight to the
+  // tray with zero windows (see app.whenReady below). A splash screen only
+  // makes sense for the one case where a window does appear on startup: the
+  // first-run welcome screen. It is intentionally skipped on all later
+  // launches and when reopened from the tray's "מה זה ActionClip?" item
+  // (openWelcomeWindow) — a branded loading screen in front of an
+  // already-seen, instantly-loading local window would just be an
+  // unnecessary delay, not real loading feedback.
+  if (!store.isWelcomeSeen()) showFirstRunWelcomeWithSplash();
+}
+
+// Branded splash screen per STANDARDS.md §19 — frameless, transparent,
+// rounded corners via CSS, ActionClip's brand gradient (assets/BRAND.md),
+// the real app logo as the dominant element, and a continuous spinner
+// (no fake progress bar, since there's no real percentage to report for a
+// local file load).
+function createSplash() {
+  splashWindow = new BrowserWindow({
+    width: 320,
+    height: 320,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    movable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    center: true,
+    show: false,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true
+    }
+  });
+  splashWindow.loadFile(path.join(__dirname, 'splash', 'splash.html'));
+  splashWindow.once('ready-to-show', () => {
+    if (splashWindow && !splashWindow.isDestroyed()) splashWindow.show();
+  });
+  return Date.now();
+}
+
+function closeSplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
+  splashWindow = null;
+}
+
+// Shows the splash, then creates the first-run welcome window with
+// `show: false` and only reveals it once its content is actually ready
+// (`ready-to-show`) — enforcing SPLASH_MIN_MS before closing the splash so a
+// near-instant local load doesn't flicker, and SPLASH_SAFETY_TIMEOUT_MS so a
+// stuck load can never leave the splash on screen forever (STANDARDS.md
+// §19.2).
+function showFirstRunWelcomeWithSplash() {
+  const splashShownAt = createSplash();
+
+  const win = new BrowserWindow({
+    width: 480,
+    height: 560,
+    resizable: false,
+    frame: false,
+    center: true,
+    show: false,
+    title: 'ברוכים הבאים ל-ActionClip',
+    webPreferences: {
+      preload: path.join(__dirname, 'welcome', 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true
+    }
+  });
+  welcomeWindow = win;
+  win.loadFile(path.join(__dirname, 'welcome', 'welcome.html'));
+  win.on('closed', () => { welcomeWindow = null; });
+
+  let revealed = false;
+  const reveal = () => {
+    if (revealed || win.isDestroyed()) return;
+    revealed = true;
+    const elapsed = Date.now() - splashShownAt;
+    const remaining = Math.max(0, SPLASH_MIN_MS - elapsed);
+    setTimeout(() => {
+      closeSplash();
+      if (!win.isDestroyed()) win.show();
+    }, remaining);
+  };
+
+  win.once('ready-to-show', reveal);
+  // Safety timeout: fires independently of `reveal` above and is a no-op if
+  // reveal() already ran, so a hung load still guarantees the splash (and
+  // then the welcome window, ready or not) is shown within 8s.
+  setTimeout(() => {
+    if (revealed) return;
+    revealed = true;
+    closeSplash();
+    if (win && !win.isDestroyed()) win.show();
+  }, SPLASH_SAFETY_TIMEOUT_MS);
 }
 
 // First-run onboarding: a few steps explaining what ActionClip actually

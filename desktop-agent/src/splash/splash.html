@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
+<title>ActionClip</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  /* Frameless + transparent BrowserWindow: the rounded-corner "card" is
+     drawn entirely in CSS on a fully transparent page background, per
+     STANDARDS.md §19.1 (frame:false + transparent:true + CSS border-radius,
+     not a square OS-framed window). */
+  .splash {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    /* ActionClip brand gradient (assets/BRAND.md): Indigo 800 -> Indigo 500 -> Purple 500 */
+    background: linear-gradient(135deg, #3730a3 0%, #6366f1 55%, #a855f7 100%);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    -webkit-app-region: drag;
+    box-shadow: 0 18px 48px rgba(15, 8, 60, 0.45);
+  }
+
+  .logo-wrap {
+    width: 128px;
+    height: 128px;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .logo-wrap img {
+    width: 92px;
+    height: 92px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+  }
+
+  .app-name {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    margin: 0;
+  }
+
+  /* Subtle continuous spinner, not a fake progress bar — there is no real
+     percentage to report during a local, instant-load first run. */
+  .spinner {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.28);
+    border-top-color: #ffffff;
+    animation: spin 0.9s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+  <div class="splash">
+    <div class="logo-wrap">
+      <img src="../../assets/logo.png" alt="ActionClip">
+    </div>
+    <p class="app-name">ActionClip</p>
+    <div class="spinner"></div>
+  </div>
+</body>
+</html>
