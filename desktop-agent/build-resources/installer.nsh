@@ -74,7 +74,13 @@
     StrCpy $AddStartupLaunch "0"
   !macroend
 
-  ; ── Brand-color button styling ──────────────────────────────
+  ; ── Shared cross-product brand-color button styling ──────────
+  ; STANDARDS.md §21 — unified installer palette (IObit-style): OptiGuard,
+  ; Playnest, ActionClip and SnapCap all use the same accent blue in their
+  ; installer wizard so the four tools read as one company's suite. This
+  ; replaces ActionClip's own former brand indigo (#595CD9) in the installer
+  ; only — the running app itself is untouched.
+  ;
   ; MUI2 has no supported hook to reshape/recolor a standard Next/Back/
   ; Cancel button — the theme engine (uxtheme) draws them. The one real
   ; technique: switch a specific button handle off Windows visual-style
@@ -84,14 +90,12 @@
   ; renders flat/classic in the brand color — not a shaped custom bitmap
   ; button. Cancel is left native/themed on purpose.
   ;
-  ; Colors are WCAG-AA audited: the raw brand indigo (#6366f1) against
-  ; white text is 4.47:1 — just under the 4.5:1 AA threshold for normal
-  ; button text — so it's darkened ~10% to #595cd9 (5.31:1, passes AA)
-  ; while staying recognizably the same indigo.
+  ; Shared accent #2F6FED against white button text is 4.9:1 — passes
+  ; WCAG AA for normal text (per STANDARDS.md §21.1, already audited there).
   Function ColorPrimaryButton
     GetDlgItem $0 $HWNDPARENT 1 ; Next / Install / Finish
     System::Call 'uxtheme::SetWindowTheme(i r0, w "", w "") i .r1'
-    SetCtlColors $0 0xFFFFFF 0x595CD9
+    SetCtlColors $0 0xFFFFFF 0x2F6FED
   FunctionEnd
 
   ; ── Welcome page customization ─────────────────────────────

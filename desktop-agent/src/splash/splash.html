@@ -28,22 +28,26 @@
     align-items: center;
     justify-content: center;
     gap: 22px;
-    /* ActionClip brand gradient (assets/BRAND.md): Indigo 800 -> Indigo 500 -> Purple 500 */
-    background: linear-gradient(135deg, #3730a3 0%, #6366f1 55%, #a855f7 100%);
+    /* Shared cross-product splash palette, STANDARDS.md §21.1/21.2 — same
+       dark-to-accent gradient as OptiGuard/Playnest/SnapCap so all four
+       tools read as one company's suite. Only the logo mark inside stays
+       ActionClip-specific. */
+    background: linear-gradient(135deg, #0B1220 0%, #16264a 55%, #2F6FED 100%);
     font-family: 'Segoe UI', system-ui, sans-serif;
     -webkit-app-region: drag;
-    box-shadow: 0 18px 48px rgba(15, 8, 60, 0.45);
+    box-shadow: 0 18px 48px rgba(5, 8, 20, 0.55);
   }
 
   .logo-wrap {
     width: 128px;
     height: 128px;
     border-radius: 28px;
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(91, 159, 255, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 24px rgba(47, 111, 237, 0.45), 0 8px 24px rgba(0, 0, 0, 0.35);
   }
 
   .logo-wrap img {
@@ -54,7 +58,7 @@
   }
 
   .app-name {
-    color: #ffffff;
+    color: #EAEAEA;
     font-size: 22px;
     font-weight: 700;
     letter-spacing: 0.3px;
@@ -67,8 +71,8 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.28);
-    border-top-color: #ffffff;
+    border: 3px solid rgba(148, 163, 184, 0.35);
+    border-top-color: #5B9AFF;
     animation: spin 0.9s linear infinite;
   }
 
