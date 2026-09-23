@@ -31,16 +31,18 @@ contextBridge.exposeInMainWorld('actionclipSettings', {
     ipcRenderer.on('settings:monitoring-changed', listener);
     return () => ipcRenderer.removeListener('settings:monitoring-changed', listener);
   },
-  // Clipboard history embedded as a BrowserView inside the
-  // "clipboard-history" tab - see main.js's getHistoryEmbedView and
-  // settings.js's syncHistoryEmbed(). `bounds` is a screen-relative
-  // {x, y, width, height} rectangle (a getBoundingClientRect() of the
-  // tab's own container).
-  historyEmbedShow: (bounds) => ipcRenderer.send('settings:history-embed-show', bounds),
-  historyEmbedHide: () => ipcRenderer.send('settings:history-embed-hide'),
-  onWindowResized: (callback) => {
-    const listener = () => callback();
-    ipcRenderer.on('settings:window-resized', listener);
-    return () => ipcRenderer.removeListener('settings:window-resized', listener);
+  // Clipboard history list, rendered as real DOM inside the
+  // "clipboard-history" tab (settings.js). Same IPC channels the standalone
+  // quick-access popup (clipboard-history/preload.js) uses - main.js's
+  // handlers don't care which window/renderer called them.
+  clipHistoryGetData: (limit) => ipcRenderer.invoke('history-panel:get-data', { offset: 0, limit }),
+  clipHistoryCopyItem: (id) => ipcRenderer.send('history-panel:copy-item', id),
+  clipHistoryRunAction: (id, index) => ipcRenderer.send('history-panel:run-action', { id, index }),
+  clipHistoryDeleteItem: (id) => ipcRenderer.send('history-panel:delete-item', id),
+  clipHistoryClearAll: () => ipcRenderer.send('history-panel:clear-all'),
+  clipHistoryToggleEnabled: (enabled) => ipcRenderer.send('history-panel:toggle-enabled', enabled),
+  onClipHistoryItemsChanged: (callback) => {
+    ipcRenderer.on('history-panel:items-changed', callback);
+    return () => ipcRenderer.removeListener('history-panel:items-changed', callback);
   }
 });

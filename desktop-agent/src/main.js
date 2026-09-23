@@ -1,4 +1,4 @@
-const { app, Tray, Menu, BrowserWindow, BrowserView, clipboard, shell, screen, ipcMain, globalShortcut, dialog } = require('electron');
+const { app, Tray, Menu, BrowserWindow, clipboard, shell, screen, ipcMain, globalShortcut, dialog } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -81,7 +81,6 @@ let popupWindow = null;
 let actionPopupWindow = null;
 let historyWindow = null;
 let settingsWindow = null;
-let historyEmbedView = null; // BrowserView showing clipboard-history.html inside Settings ▸ היסטוריית לוח
 let clipboardTimer = null;
 let autoCloseTimer = null;
 let autoRunTimer = null;
@@ -549,71 +548,15 @@ function refreshHistorySummaries() {
 }
 
 // Tells every open history surface (the standalone quick-access popup from
-// a hotkey/tray click, AND the BrowserView embedded in Settings ▸ היסטוריית
-// לוח) to re-fetch and re-render - both load the exact same
-// clipboard-history.js, they just live in different windows/views.
+// a hotkey/tray click, AND the Settings window's own clipboard-history tab,
+// which renders the list as plain DOM and refetches on this same event) to
+// re-fetch and re-render.
 function broadcastHistoryItemsChanged() {
   if (historyWindow && !historyWindow.isDestroyed()) {
     historyWindow.webContents.send('history-panel:items-changed');
   }
-  if (historyEmbedView && !historyEmbedView.webContents.isDestroyed()) {
-    historyEmbedView.webContents.send('history-panel:items-changed');
-  }
-}
-
-// --- Clipboard history embedded inside Settings ▸ היסטוריית לוח ---
-//
-// Reuses clipboard-history.html/.js/preload.js completely unchanged, loaded
-// into a BrowserView layered inside the Settings BrowserWindow instead of a
-// second top-level window - see the "one window" consolidation in
-// createTray()/openSettingsWindow(). The renderer (settings.js) tells main
-// when the History tab is visible and what screen-relative rectangle to
-// fill (settings:history-embed-show/-hide below); this only ever
-// shows/hides/repositions the same BrowserView, it never destroys and
-// recreates it, so the history list's scroll position and any in-progress
-// search survive switching tabs.
-function getHistoryEmbedView() {
-  if (historyEmbedView) return historyEmbedView;
-  historyEmbedView = new BrowserView({
-    webPreferences: {
-      preload: path.join(__dirname, 'clipboard-history', 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true
-    }
-  });
-  historyEmbedView.setBackgroundColor('#00000000');
-  historyEmbedView.webContents.loadFile(path.join(__dirname, 'clipboard-history', 'clipboard-history.html'), {
-    query: { embedded: '1' } // see clipboard-history.js: hides its own close-on-blur behavior when embedded
-  });
-  return historyEmbedView;
-}
-
-function showHistoryEmbed(bounds) {
-  if (!settingsWindow || settingsWindow.isDestroyed()) return;
-  if (!bounds || ![bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite)) return;
-  const view = getHistoryEmbedView();
-  settingsWindow.addBrowserView(view);
-  view.setBounds({
-    x: Math.round(bounds.x),
-    y: Math.round(bounds.y),
-    width: Math.max(0, Math.round(bounds.width)),
-    height: Math.max(0, Math.round(bounds.height))
-  });
-  view.setAutoResize({ width: true, height: true });
-}
-
-function hideHistoryEmbed() {
-  if (settingsWindow && !settingsWindow.isDestroyed() && historyEmbedView) {
-    settingsWindow.removeBrowserView(historyEmbedView);
-  }
-}
-
-function destroyHistoryEmbed() {
-  hideHistoryEmbed();
-  if (historyEmbedView) {
-    historyEmbedView.webContents.close();
-    historyEmbedView = null;
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.webContents.send('history-panel:items-changed');
   }
 }
 
@@ -820,22 +763,8 @@ function openSettingsWindow() {
       maybeShowTrayHideHint(settings);
     }
   });
-  // The embedded history BrowserView (see getHistoryEmbedView) has to be
-  // resized by hand whenever the window itself resizes - it isn't a normal
-  // DOM element, so CSS layout doesn't reach it. settings.js recomputes its
-  // container's rect and re-sends settings:history-embed-show only while
-  // that tab is actually the active one.
-  settingsWindow.on('resize', () => {
-    if (settingsWindow && !settingsWindow.isDestroyed()) {
-      settingsWindow.webContents.send('settings:window-resized');
-    }
-  });
-  // The BrowserView is attached to this specific BrowserWindow instance -
-  // tear it down with it instead of leaving a detached, still-loaded
-  // WebContents around for the next time Settings is reopened.
   settingsWindow.on('closed', () => {
     settingsWindow = null;
-    destroyHistoryEmbed();
   });
 }
 
@@ -1170,14 +1099,6 @@ ipcMain.on('history-panel:dismiss', () => {
   if (historyWindow && !historyWindow.isDestroyed()) historyWindow.close();
 });
 
-// --- IPC: clipboard history embedded in Settings ▸ היסטוריית לוח ---
-// Sent by settings.js when the "clipboard-history" tab becomes visible/
-// hidden and on window resize, with the screen-relative rectangle of its
-// content area (getBoundingClientRect of the tab's container) - see
-// getHistoryEmbedView/showHistoryEmbed/hideHistoryEmbed above.
-ipcMain.on('settings:history-embed-show', (_event, bounds) => showHistoryEmbed(bounds));
-ipcMain.on('settings:history-embed-hide', () => hideHistoryEmbed());
-
 // --- IPC: welcome / onboarding window ---
 
 ipcMain.on('welcome:finish', () => {
@@ -1268,9 +1189,7 @@ ipcMain.handle('settings:get-history', () => store.getHistory());
 ipcMain.on('settings:clear-history', () => store.clearHistory());
 ipcMain.on('settings:clear-clipboard-history', () => {
   store.clearClipboardHistory();
-  if (historyWindow && !historyWindow.isDestroyed()) {
-    historyWindow.webContents.send('history-panel:items-changed');
-  }
+  broadcastHistoryItemsChanged();
   refreshHistorySummaries();
 });
 

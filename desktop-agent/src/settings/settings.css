@@ -180,15 +180,168 @@ html, body {
 .panel-head { display: flex; justify-content: space-between; align-items: center; }
 .panel-head-actions { display: flex; gap: 8px; }
 
-/* ─── Embedded clipboard-history BrowserView (Settings ▸ היסטוריית לוח) ───
-   This container renders nothing itself - it only reserves screen space;
-   main.js positions a BrowserView (clipboard-history.html, unchanged) over
-   its rectangle whenever this tab is active. See settings.js's
-   syncHistoryEmbed(). Padding removed on the panel itself so the embedded
-   page's own edges land flush with the panel's border. */
-.history-embed-panel { padding: 0; overflow: hidden; }
-.history-embed-panel .panel-title { padding: 14px 16px 0; }
-.history-embed-container { height: 360px; min-height: 220px; }
+/* ─── Clipboard-history list (Settings ▸ היסטוריית לוח) ───
+   Rendered as real DOM, inline in this tab - no separate window/BrowserView,
+   no header of its own (the tab's page-title above already says
+   "היסטוריית לוח"). Sized with vh so it actually fills a meaningful chunk
+   of the window instead of a tiny fixed box, and scrolls internally
+   (toolbar/filters/count/footer stay put, only the item list scrolls) -
+   see settings.js for the logic driving this markup. */
+.clip-history-panel {
+  padding: 0;
+  overflow: hidden;
+  height: min(58vh, 620px);
+  min-height: 340px;
+  gap: 0;
+}
+.clip-history-toolbar { padding: 12px 14px 8px; flex-shrink: 0; }
+.clip-search-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  font-size: 13px;
+  padding: 7px 11px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.clip-search-input:focus { border-color: var(--brand-start); box-shadow: 0 0 0 3px var(--brand-glow); }
+
+.clip-filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 14px 8px; flex-shrink: 0; }
+.clip-chip {
+  border: 1px solid var(--border-light);
+  background: var(--card-bg);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.clip-chip:hover { border-color: var(--brand-start); color: var(--fg); }
+.clip-chip.active {
+  background: linear-gradient(135deg, var(--brand-start), var(--brand-end));
+  color: #fff;
+  border-color: transparent;
+}
+.clip-chip:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 1px; }
+
+.clip-count-row { padding: 0 14px 6px; font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+.clip-history-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.clip-item:hover { background: var(--card-bg); border-color: var(--border); }
+.clip-item:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 1px; background: var(--card-bg); border-color: var(--border); }
+.clip-item .clip-item-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.clip-item .clip-item-content { flex: 1; min-width: 0; }
+.clip-item .clip-item-text {
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.clip-item .clip-item-meta { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+.clip-item .clip-tags-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.clip-item .clip-tag-chip {
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--brand-glow);
+  color: #c4b5fd;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+.clip-item .clip-item-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transition: opacity 0.1s ease; }
+.clip-item:hover .clip-item-actions,
+.clip-item:focus-within .clip-item-actions { opacity: 1; }
+.clip-item .clip-item-actions button {
+  border: none;
+  background: var(--input-bg);
+  color: var(--fg);
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.clip-item .clip-item-actions button.clip-go { background: rgba(52,211,153,0.18); color: var(--success); }
+.clip-item .clip-item-actions button:hover { opacity: 0.85; }
+.clip-item .clip-item-actions button:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 1px; }
+
+.clip-load-more {
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+  padding: 8px;
+  border: 1px dashed var(--border-light);
+  background: transparent;
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.clip-load-more:hover { background: var(--card-bg); color: var(--fg); }
+.clip-load-more:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 1px; }
+
+.clip-empty {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.clip-empty-icon { font-size: 26px; opacity: 0.6; }
+
+.clip-history-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.clip-history-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.clip-pause-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand-start); display: inline-block; }
+.clip-pause-dot.paused { background: var(--warning); }
+
+@media (forced-colors: active) {
+  .clip-chip { border: 1px solid ButtonText; }
+  .clip-chip.active { border: 2px solid Highlight; }
+  .clip-pause-dot { forced-color-adjust: none; background: CanvasText; }
+  .clip-pause-dot.paused { background: transparent; border: 1.5px solid CanvasText; box-sizing: border-box; }
+  .clip-load-more { border: 1px solid ButtonText; }
+}
 
 /* ─── Divider ─── */
 .divider {

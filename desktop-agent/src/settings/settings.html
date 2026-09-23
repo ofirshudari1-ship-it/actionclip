@@ -461,13 +461,34 @@
             <p data-i18n="clip.subtitle">כל טקסט שהועתק — כמו Win+V, רק חכם יותר.</p>
           </div>
         </div>
-        <div class="panel history-embed-panel">
-          <div class="panel-title" data-i18n="clip.browse.title">רשימת ההעתקות</div>
-          <!-- Filled by main.js's BrowserView (getHistoryEmbedView) whenever this
-               tab is active - see settings.js's syncHistoryEmbed(). Nothing is
-               rendered here directly; this div only reserves the on-screen
-               rectangle the BrowserView is positioned over. -->
-          <div id="historyEmbedContainer" class="history-embed-container"></div>
+        <div class="panel clip-history-panel">
+          <div class="clip-history-toolbar">
+            <input id="clipSearchInput" type="text" class="clip-search-input" data-i18n-placeholder="clip.panel.search" placeholder="Search history, including tags...">
+          </div>
+          <div class="clip-filters" id="clipFilters">
+            <button class="clip-chip active" data-cat="all" data-i18n="clip.filter.all">All</button>
+            <button class="clip-chip" data-cat="phone" data-i18n="clip.filter.phone">📞 Phone</button>
+            <button class="clip-chip" data-cat="tracking" data-i18n="clip.filter.tracking">📦 Tracking</button>
+            <button class="clip-chip" data-cat="address" data-i18n="clip.filter.address">🗺️ Address</button>
+            <button class="clip-chip" data-cat="url" data-i18n="clip.filter.link">🔗 Link</button>
+            <button class="clip-chip" data-cat="email" data-i18n="clip.filter.email">✉️ Email</button>
+            <button class="clip-chip" data-cat="custom" data-i18n="clip.filter.custom">⚡ Action</button>
+            <button class="clip-chip" data-cat="text" data-i18n="clip.filter.text">📋 Text</button>
+          </div>
+          <div class="clip-count-row" id="clipCountLabel"></div>
+          <div class="clip-history-list" id="clipHistoryList"></div>
+          <div class="clip-empty hidden" id="clipEmptyState">
+            <span class="clip-empty-icon">📋</span>
+            <span id="clipEmptyStateText" data-i18n="clip.panel.empty">No copies in history yet</span>
+          </div>
+          <div class="clip-history-footer">
+            <span class="clip-history-status">
+              <span id="clipPauseDot" class="clip-pause-dot"></span>
+              <span id="clipStatusText" data-i18n="clip.panel.recording">Recording</span>
+              <button id="clipToggleBtn" class="btn secondary xs" data-i18n="clip.pause">Pause</button>
+            </span>
+            <button id="clipClearAllBtn" class="btn danger xs" data-i18n="clip.panel.clearAll">Clear All</button>
+          </div>
         </div>
         <div class="panel">
           <label class="switch-row">

@@ -295,6 +295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.shortcutHint = document.getElementById('shortcutHint');
 
   setupTabs();
+  initClipHistoryPanel();
 
   const data = await window.actionclipSettings.getData();
   templates = data.templates.map(t => ({ ...t }));
@@ -516,38 +517,237 @@ function setupTabs() {
       document.querySelectorAll('.tab-panel').forEach((panel) => {
         panel.classList.toggle('active', panel.id === `tab-${btn.dataset.tab}`);
       });
-      syncHistoryEmbed();
     });
   });
-  setupHistoryEmbed();
 }
 
-// Positions/shows the clipboard-history BrowserView (main.js's
-// getHistoryEmbedView) over #historyEmbedContainer whenever the
-// "clipboard-history" tab is the active one, and tells main to hide it
-// otherwise - a BrowserView sits ABOVE regular DOM content, so simply
-// switching tab-panel visibility with CSS would leave it floating over
-// whichever tab is actually showing.
-function syncHistoryEmbed() {
-  const container = document.getElementById('historyEmbedContainer');
-  const isActive = document.getElementById('tab-clipboard-history')?.classList.contains('active');
-  if (!container || !isActive) {
-    window.actionclipSettings.historyEmbedHide();
-    return;
-  }
-  const rect = container.getBoundingClientRect();
-  window.actionclipSettings.historyEmbedShow({
-    x: rect.x, y: rect.y, width: rect.width, height: rect.height
+// --- Clipboard history list (Settings ▸ היסטוריית לוח) ---
+// Rendered as real DOM directly inside this tab (ported from
+// clipboard-history/clipboard-history.js, which still drives the separate
+// standalone quick-access popup unchanged) instead of a BrowserView layered
+// on top - see settings/preload.js for the shared history-panel:* IPC.
+const CLIP_CATEGORY_ICON = { phone: '📞', tracking: '📦', address: '🗺️', url: '🔗', email: '✉️', custom: '⚡', text: '📋' };
+let clipItems = [];
+let clipTotal = 0;
+let clipPageSize = 50;
+let clipHistoryPanelEnabled = true;
+let clipActiveCategory = 'all';
+let clipSearchTerm = '';
+
+function clipT(key) {
+  const lang = (settings && settings.language) || 'en';
+  return window.i18n ? window.i18n.t(lang, key) : key;
+}
+
+function initClipHistoryPanel() {
+  s.clipSearchInput = document.getElementById('clipSearchInput');
+  s.clipFilters = document.getElementById('clipFilters');
+  s.clipCountLabel = document.getElementById('clipCountLabel');
+  s.clipHistoryList = document.getElementById('clipHistoryList');
+  s.clipEmptyState = document.getElementById('clipEmptyState');
+  s.clipEmptyStateText = document.getElementById('clipEmptyStateText');
+  s.clipPauseDot = document.getElementById('clipPauseDot');
+  s.clipStatusText = document.getElementById('clipStatusText');
+  s.clipToggleBtn = document.getElementById('clipToggleBtn');
+  s.clipClearAllBtn = document.getElementById('clipClearAllBtn');
+  if (!s.clipSearchInput || !window.actionclipSettings.clipHistoryGetData) return;
+
+  document.querySelectorAll('.clip-chip').forEach((c) => c.setAttribute('aria-pressed', String(c.classList.contains('active'))));
+
+  s.clipSearchInput.addEventListener('input', () => {
+    clipSearchTerm = s.clipSearchInput.value.trim().toLowerCase();
+    renderClipHistory();
+  });
+
+  s.clipFilters.addEventListener('click', (e) => {
+    const btn = e.target.closest('.clip-chip');
+    if (!btn) return;
+    clipActiveCategory = btn.dataset.cat;
+    document.querySelectorAll('.clip-chip').forEach((c) => {
+      c.classList.toggle('active', c === btn);
+      c.setAttribute('aria-pressed', String(c === btn));
+    });
+    renderClipHistory();
+  });
+
+  s.clipClearAllBtn.addEventListener('click', () => {
+    window.actionclipSettings.clipHistoryClearAll();
+    clipItems = [];
+    clipTotal = 0;
+    renderClipHistory();
+  });
+
+  s.clipToggleBtn.addEventListener('click', () => {
+    clipHistoryPanelEnabled = !clipHistoryPanelEnabled;
+    window.actionclipSettings.clipHistoryToggleEnabled(clipHistoryPanelEnabled);
+    updateClipHistoryStatus();
+    // Keep the "storage settings" panel's own switch (further down this
+    // same tab) truthful too - they both control the one historyEnabled flag.
+    if (s.clipHistoryEnabledCheck) s.clipHistoryEnabledCheck.checked = clipHistoryPanelEnabled;
+  });
+
+  window.actionclipSettings.onClipHistoryItemsChanged(async () => {
+    await loadClipHistory(clipPageSize);
+    renderClipHistory();
+  });
+
+  loadClipHistory().then(renderClipHistory);
+}
+
+async function loadClipHistory(limit) {
+  const data = await window.actionclipSettings.clipHistoryGetData(limit);
+  clipItems = data.items || [];
+  clipTotal = data.total || clipItems.length;
+  clipPageSize = limit || clipItems.length || 50;
+  clipHistoryPanelEnabled = data.historyEnabled !== false;
+  updateClipHistoryStatus();
+}
+
+function updateClipHistoryStatus() {
+  if (!s.clipPauseDot) return;
+  s.clipPauseDot.classList.toggle('paused', !clipHistoryPanelEnabled);
+  s.clipStatusText.textContent = clipHistoryPanelEnabled ? clipT('clip.panel.recording') : clipT('clip.panel.paused');
+  s.clipToggleBtn.textContent = clipHistoryPanelEnabled ? clipT('clip.pause') : clipT('clip.resume');
+}
+
+function clipTimeAgoLabel(timestamp) {
+  const mins = Math.max(0, Math.round((Date.now() - timestamp) / 60000));
+  if (mins < 1) return clipT('clip.time.now');
+  if (mins < 60) return clipT('clip.time.min').replace('{n}', mins);
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return clipT('clip.time.hour').replace('{n}', hours);
+  return clipT('clip.time.day').replace('{n}', Math.round(hours / 24));
+}
+
+function clipFullDateLabel(timestamp) {
+  const lang = (settings && settings.language) || 'en';
+  return new Date(timestamp).toLocaleString(lang === 'he' ? 'he-IL' : 'en-US', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
   });
 }
 
-function setupHistoryEmbed() {
-  // The BrowserView doesn't participate in CSS layout, so a window resize
-  // (or the sidebar/content reflowing for any other reason) needs an
-  // explicit re-sync - main.js fires this after every 'resize' of the
-  // Settings BrowserWindow itself (see openSettingsWindow).
-  window.actionclipSettings.onWindowResized(() => syncHistoryEmbed());
-  window.addEventListener('resize', () => syncHistoryEmbed());
+function clipMatchesSearch(item, term) {
+  if (!term) return true;
+  if (item.text.toLowerCase().includes(term)) return true;
+  return (item.tags || []).some((t) => t.toLowerCase().includes(term));
+}
+
+function renderClipHistory() {
+  if (!s.clipHistoryList) return;
+  const filtered = clipItems.filter((item) => {
+    if (clipActiveCategory !== 'all' && item.category !== clipActiveCategory) return false;
+    if (!clipMatchesSearch(item, clipSearchTerm)) return false;
+    return true;
+  });
+
+  s.clipHistoryList.replaceChildren();
+  const hasResults = filtered.length > 0;
+  s.clipEmptyState.classList.toggle('hidden', hasResults);
+  s.clipHistoryList.classList.toggle('hidden', !hasResults);
+  if (!hasResults) {
+    const isFiltered = Boolean(clipSearchTerm) || clipActiveCategory !== 'all';
+    s.clipEmptyStateText.textContent = isFiltered ? clipT('clip.panel.emptyFiltered') : clipT('clip.panel.empty');
+  }
+  s.clipCountLabel.textContent = clipTotal > clipItems.length
+    ? clipT('clip.panel.countShowing').replace('{shown}', clipItems.length).replace('{total}', clipTotal)
+    : clipT('clip.panel.countTotal').replace('{n}', clipTotal);
+
+  for (const item of filtered) {
+    s.clipHistoryList.appendChild(buildClipRow(item));
+  }
+
+  if (clipItems.length < clipTotal && !clipSearchTerm && clipActiveCategory === 'all') {
+    const loadMoreBtn = document.createElement('button');
+    loadMoreBtn.className = 'clip-load-more';
+    loadMoreBtn.textContent = clipT('clip.panel.loadMore').replace('{n}', clipTotal - clipItems.length);
+    loadMoreBtn.addEventListener('click', async () => {
+      await loadClipHistory(clipPageSize + 50);
+      renderClipHistory();
+    });
+    s.clipHistoryList.appendChild(loadMoreBtn);
+  }
+}
+
+function buildClipRow(item) {
+  const row = document.createElement('div');
+  row.className = 'clip-item';
+  // Keyboard-operable, not just clickable: Tab reaches the row, Enter/Space
+  // copies it - matching what a mouse click does (see keydown handler below).
+  row.tabIndex = 0;
+  row.setAttribute('role', 'button');
+  row.setAttribute('aria-label', item.text);
+
+  const icon = document.createElement('span');
+  icon.className = 'clip-item-icon';
+  icon.textContent = CLIP_CATEGORY_ICON[item.category] || '📋';
+
+  const content = document.createElement('div');
+  content.className = 'clip-item-content';
+  const text = document.createElement('div');
+  text.className = 'clip-item-text';
+  text.textContent = item.text;
+  const meta = document.createElement('div');
+  meta.className = 'clip-item-meta';
+  meta.title = clipFullDateLabel(item.copiedAt);
+  meta.textContent = `${clipTimeAgoLabel(item.copiedAt)} · ${clipFullDateLabel(item.copiedAt)}`;
+  content.appendChild(text);
+  content.appendChild(meta);
+
+  if (item.tags && item.tags.length) {
+    const tagsRow = document.createElement('div');
+    tagsRow.className = 'clip-tags-row';
+    for (const tag of item.tags) {
+      const chip = document.createElement('span');
+      chip.className = 'clip-tag-chip';
+      chip.textContent = tag;
+      tagsRow.appendChild(chip);
+    }
+    content.appendChild(tagsRow);
+  }
+
+  const actions = document.createElement('div');
+  actions.className = 'clip-item-actions';
+
+  if (item.actions && item.actions.length) {
+    const goBtn = document.createElement('button');
+    goBtn.className = 'clip-go';
+    goBtn.title = item.actions[0].label;
+    goBtn.setAttribute('aria-label', item.actions[0].label);
+    goBtn.textContent = '▶';
+    goBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.actionclipSettings.clipHistoryRunAction(item.id, 0);
+    });
+    actions.appendChild(goBtn);
+  }
+
+  const delBtn = document.createElement('button');
+  const deleteLabel = clipT('clip.panel.delete');
+  delBtn.title = deleteLabel;
+  delBtn.setAttribute('aria-label', deleteLabel);
+  delBtn.textContent = '✕';
+  delBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.actionclipSettings.clipHistoryDeleteItem(item.id);
+    clipItems = clipItems.filter((i) => i.id !== item.id);
+    clipTotal = Math.max(0, clipTotal - 1);
+    renderClipHistory();
+  });
+  actions.appendChild(delBtn);
+
+  row.appendChild(icon);
+  row.appendChild(content);
+  row.appendChild(actions);
+
+  row.addEventListener('click', () => window.actionclipSettings.clipHistoryCopyItem(item.id));
+  row.addEventListener('keydown', (e) => {
+    if (e.target !== row) return; // let the go/delete buttons handle their own Enter/Space
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault(); // Space must not also scroll the list
+    window.actionclipSettings.clipHistoryCopyItem(item.id);
+  });
+
+  return row;
 }
 
 function render() {
@@ -664,6 +864,11 @@ function applyAppLanguage(lang) {
   document.querySelectorAll('#languageSeg .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.val === lang));
   // Update header pill text
   if (s.langToggleBtn) s.langToggleBtn.textContent = lang === 'he' ? '🌐 EN' : '🌐 עב';
+  // The clip-history list's rows/status/counts are built in JS (not
+  // data-i18n markup), so applyI18n() above doesn't touch them - refresh
+  // them explicitly whenever the language changes.
+  updateClipHistoryStatus();
+  renderClipHistory();
 }
 
 function applyAppTheme(theme) {
