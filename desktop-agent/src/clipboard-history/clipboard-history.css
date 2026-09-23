@@ -36,6 +36,17 @@ html, body {
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* Embedded inside Settings ▸ היסטוריית לוח (see main.js's
+   getHistoryEmbedView / clipboard-history.js's isEmbedded) - this page is a
+   BrowserView layered into a plain rectangle of the Settings window, not a
+   floating frameless popup, so the "floating card" chrome (rounded corners,
+   border, pop-in animation) is dropped in favor of just filling the space. */
+body.embedded .app {
+  border-radius: 0;
+  border: none;
+  animation: none;
+}
+
 .app-header {
   display: flex;
   align-items: center;

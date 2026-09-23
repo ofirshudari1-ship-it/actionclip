@@ -1,11 +1,10 @@
 :root {
-  --bg: #1c2028;
+  --bg: #1e222b;
   --surface: #262c3a;
-  --fg: #f3f4f6;
+  --fg: #eceef3;
   --muted: #9aa2b1;
   --border: #333a48;
-  --brand-start: #6366f1;
-  --brand-end: #a855f7;
+  --accent: #818cf8;
 }
 
 * { box-sizing: border-box; }
@@ -21,51 +20,67 @@ html, body {
   overflow: hidden;
 }
 
+/* Redesigned per the "less prominent, blends in" brief: no more full-width
+   loud gradient header block - just a thin accent line up top and a small,
+   quiet header row, so the whole thing reads as a compact toast rather than
+   a big dialog card. Opens ABOVE the copied text (see
+   computeAnchoredPopupPosition in lib/window-behavior.js), so it never
+   overlaps what was just copied. */
 .app {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border-radius: 18px;
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--border);
-  animation: ac-pop-in 0.16s ease;
+  box-shadow: 0 10px 28px -8px rgba(0, 0, 0, 0.45);
+  animation: ac-pop-in 0.14s ease;
+}
+.app::before {
+  /* Thin accent strip instead of a full gradient header block - carries the
+     brand color without dominating the popup's visual weight. */
+  content: "";
+  display: block;
+  height: 3px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, var(--accent), #c084fc);
 }
 @keyframes ac-pop-in {
-  from { opacity: 0; transform: scale(0.97) translateY(3px); }
+  from { opacity: 0; transform: scale(0.97) translateY(2px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .app-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: linear-gradient(120deg, var(--brand-start), var(--brand-end));
-  color: #fff;
+  gap: 6px;
+  padding: 6px 8px;
+  background: transparent;
+  color: var(--muted);
   -webkit-app-region: drag;
 }
-.app-header .title { font-weight: 700; font-size: 12.5px; flex: 1; }
+.app-header .title { font-weight: 600; font-size: 10.5px; flex: 1; letter-spacing: 0.1px; }
 
 .icon-btn {
-  background: rgba(255, 255, 255, 0.16);
+  background: transparent;
   border: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  font-size: 11px;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  font-size: 10px;
   cursor: pointer;
-  color: #fff;
+  color: var(--muted);
   -webkit-app-region: no-drag;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.icon-btn:hover { background: rgba(255, 255, 255, 0.3); }
-.icon-btn:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.icon-btn:hover { background: var(--surface); color: var(--fg); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .body {
-  padding: 10px 12px 12px;
+  padding: 4px 10px 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -78,60 +93,59 @@ html, body {
 .detect-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid var(--brand-start);
+  gap: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 6px 8px;
 }
 .detect-row .badge {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: rgba(34, 197, 94, 0.25);
-  color: #6ee7a8;
+  background: rgba(129, 140, 248, 0.18);
+  color: var(--accent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 9px;
   flex-shrink: 0;
 }
 .detect-row .detect-text { display: flex; flex-direction: column; min-width: 0; }
-.detect-row .detect-label { font-size: 10px; color: var(--muted); }
+.detect-row .detect-label { font-size: 9px; color: var(--muted); }
 .detect-row .detect-value {
   direction: ltr;
   text-align: left;
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: 600;
+  font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.actions { display: flex; flex-direction: column; gap: 6px; }
+.actions { display: flex; flex-direction: column; gap: 5px; }
 
 .btn {
   border: none;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 12px;
   cursor: pointer;
   -webkit-app-region: no-drag;
-  transition: transform 0.08s ease, box-shadow 0.15s ease;
+  transition: transform 0.08s ease, filter 0.15s ease;
 }
 .btn.primary {
-  background: linear-gradient(120deg, var(--brand-start), var(--brand-end));
+  background: var(--accent);
   color: #fff;
-  font-weight: 700;
-  font-size: 13.5px;
-  box-shadow: 0 6px 14px -4px rgba(13, 148, 136, 0.55);
+  font-weight: 600;
+  font-size: 12.5px;
 }
-.btn.primary:hover { transform: translateY(-1px); }
-.btn.primary:active { transform: translateY(0); }
-.btn.secondary { background: var(--surface); color: var(--fg); border: 1px solid var(--border); font-size: 12.5px; padding: 9px 10px; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.primary:active { transform: scale(0.98); }
+.btn.secondary { background: var(--surface); color: var(--fg); border: 1px solid var(--border); font-size: 11.5px; padding: 6px 9px; }
 .btn.secondary:hover { background: var(--border); }
 .btn.secondary:active { transform: scale(0.98); }
-.btn:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 2px; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ─── Windows High Contrast / forced colors (STANDARDS.md §20.2) ───
    Borderless buttons lose their visible edge once a contrast theme replaces

@@ -145,16 +145,7 @@ const DEFAULT_SETTINGS = {
   // silently watching the clipboard by default. Toggling "ניטור לוח פעיל"
   // back on from the tray/Settings after launch works as normal; this only
   // affects the state at startup.
-  startPaused: false,
-  // Persistent desktop widget (small, frameless, always-on-top status
-  // panel) - see src/widget/. On by default: it's the app's only visible
-  // presence beyond the tray icon on a tray-first, mostly-windowless app.
-  // Settings ▸ "הצג ווידג'ט על שולחן העבודה" flips this live.
-  widgetEnabled: true,
-  // Last dragged position ({x, y} in screen coordinates), null until the
-  // user moves it once - main.js falls back to a bottom-right default
-  // (lib/window-behavior.js's widgetDefaultPosition) until then.
-  widgetPosition: null
+  startPaused: false
 };
 
 const store = new Store({

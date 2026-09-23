@@ -180,6 +180,16 @@ html, body {
 .panel-head { display: flex; justify-content: space-between; align-items: center; }
 .panel-head-actions { display: flex; gap: 8px; }
 
+/* ─── Embedded clipboard-history BrowserView (Settings ▸ היסטוריית לוח) ───
+   This container renders nothing itself - it only reserves screen space;
+   main.js positions a BrowserView (clipboard-history.html, unchanged) over
+   its rectangle whenever this tab is active. See settings.js's
+   syncHistoryEmbed(). Padding removed on the panel itself so the embedded
+   page's own edges land flush with the panel's border. */
+.history-embed-panel { padding: 0; overflow: hidden; }
+.history-embed-panel .panel-title { padding: 14px 16px 0; }
+.history-embed-container { height: 360px; min-height: 220px; }
+
 /* ─── Divider ─── */
 .divider {
   height: 1px;

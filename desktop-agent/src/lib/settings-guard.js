@@ -18,13 +18,12 @@ const SETTINGS_ALLOWLIST = new Set([
   'actionPreferences', 'detectors',
   'startMinimized', 'closeToTray', 'showTrayNotification', 'soundOnDetect',
   'quietHours', 'historyEnabled', 'historyStorageLimit', 'historyPreviewLimit',
-  'language', 'theme', 'trayClickAction', 'startPaused', 'widgetEnabled'
+  'language', 'theme', 'trayClickAction', 'startPaused'
 ]);
 
 const BOOLEAN_KEYS = new Set([
   'enabled', 'autoLaunch', 'autoRunAction', 'startMinimized', 'closeToTray',
-  'showTrayNotification', 'soundOnDetect', 'historyEnabled', 'startPaused',
-  'widgetEnabled'
+  'showTrayNotification', 'soundOnDetect', 'historyEnabled', 'startPaused'
 ]);
 
 // key -> [min, max]; values are clamped into range, non-numbers dropped.

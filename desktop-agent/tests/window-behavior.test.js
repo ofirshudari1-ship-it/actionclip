@@ -7,12 +7,8 @@ const {
   shouldShowTrayHideHint,
   autoLaunchNeedsReconcile,
   resolveTrayClickTarget,
-  resolveWidgetVisibility,
-  widgetDefaultPosition,
-  resolveWidgetPosition,
-  buildWidgetState,
-  shouldPrimeClipboardOnResume,
-  timeAgoBucket
+  computeAnchoredPopupPosition,
+  shouldPrimeClipboardOnResume
 } = require('../src/lib/window-behavior');
 
 describe('shouldHideToTray', () => {
@@ -84,103 +80,47 @@ describe('resolveTrayClickTarget', () => {
   });
 });
 
-describe('resolveWidgetVisibility', () => {
-  test('shows the widget by default (on) when unset', () => {
-    expect(resolveWidgetVisibility({ widgetEnabled: undefined })).toBe(true);
+describe('computeAnchoredPopupPosition', () => {
+  const workArea = { x: 0, y: 0, width: 1920, height: 1080 };
+
+  test('anchors above the point, horizontally centered on it', () => {
+    const pos = computeAnchoredPopupPosition({ point: { x: 500, y: 500 }, width: 300, height: 120, workArea });
+    expect(pos).toEqual({ x: 500 - 150, y: 500 - 120 - 10 });
   });
 
-  test('shows the widget when explicitly enabled', () => {
-    expect(resolveWidgetVisibility({ widgetEnabled: true })).toBe(true);
+  test('defaults the gap to 10px when not provided', () => {
+    const pos = computeAnchoredPopupPosition({ point: { x: 500, y: 500 }, width: 300, height: 120, workArea });
+    expect(pos.y).toBe(500 - 120 - 10);
   });
 
-  test('hides the widget only when explicitly disabled', () => {
-    expect(resolveWidgetVisibility({ widgetEnabled: false })).toBe(false);
-  });
-});
-
-describe('widgetDefaultPosition', () => {
-  test('anchors to the bottom-right corner of the work area, inset by the margin', () => {
-    const workArea = { x: 0, y: 0, width: 1920, height: 1080 };
-    const pos = widgetDefaultPosition({ workArea, width: 240, height: 156, margin: 24 });
-    expect(pos).toEqual({ x: 1920 - 240 - 24, y: 1080 - 156 - 24 });
+  test('honors a custom gap', () => {
+    const pos = computeAnchoredPopupPosition({ point: { x: 500, y: 500 }, width: 300, height: 120, workArea, gap: 20 });
+    expect(pos.y).toBe(500 - 120 - 20);
   });
 
-  test('accounts for a non-zero work area origin (e.g. a taskbar on the left/top monitor)', () => {
-    const workArea = { x: 100, y: 50, width: 1600, height: 900 };
-    const pos = widgetDefaultPosition({ workArea, width: 240, height: 156, margin: 24 });
-    expect(pos).toEqual({ x: 100 + 1600 - 240 - 24, y: 50 + 900 - 156 - 24 });
+  test('falls back to below the point when there is not enough room above it', () => {
+    const pos = computeAnchoredPopupPosition({ point: { x: 500, y: 20 }, width: 300, height: 120, workArea, gap: 10 });
+    expect(pos.y).toBe(20 + 10);
   });
 
-  test('defaults margin to 24 when not provided', () => {
-    const workArea = { x: 0, y: 0, width: 1000, height: 800 };
-    const pos = widgetDefaultPosition({ workArea, width: 200, height: 100 });
-    expect(pos).toEqual({ x: 1000 - 200 - 24, y: 800 - 100 - 24 });
-  });
-});
-
-describe('resolveWidgetPosition', () => {
-  const primary = { x: 0, y: 0, width: 1920, height: 1040 };
-  const second = { x: 1920, y: 0, width: 1920, height: 1040 };
-  const size = { width: 240, height: 156 };
-
-  test('keeps a saved position that is still on a connected display', () => {
-    expect(resolveWidgetPosition({ saved: { x: 100, y: 200 }, workAreas: [primary], ...size }))
-      .toEqual({ x: 100, y: 200 });
+  test('clamps the x axis so the popup never renders off the left/right edge', () => {
+    const left = computeAnchoredPopupPosition({ point: { x: 5, y: 500 }, width: 300, height: 120, workArea });
+    expect(left.x).toBe(0);
+    const right = computeAnchoredPopupPosition({ point: { x: 1915, y: 500 }, width: 300, height: 120, workArea });
+    expect(right.x).toBe(1920 - 300);
   });
 
-  test('returns null (-> default corner) when the saved monitor is gone', () => {
-    // Saved on the second monitor, which is now unplugged.
-    expect(resolveWidgetPosition({ saved: { x: 2500, y: 300 }, workAreas: [primary], ...size })).toBeNull();
+  test('clamps the y axis so an oversized popup never renders off the top/bottom edge', () => {
+    // Taller than the whole work area: neither "above" nor "below" fully
+    // fits, so the clamp is what keeps it from drifting further off-screen.
+    const pos = computeAnchoredPopupPosition({ point: { x: 500, y: 50 }, width: 300, height: 1100, workArea });
+    expect(pos.y).toBe(1080 - 1100);
   });
 
-  test('still honors the second monitor while it is connected', () => {
-    expect(resolveWidgetPosition({ saved: { x: 2500, y: 300 }, workAreas: [primary, second], ...size }))
-      .toEqual({ x: 2500, y: 300 });
-  });
-
-  test('clamps a partly-off-screen position back inside the work area', () => {
-    // e.g. resolution dropped: center still on screen, bottom-right hangs off.
-    expect(resolveWidgetPosition({ saved: { x: 1750, y: 950 }, workAreas: [primary], ...size }))
-      .toEqual({ x: 1920 - 240, y: 1040 - 156 });
-  });
-
-  test('returns null for missing or malformed saved data', () => {
-    expect(resolveWidgetPosition({ saved: null, workAreas: [primary], ...size })).toBeNull();
-    expect(resolveWidgetPosition({ saved: { x: 'a', y: 1 }, workAreas: [primary], ...size })).toBeNull();
-    expect(resolveWidgetPosition({ saved: { x: 10, y: 10 }, workAreas: [], ...size })).toBeNull();
-  });
-});
-
-describe('buildWidgetState — privacy boundary of the always-visible widget', () => {
-  const recentItem = {
-    id: '1',
-    text: '050-123-4567 secret note',
-    category: 'phone',
-    actions: [{ label: 'WhatsApp: 050-123-4567', url: 'https://wa.me/972501234567' }],
-    tags: ['client-x'],
-    copiedAt: 1700000000000
-  };
-
-  test('passes through only state, language, category and timestamp', () => {
-    expect(buildWidgetState({ settings: { enabled: true, language: 'he' }, recentItem })).toEqual({
-      enabled: true,
-      language: 'he',
-      recent: { category: 'phone', copiedAt: 1700000000000 }
-    });
-  });
-
-  test('never leaks the copied text, action labels/URLs or tags anywhere in the payload', () => {
-    const json = JSON.stringify(buildWidgetState({ settings: { enabled: true }, recentItem }));
-    expect(json).not.toMatch(/050|4567|secret|wa\.me|WhatsApp|client-x/);
-  });
-
-  test('reports paused state and null recent when there is nothing to show', () => {
-    expect(buildWidgetState({ settings: { enabled: false }, recentItem: null }))
-      .toEqual({ enabled: false, language: 'en', recent: null });
-  });
-
-  test('defaults to English for a missing/unknown language (STANDARDS §4)', () => {
-    expect(buildWidgetState({ settings: { language: 'xx' }, recentItem: null }).language).toBe('en');
+  test('accounts for a non-zero work area origin (e.g. a second monitor)', () => {
+    const wa = { x: 1920, y: 0, width: 1920, height: 1080 };
+    const pos = computeAnchoredPopupPosition({ point: { x: 1930, y: 500 }, width: 300, height: 120, workArea: wa });
+    expect(pos.x).toBe(wa.x);
   });
 });
 
@@ -193,19 +133,5 @@ describe('shouldPrimeClipboardOnResume', () => {
     expect(shouldPrimeClipboardOnResume({ wasEnabled: true, willBeEnabled: true })).toBe(false);
     expect(shouldPrimeClipboardOnResume({ wasEnabled: true, willBeEnabled: false })).toBe(false);
     expect(shouldPrimeClipboardOnResume({ wasEnabled: false, willBeEnabled: false })).toBe(false);
-  });
-});
-
-describe('timeAgoBucket', () => {
-  const now = 10_000_000_000;
-  test('buckets into now / minutes / hours / days', () => {
-    expect(timeAgoBucket(now - 10_000, now)).toEqual({ unit: 'now', n: 0 });
-    expect(timeAgoBucket(now - 5 * 60_000, now)).toEqual({ unit: 'min', n: 5 });
-    expect(timeAgoBucket(now - 3 * 3_600_000, now)).toEqual({ unit: 'hour', n: 3 });
-    expect(timeAgoBucket(now - 2 * 86_400_000, now)).toEqual({ unit: 'day', n: 2 });
-  });
-
-  test('never goes negative for a timestamp slightly in the future (clock skew)', () => {
-    expect(timeAgoBucket(now + 60_000, now)).toEqual({ unit: 'now', n: 0 });
   });
 });

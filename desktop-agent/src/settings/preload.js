@@ -23,12 +23,24 @@ contextBridge.exposeInMainWorld('actionclipSettings', {
   testLeadChannel: (payload) => ipcRenderer.invoke('lead:test-channel', payload),
   exportLeadHistoryCsv: () => ipcRenderer.invoke('settings:export-lead-history-csv'),
   openExternal: (target) => ipcRenderer.send('settings:open-external', target),
-  // Monitoring paused/resumed from the tray menu or the desktop widget while
-  // this window is open (or hidden to tray) - keeps the General panel's
-  // switch truthful so its Save button can't silently revert that change.
+  // Monitoring paused/resumed from the tray menu while this window is open
+  // (or hidden to tray) - keeps the General panel's switch truthful so its
+  // Save button can't silently revert that change.
   onMonitoringChanged: (callback) => {
     const listener = (_e, enabled) => callback(enabled === true);
     ipcRenderer.on('settings:monitoring-changed', listener);
     return () => ipcRenderer.removeListener('settings:monitoring-changed', listener);
+  },
+  // Clipboard history embedded as a BrowserView inside the
+  // "clipboard-history" tab - see main.js's getHistoryEmbedView and
+  // settings.js's syncHistoryEmbed(). `bounds` is a screen-relative
+  // {x, y, width, height} rectangle (a getBoundingClientRect() of the
+  // tab's own container).
+  historyEmbedShow: (bounds) => ipcRenderer.send('settings:history-embed-show', bounds),
+  historyEmbedHide: () => ipcRenderer.send('settings:history-embed-hide'),
+  onWindowResized: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on('settings:window-resized', listener);
+    return () => ipcRenderer.removeListener('settings:window-resized', listener);
   }
 });

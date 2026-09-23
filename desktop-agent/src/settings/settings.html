@@ -255,13 +255,6 @@
             </div>
             <span class="switch"><input type="checkbox" id="startPausedCheck"><span class="slider"></span></span>
           </label>
-          <label class="switch-row">
-            <div class="label-text">
-              <span data-i18n="settings.widgetEnabled">הצג ווידג'ט על שולחן העבודה</span>
-              <span class="label-sub" data-i18n="settings.widgetEnabled.sub">חלונית קטנה וצפה תמיד עם סטטוס ניטור ופעולות מהירות</span>
-            </div>
-            <span class="switch"><input type="checkbox" id="widgetEnabledCheck"><span class="slider"></span></span>
-          </label>
           <div class="field-row">
             <div class="field-label" data-i18n="settings.trayClick">לחיצה בודדת על אייקון המגש</div>
             <select id="trayClickSelect">
@@ -467,6 +460,14 @@
             <h2 data-i18n="clip.title">היסטוריית לוח</h2>
             <p data-i18n="clip.subtitle">כל טקסט שהועתק — כמו Win+V, רק חכם יותר.</p>
           </div>
+        </div>
+        <div class="panel history-embed-panel">
+          <div class="panel-title" data-i18n="clip.browse.title">רשימת ההעתקות</div>
+          <!-- Filled by main.js's BrowserView (getHistoryEmbedView) whenever this
+               tab is active - see settings.js's syncHistoryEmbed(). Nothing is
+               rendered here directly; this div only reserves the on-screen
+               rectangle the BrowserView is positioned over. -->
+          <div id="historyEmbedContainer" class="history-embed-container"></div>
         </div>
         <div class="panel">
           <label class="switch-row">

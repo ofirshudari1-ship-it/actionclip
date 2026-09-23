@@ -39,8 +39,6 @@ const STRINGS = {
     'settings.sound.sub': 'משמיע צליל מערכת קצר כשמזוהה משהו אוטומטית',
     'settings.startPaused': 'התחל במצב מושהה',
     'settings.startPaused.sub': 'בכל הפעלה מחדש, הניטור מתחיל כבוי - שימושי במחשב משותף',
-    'settings.widgetEnabled': 'הצג ווידג\'ט על שולחן העבודה',
-    'settings.widgetEnabled.sub': 'חלונית קטנה וצפה תמיד עם סטטוס ניטור ופעולות מהירות',
     'settings.trayClick': 'לחיצה בודדת על אייקון המגש',
     'settings.trayClick.history': 'פתח היסטוריית העתקות',
     'settings.trayClick.settings': 'פתח הגדרות',
@@ -81,6 +79,7 @@ const STRINGS = {
     // Clipboard history page
     'clip.title': 'היסטוריית לוח',
     'clip.subtitle': 'כל טקסט שהועתק — כמו Win+V, רק חכם יותר.',
+    'clip.browse.title': 'רשימת ההעתקות',
     'clip.enabled': 'הקלטת היסטוריית העתקות',
     'clip.enabled.sub': 'מתעד כל העתקה לצורך חיפוש ופתיחה מחדש',
     'clip.storageLimit': 'מספר פריטים לשמור (מאחורי הקלעים)',
@@ -278,26 +277,14 @@ const STRINGS = {
     'leads.slack.url.label': 'Slack Incoming Webhook URL',
     'leads.ai.key.label': 'Anthropic API Key',
     'leads.saved': 'נשמר ✓',
-    // Desktop widget (src/widget/) - existing strings, moved here verbatim
-    // from widget.js/main.js so the widget follows the UI language.
-    'widget.loading': 'טוען…',
-    'widget.status.active': 'ניטור פעיל',
-    'widget.status.paused': 'ניטור מושהה',
-    'widget.pause': 'השהה',
-    'widget.resume': 'המשך',
-    'widget.history': 'היסטוריה',
-    'widget.hide': "הסתר ווידג'ט",
-    'widget.recent': '{label} זוהה {time}',
-    'widget.time.now': 'הרגע',
-    'widget.time.min': "לפני {n} דק'",
-    'widget.time.hour': "לפני {n} שע'",
-    'widget.time.day': 'לפני {n} ימים',
-    'widget.cat.phone': 'מספר טלפון',
-    'widget.cat.tracking': 'מספר מעקב',
-    'widget.cat.address': 'כתובת',
-    'widget.cat.url': 'קישור',
-    'widget.cat.email': 'אימייל',
-    'widget.cat.custom': 'פעולה',
+    // Clipboard-history panel (used by both the quick-access popup and the
+    // Settings ▸ "clipboard-history" embedded view - see clipboard-history.js).
+    'clip.pause': 'השהה',
+    'clip.resume': 'המשך',
+    'clip.time.now': 'הרגע',
+    'clip.time.min': "לפני {n} דק'",
+    'clip.time.hour': "לפני {n} שע'",
+    'clip.time.day': 'לפני {n} ימים',
   },
   en: {
     // Nav groups
@@ -335,8 +322,6 @@ const STRINGS = {
     'settings.sound.sub': 'Plays a short system sound when something is detected automatically',
     'settings.startPaused': 'Start paused',
     'settings.startPaused.sub': 'Every launch starts with monitoring off — useful on a shared computer',
-    'settings.widgetEnabled': 'Show desktop widget',
-    'settings.widgetEnabled.sub': 'A small, always-visible panel with monitoring status and quick actions',
     'settings.trayClick': 'Single-click on tray icon',
     'settings.trayClick.history': 'Open clipboard history',
     'settings.trayClick.settings': 'Open settings',
@@ -377,6 +362,7 @@ const STRINGS = {
     // Clipboard history page
     'clip.title': 'Clipboard History',
     'clip.subtitle': 'Everything you copied — like Win+V, but smarter.',
+    'clip.browse.title': 'Browse history',
     'clip.enabled': 'Record clipboard history',
     'clip.enabled.sub': 'Logs every copy for search and replay',
     'clip.storageLimit': 'Items to store (behind the scenes)',
@@ -574,25 +560,14 @@ const STRINGS = {
     'leads.slack.url.label': 'Slack Incoming Webhook URL',
     'leads.ai.key.label': 'Anthropic API Key',
     'leads.saved': 'Saved ✓',
-    // Desktop widget (src/widget/)
-    'widget.loading': 'Loading…',
-    'widget.status.active': 'Monitoring on',
-    'widget.status.paused': 'Monitoring paused',
-    'widget.pause': 'Pause',
-    'widget.resume': 'Resume',
-    'widget.history': 'History',
-    'widget.hide': 'Hide widget',
-    'widget.recent': '{label} · {time}',
-    'widget.time.now': 'just now',
-    'widget.time.min': '{n} min ago',
-    'widget.time.hour': '{n} hr ago',
-    'widget.time.day': '{n} d ago',
-    'widget.cat.phone': 'Phone number',
-    'widget.cat.tracking': 'Tracking number',
-    'widget.cat.address': 'Address',
-    'widget.cat.url': 'Link',
-    'widget.cat.email': 'Email',
-    'widget.cat.custom': 'Action',
+    // Clipboard-history panel (used by both the quick-access popup and the
+    // Settings ▸ "clipboard-history" embedded view - see clipboard-history.js).
+    'clip.pause': 'Pause',
+    'clip.resume': 'Resume',
+    'clip.time.now': 'just now',
+    'clip.time.min': '{n} min ago',
+    'clip.time.hour': '{n} hr ago',
+    'clip.time.day': '{n} d ago',
   }
 };
 

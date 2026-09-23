@@ -9,8 +9,8 @@ describe('sanitizeSettingsPatch', () => {
   });
 
   test('keeps valid booleans and drops non-boolean values for boolean keys', () => {
-    expect(sanitizeSettingsPatch({ enabled: false, widgetEnabled: true })).toEqual({ enabled: false, widgetEnabled: true });
-    expect(sanitizeSettingsPatch({ enabled: 'yes', widgetEnabled: 1 })).toEqual({});
+    expect(sanitizeSettingsPatch({ enabled: false, startPaused: true })).toEqual({ enabled: false, startPaused: true });
+    expect(sanitizeSettingsPatch({ enabled: 'yes', startPaused: 1 })).toEqual({});
   });
 
   test('accepts only known enum values for language / theme / trayClickAction', () => {
@@ -39,7 +39,7 @@ describe('sanitizeSettingsPatch', () => {
 
   test('allowlist covers every key the Settings UI and welcome window send', () => {
     for (const key of ['enabled', 'autoLaunch', 'startMinimized', 'closeToTray', 'showTrayNotification',
-      'soundOnDetect', 'startPaused', 'widgetEnabled', 'trayClickAction', 'pollMs', 'dedupeSeconds',
+      'soundOnDetect', 'startPaused', 'trayClickAction', 'pollMs', 'dedupeSeconds',
       'autoCloseSeconds', 'sendDedupeMinutes', 'quietHours', 'detectors', 'historyEnabled',
       'historyStorageLimit', 'historyPreviewLimit', 'actionPreferences', 'autoRunAction',
       'autoRunDelaySeconds', 'language', 'theme']) {

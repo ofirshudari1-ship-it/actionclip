@@ -18,6 +18,15 @@ let lang = 'en';
 
 const els = {};
 
+// True when this page is loaded as the BrowserView embedded inside Settings
+// ▸ היסטוריית לוח (see main.js's getHistoryEmbedView) rather than as the
+// standalone quick-access popup (openHistoryWindow). The two share this
+// exact same HTML/JS/preload - only the chrome differs: the embedded view
+// lives inside a window that already has its own title bar and tab nav, so
+// its own "✕" close button (which only makes sense for the frameless
+// standalone popup) would otherwise sit there doing nothing.
+const isEmbedded = new URLSearchParams(location.search).get('embedded') === '1';
+
 document.addEventListener('DOMContentLoaded', async () => {
   els.list = document.getElementById('list');
   els.emptyState = document.getElementById('emptyState');
@@ -32,6 +41,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   els.countLabel = document.getElementById('countLabel');
 
   document.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c.classList.contains('active'))));
+
+  if (isEmbedded) {
+    document.body.classList.add('embedded');
+    els.closeBtn.style.display = 'none';
+  }
 
   await load();
   render();
@@ -73,7 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') window.actionclipHistory.dismiss();
+    if (e.key === 'Escape' && !isEmbedded) window.actionclipHistory.dismiss();
   });
 });
 
@@ -97,17 +111,17 @@ function updateStatus() {
   const t = (key) => window.i18n ? window.i18n.t(lang, key) : key;
   els.pauseDot.classList.toggle('paused', !historyEnabled);
   els.statusText.textContent = historyEnabled ? t('clip.panel.recording') : t('clip.panel.paused');
-  els.toggleBtn.textContent = historyEnabled ? t('widget.pause') : t('widget.resume');
+  els.toggleBtn.textContent = historyEnabled ? t('clip.pause') : t('clip.resume');
 }
 
 function timeAgoLabel(timestamp) {
   const t = (key) => window.i18n ? window.i18n.t(lang, key) : key;
   const mins = Math.max(0, Math.round((Date.now() - timestamp) / 60000));
-  if (mins < 1) return t('widget.time.now');
-  if (mins < 60) return t('widget.time.min').replace('{n}', mins);
+  if (mins < 1) return t('clip.time.now');
+  if (mins < 60) return t('clip.time.min').replace('{n}', mins);
   const hours = Math.round(mins / 60);
-  if (hours < 24) return t('widget.time.hour').replace('{n}', hours);
-  return t('widget.time.day').replace('{n}', Math.round(hours / 24));
+  if (hours < 24) return t('clip.time.hour').replace('{n}', hours);
+  return t('clip.time.day').replace('{n}', Math.round(hours / 24));
 }
 
 function fullDateLabel(timestamp) {

@@ -1,4 +1,4 @@
-const { app, Tray, Menu, BrowserWindow, clipboard, shell, screen, ipcMain, globalShortcut, dialog } = require('electron');
+const { app, Tray, Menu, BrowserWindow, BrowserView, clipboard, shell, screen, ipcMain, globalShortcut, dialog } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -38,7 +38,7 @@ const { findPhone, fillTemplate, buildWhatsAppUrl } = require('./lib/phone');
 const { findGenericAction } = require('./lib/detectors');
 const store = require('./lib/store');
 const { postJson, cleanupLeadWithAi, buildShareText, buildMailtoUrl } = require('./lib/lead-delivery');
-const { shouldHideToTray, shouldShowTrayHideHint, autoLaunchNeedsReconcile, resolveTrayClickTarget, resolveWidgetVisibility, widgetDefaultPosition, resolveWidgetPosition, buildWidgetState, shouldPrimeClipboardOnResume } = require('./lib/window-behavior');
+const { shouldHideToTray, shouldShowTrayHideHint, autoLaunchNeedsReconcile, resolveTrayClickTarget, computeAnchoredPopupPosition, shouldPrimeClipboardOnResume } = require('./lib/window-behavior');
 const { sanitizeSettingsPatch } = require('./lib/settings-guard');
 const { version: APP_VERSION } = require('../package.json');
 const { buildDate: APP_BUILD_DATE } = (() => { try { return require('../../version.json'); } catch { return {}; } })();
@@ -73,10 +73,11 @@ let popupWindow = null;
 let actionPopupWindow = null;
 let historyWindow = null;
 let settingsWindow = null;
-let widgetWindow = null;
+let historyEmbedView = null; // BrowserView showing clipboard-history.html inside Settings ▸ היסטוריית לוח
 let clipboardTimer = null;
 let autoCloseTimer = null;
 let autoRunTimer = null;
+let trayClickTimer = null; // debounces tray 'click' so a double-click doesn't also fire the single-click action (see createTray)
 
 let lastClipboardText = '';
 let lastNotifiedAt = new Map(); // normalized phone -> timestamp ms
@@ -188,16 +189,13 @@ async function checkClipboard() {
     const { category, actions } = categorizeForHistory(text);
     const tags = store.computeTags(text);
     store.addClipboardHistoryItem({ text, category, actions, tags });
-    if (historyWindow && !historyWindow.isDestroyed()) {
-      historyWindow.webContents.send('history-panel:items-changed');
-    }
+    broadcastHistoryItemsChanged();
     // Only rebuild the tray's "recent actions" submenu when this copy
     // actually had one - keeps every other clipboard tick (the common
     // case: plain text with no detected action) from paying for a menu
     // rebuild it wouldn't change.
     if (actions && actions.length && tray && !tray.isDestroyed()) {
       tray.setContextMenu(buildTrayMenu());
-      notifyWidget(); // refresh the widget's "recent action" row
     }
   }
 
@@ -328,13 +326,9 @@ function openPopupWindow() {
   const display = screen.getDisplayNearestPoint(cursor);
   const width = 360;
   const height = 620;
-  let x = cursor.x + 12;
-  let y = cursor.y + 12;
-  const bounds = display.workArea;
-  if (x + width > bounds.x + bounds.width) x = bounds.x + bounds.width - width - 8;
-  if (y + height > bounds.y + bounds.height) y = bounds.y + bounds.height - height - 8;
-  x = Math.max(bounds.x + 8, x);
-  y = Math.max(bounds.y + 8, y);
+  // Anchored above the cursor (where the copy/selection just happened),
+  // never on top of it - see computeAnchoredPopupPosition.
+  const { x, y } = computeAnchoredPopupPosition({ point: cursor, width, height, workArea: display.workArea });
 
   popupWindow = new BrowserWindow({
     width,
@@ -385,20 +379,17 @@ function openActionPopupWindow() {
 
   const cursor = screen.getCursorScreenPoint();
   const display = screen.getDisplayNearestPoint(cursor);
-  const width = 320;
+  const width = 280;
   const bounds = display.workArea;
   // Long/wrapped custom-rule action labels can push actual content past this
   // estimate; the popup body scrolls internally (action-popup.css) as a
   // safety net, but we still cap the window itself to the visible work area
   // so it never tries to render off-screen on small/scaled displays.
-  const estimatedHeight = 130 + 46 * ((currentGenericAction && currentGenericAction.actions.length) || 1);
+  const estimatedHeight = 88 + 38 * ((currentGenericAction && currentGenericAction.actions.length) || 1);
   const height = Math.min(estimatedHeight, bounds.height - 16);
-  let x = cursor.x + 12;
-  let y = cursor.y + 12;
-  if (x + width > bounds.x + bounds.width) x = bounds.x + bounds.width - width - 8;
-  if (y + height > bounds.y + bounds.height) y = bounds.y + bounds.height - height - 8;
-  x = Math.max(bounds.x + 8, x);
-  y = Math.max(bounds.y + 8, y);
+  // Anchored above the cursor (where the copy just happened), never on top
+  // of the text itself - see computeAnchoredPopupPosition.
+  const { x, y } = computeAnchoredPopupPosition({ point: cursor, width, height, workArea: bounds });
 
   actionPopupWindow = new BrowserWindow({
     width,
@@ -436,11 +427,17 @@ function closePopup() {
   clearAutoRunTimer();
 }
 
-// The clipboard-history panel (Win+V equivalent): browses everything
-// logged in store.getClipboardHistory(), not tied to any single detection
-// like the two popups above. No auto-close timer - unlike a "here's what
-// you just copied" popup, this is a place to linger and search, so it only
-// closes on an explicit click-away/Escape/action, same as Win+V's own UI.
+// Standalone QUICK-ACCESS history popup (Win+V equivalent): a small,
+// frameless, closes-on-blur panel meant for "glance, grab one, gone" -
+// reached only via the two global shortcuts (Win+V / Ctrl+Alt+V) and the
+// tray menu's explicit "היסטוריית העתקות" item / left-click-action. This is
+// deliberately kept as its own lightweight window (distinct from the fuller
+// browsing experience embedded in Settings ▸ היסטוריית לוח, see
+// getHistoryEmbedView below) because it needs to pop up instantly at the
+// cursor, over whatever app currently has focus, and get out of the way the
+// moment focus moves on - a Settings window is neither. It is NOT part of
+// the tray double-click flow: see createTray()'s click/double-click
+// debounce for why double-clicking the tray only ever opens Settings.
 function openHistoryWindow() {
   if (historyWindow && !historyWindow.isDestroyed()) {
     historyWindow.focus();
@@ -485,18 +482,6 @@ function openHistoryWindow() {
   historyWindow.on('closed', () => { historyWindow = null; });
 }
 
-// --- Persistent desktop widget (src/widget/) ---
-//
-// Small, frameless, always-on-top status panel — the app's only persistent
-// visible presence beyond the tray icon, since ActionClip is otherwise
-// tray-first with zero windows on most launches. Shown/hidden purely off
-// Settings ▸ "הצג ווידג'ט על שולחן העבודה" (widgetEnabled, on by default -
-// see resolveWidgetVisibility in lib/window-behavior.js).
-
-const WIDGET_WIDTH = 240;
-const WIDGET_HEIGHT = 156;
-let widgetPositionSaveTimer = null;
-
 // Re-reads the clipboard right now and records it as "already seen", without
 // logging or acting on it. Called just before monitoring resumes: the poll
 // loop doesn't read the clipboard at all while paused, so without this the
@@ -511,9 +496,9 @@ async function primeClipboardBaseline() {
 }
 
 // Single source of truth for pausing/resuming monitoring, shared by the
-// tray menu's "ניטור לוח פעיל" checkbox, the widget's pause/resume button
-// AND the Settings window's General > monitoring switch - none of them
-// reimplement this, so the surfaces can never drift out of sync.
+// tray menu's "ניטור לוח פעיל" checkbox AND the Settings window's General >
+// monitoring switch - neither reimplements this, so the two surfaces can
+// never drift out of sync.
 async function setMonitoringEnabled(next) {
   const wasEnabled = store.getSettings().enabled;
   if (shouldPrimeClipboardOnResume({ wasEnabled, willBeEnabled: next })) {
@@ -531,105 +516,94 @@ function toggleMonitoring(forceValue) {
 }
 
 // Pushes the current monitoring state to every surface that displays it:
-// tray menu/tooltip, desktop widget, and an open (or hidden-to-tray)
-// Settings window. The Settings push matters for correctness, not just
-// looks: its General panel "Save" sends `enabled` from its own checkbox, so
-// a stale checkbox (monitoring paused from the tray/widget while Settings
-// was open) used to silently turn monitoring back on the next time the user
-// saved any unrelated general setting.
+// tray menu/tooltip and an open (or hidden-to-tray) Settings window. The
+// Settings push matters for correctness, not just looks: its General panel
+// "Save" sends `enabled` from its own checkbox, so a stale checkbox
+// (monitoring paused from the tray while Settings was open) used to
+// silently turn monitoring back on the next time the user saved any
+// unrelated general setting.
 function broadcastMonitoringState() {
   const { enabled } = store.getSettings();
   if (tray && !tray.isDestroyed()) tray.setContextMenu(buildTrayMenu());
-  notifyWidget();
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.webContents.send('settings:monitoring-changed', enabled);
   }
 }
 
-function notifyWidget() {
-  if (widgetWindow && !widgetWindow.isDestroyed()) {
-    widgetWindow.webContents.send('widget:state-changed');
+// After clipboard history is deleted/cleared, the tray's "recent actions"
+// submenu (which previews the copied TEXT itself) must drop what it was
+// showing - leaving it would keep displaying content the user just
+// explicitly deleted.
+function refreshHistorySummaries() {
+  if (tray && !tray.isDestroyed()) tray.setContextMenu(buildTrayMenu());
+}
+
+// Tells every open history surface (the standalone quick-access popup from
+// a hotkey/tray click, AND the BrowserView embedded in Settings ▸ היסטוריית
+// לוח) to re-fetch and re-render - both load the exact same
+// clipboard-history.js, they just live in different windows/views.
+function broadcastHistoryItemsChanged() {
+  if (historyWindow && !historyWindow.isDestroyed()) {
+    historyWindow.webContents.send('history-panel:items-changed');
+  }
+  if (historyEmbedView && !historyEmbedView.webContents.isDestroyed()) {
+    historyEmbedView.webContents.send('history-panel:items-changed');
   }
 }
 
-// After clipboard history is deleted/cleared, both places that summarize it
-// must drop what they were showing: the tray's "recent actions" submenu
-// (which previews the copied TEXT itself - leaving it would keep showing
-// content the user just explicitly deleted) and the widget's recent row.
-function refreshHistorySummaries() {
-  if (tray && !tray.isDestroyed()) tray.setContextMenu(buildTrayMenu());
-  notifyWidget();
-}
-
-function createWidgetWindow() {
-  if (widgetWindow && !widgetWindow.isDestroyed()) return;
-
-  const settings = store.getSettings();
-  // A saved position is only reused if it still lands on a display that
-  // exists now (monitor unplugged / resolution changed -> back to default,
-  // STANDARDS.md §12.3) - otherwise the widget could reopen invisible.
-  const pos = resolveWidgetPosition({
-    saved: settings.widgetPosition,
-    workAreas: screen.getAllDisplays().map((d) => d.workArea),
-    width: WIDGET_WIDTH,
-    height: WIDGET_HEIGHT
-  }) || widgetDefaultPosition({
-    workArea: screen.getPrimaryDisplay().workArea,
-    width: WIDGET_WIDTH,
-    height: WIDGET_HEIGHT
-  });
-
-  widgetWindow = new BrowserWindow({
-    width: WIDGET_WIDTH,
-    height: WIDGET_HEIGHT,
-    x: pos.x,
-    y: pos.y,
-    frame: false,
-    transparent: true,
-    resizable: false,
-    movable: true,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    show: false,
+// --- Clipboard history embedded inside Settings ▸ היסטוריית לוח ---
+//
+// Reuses clipboard-history.html/.js/preload.js completely unchanged, loaded
+// into a BrowserView layered inside the Settings BrowserWindow instead of a
+// second top-level window - see the "one window" consolidation in
+// createTray()/openSettingsWindow(). The renderer (settings.js) tells main
+// when the History tab is visible and what screen-relative rectangle to
+// fill (settings:history-embed-show/-hide below); this only ever
+// shows/hides/repositions the same BrowserView, it never destroys and
+// recreates it, so the history list's scroll position and any in-progress
+// search survive switching tabs.
+function getHistoryEmbedView() {
+  if (historyEmbedView) return historyEmbedView;
+  historyEmbedView = new BrowserView({
     webPreferences: {
-      preload: path.join(__dirname, 'widget', 'preload.js'),
+      preload: path.join(__dirname, 'clipboard-history', 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
     }
   });
-
-  widgetWindow.loadFile(path.join(__dirname, 'widget', 'widget.html'));
-  widgetWindow.once('ready-to-show', () => {
-    // showInactive(): visible immediately without stealing focus from
-    // whatever window/app the user is currently working in.
-    if (widgetWindow && !widgetWindow.isDestroyed()) widgetWindow.showInactive();
+  historyEmbedView.setBackgroundColor('#00000000');
+  historyEmbedView.webContents.loadFile(path.join(__dirname, 'clipboard-history', 'clipboard-history.html'), {
+    query: { embedded: '1' } // see clipboard-history.js: hides its own close-on-blur behavior when embedded
   });
-
-  // Persists the dragged position (debounced - 'moved' fires continuously
-  // while dragging) using the same settings store every other window in
-  // this app already uses.
-  widgetWindow.on('moved', () => {
-    if (!widgetWindow || widgetWindow.isDestroyed()) return;
-    const [x, y] = widgetWindow.getPosition();
-    clearTimeout(widgetPositionSaveTimer);
-    widgetPositionSaveTimer = setTimeout(() => store.saveSettings({ widgetPosition: { x, y } }), 400);
-  });
-
-  widgetWindow.on('closed', () => { widgetWindow = null; });
+  return historyEmbedView;
 }
 
-// Applies the current widgetEnabled setting: shows (creating it on first
-// use) or hides the widget window. Called on startup and live from
-// Settings, so toggling "הצג ווידג'ט על שולחן העבודה" takes effect
-// immediately without a restart.
-function applyWidgetVisibility() {
-  const show = resolveWidgetVisibility(store.getSettings());
-  if (show) {
-    if (!widgetWindow || widgetWindow.isDestroyed()) createWidgetWindow();
-    else if (!widgetWindow.isVisible()) widgetWindow.showInactive();
-  } else if (widgetWindow && !widgetWindow.isDestroyed()) {
-    widgetWindow.hide();
+function showHistoryEmbed(bounds) {
+  if (!settingsWindow || settingsWindow.isDestroyed()) return;
+  if (!bounds || ![bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite)) return;
+  const view = getHistoryEmbedView();
+  settingsWindow.addBrowserView(view);
+  view.setBounds({
+    x: Math.round(bounds.x),
+    y: Math.round(bounds.y),
+    width: Math.max(0, Math.round(bounds.width)),
+    height: Math.max(0, Math.round(bounds.height))
+  });
+  view.setAutoResize({ width: true, height: true });
+}
+
+function hideHistoryEmbed() {
+  if (settingsWindow && !settingsWindow.isDestroyed() && historyEmbedView) {
+    settingsWindow.removeBrowserView(historyEmbedView);
+  }
+}
+
+function destroyHistoryEmbed() {
+  hideHistoryEmbed();
+  if (historyEmbedView) {
+    historyEmbedView.webContents.close();
+    historyEmbedView = null;
   }
 }
 
@@ -807,6 +781,9 @@ function openWelcomeWindow() {
 
 function openSettingsWindow() {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
+    // .show() first: the window may currently be hidden-to-tray
+    // (closeToTray), and focus() alone does not reliably un-hide it.
+    settingsWindow.show();
     settingsWindow.focus();
     return;
   }
@@ -833,7 +810,23 @@ function openSettingsWindow() {
       maybeShowTrayHideHint(settings);
     }
   });
-  settingsWindow.on('closed', () => { settingsWindow = null; });
+  // The embedded history BrowserView (see getHistoryEmbedView) has to be
+  // resized by hand whenever the window itself resizes - it isn't a normal
+  // DOM element, so CSS layout doesn't reach it. settings.js recomputes its
+  // container's rect and re-sends settings:history-embed-show only while
+  // that tab is actually the active one.
+  settingsWindow.on('resize', () => {
+    if (settingsWindow && !settingsWindow.isDestroyed()) {
+      settingsWindow.webContents.send('settings:window-resized');
+    }
+  });
+  // The BrowserView is attached to this specific BrowserWindow instance -
+  // tear it down with it instead of leaving a detached, still-loaded
+  // WebContents around for the next time Settings is reopened.
+  settingsWindow.on('closed', () => {
+    settingsWindow = null;
+    destroyHistoryEmbed();
+  });
 }
 
 // First time (only) a window is hidden instead of closed, tell the user
@@ -939,16 +932,41 @@ function handleTrayClick() {
   else if (target === 'settings') openSettingsWindow();
 }
 
+// How long a single tray 'click' waits before actually firing, so a second
+// click arriving within this window (forming a 'double-click') can cancel
+// it instead of both firing. Below Windows' own double-click threshold
+// (~500ms by default) so a genuine single click still feels immediate.
+const TRAY_CLICK_DEBOUNCE_MS = 250;
+
 function createTray() {
   tray = new Tray(path.join(ASSETS_DIR, 'tray.png'));
   tray.setContextMenu(buildTrayMenu());
   // Left single-click: configurable via Settings ▸ הגדרות (trayClickAction) -
-  // defaults to opening the clipboard-history panel, the most commonly
-  // reached-for action. Right-click always shows the full context menu
-  // (Electron's default, unaffected by this) - that's still the only path
-  // to "יציאה" so quitting is never one accidental click away.
-  tray.on('click', handleTrayClick);
-  tray.on('double-click', openSettingsWindow);
+  // defaults to opening the quick-access clipboard-history popup, the most
+  // commonly reached-for action. Right-click always shows the full context
+  // menu (Electron's default, unaffected by this) - that's still the only
+  // path to "יציאה" so quitting is never one accidental click away.
+  //
+  // On Windows, Electron's Tray fires 'click' for EACH click of a
+  // double-click sequence and THEN fires 'double-click' on top of that -
+  // so an unguarded double-click used to open History (from the first
+  // 'click') AND Settings (from 'double-click') at once. Debouncing the
+  // single-click action here, and having 'double-click' cancel it, means a
+  // double-click only ever does one thing: open Settings (which is also
+  // where the clipboard history now lives, see the "clipboard-history" tab
+  // in settings.html) - never both windows.
+  tray.on('click', () => {
+    clearTimeout(trayClickTimer);
+    trayClickTimer = setTimeout(() => {
+      trayClickTimer = null;
+      handleTrayClick();
+    }, TRAY_CLICK_DEBOUNCE_MS);
+  });
+  tray.on('double-click', () => {
+    clearTimeout(trayClickTimer);
+    trayClickTimer = null;
+    openSettingsWindow();
+  });
 }
 
 // --- IPC: popup window ---
@@ -1123,17 +1141,13 @@ ipcMain.on('history-panel:run-action', (_event, { id, index }) => {
 ipcMain.on('history-panel:delete-item', (_event, id) => {
   if (typeof id !== 'string') return;
   store.deleteClipboardHistoryItem(id);
-  if (historyWindow && !historyWindow.isDestroyed()) {
-    historyWindow.webContents.send('history-panel:items-changed');
-  }
+  broadcastHistoryItemsChanged();
   refreshHistorySummaries();
 });
 
 ipcMain.on('history-panel:clear-all', () => {
   store.clearClipboardHistory();
-  if (historyWindow && !historyWindow.isDestroyed()) {
-    historyWindow.webContents.send('history-panel:items-changed');
-  }
+  broadcastHistoryItemsChanged();
   refreshHistorySummaries();
 });
 
@@ -1146,28 +1160,13 @@ ipcMain.on('history-panel:dismiss', () => {
   if (historyWindow && !historyWindow.isDestroyed()) historyWindow.close();
 });
 
-// --- IPC: desktop widget ---
-
-// Payload is built by buildWidgetState (lib/window-behavior.js), which only
-// ever passes through monitoring state, UI language and the *category* +
-// timestamp of the latest detected action - never the copied text or its
-// action labels/URLs. The widget renders the localized label itself.
-ipcMain.handle('widget:get-init-data', () => buildWidgetState({
-  settings: store.getSettings(),
-  recentItem: store.getRecentActionableHistory(1)[0] || null
-}));
-
-// Reuses toggleMonitoring — the exact same function the tray menu's
-// "ניטור לוח פעיל" checkbox calls - so the two surfaces never drift apart.
-ipcMain.handle('widget:toggle-monitoring', () => toggleMonitoring());
-
-// Reuses openHistoryWindow — the exact same function the tray menu's
-// "היסטוריית העתקות" item calls.
-ipcMain.on('widget:open-history', () => openHistoryWindow());
-
-ipcMain.on('widget:hide', () => {
-  if (widgetWindow && !widgetWindow.isDestroyed()) widgetWindow.hide();
-});
+// --- IPC: clipboard history embedded in Settings ▸ היסטוריית לוח ---
+// Sent by settings.js when the "clipboard-history" tab becomes visible/
+// hidden and on window resize, with the screen-relative rectangle of its
+// content area (getBoundingClientRect of the tab's container) - see
+// getHistoryEmbedView/showHistoryEmbed/hideHistoryEmbed above.
+ipcMain.on('settings:history-embed-show', (_event, bounds) => showHistoryEmbed(bounds));
+ipcMain.on('settings:history-embed-hide', () => hideHistoryEmbed());
 
 // --- IPC: welcome / onboarding window ---
 
@@ -1192,7 +1191,6 @@ ipcMain.handle('settings:save-one', (_e, payload) => {
   const safe = sanitizeSettingsPatch({ [key]: value });
   if (!Object.keys(safe).length) return false;
   store.saveSettings(safe);
-  if ('language' in safe) notifyWidget(); // widget follows the UI language live
   return true;
 });
 
@@ -1217,8 +1215,8 @@ ipcMain.on('settings:reset-templates', () => store.resetTemplates());
 // 'settings:save-one' above so both write paths enforce the same rules.
 ipcMain.on('settings:save-settings', async (_event, settings) => {
   const safe = sanitizeSettingsPatch(settings);
-  // Monitoring on/off goes through the same path as the tray and widget
-  // (baseline-on-resume, broadcast to every surface), not a raw store write.
+  // Monitoring on/off goes through the same path as the tray (baseline-on-
+  // resume, broadcast to every surface), not a raw store write.
   const hasEnabled = Object.prototype.hasOwnProperty.call(safe, 'enabled');
   const nextEnabled = safe.enabled;
   delete safe.enabled;
@@ -1230,10 +1228,6 @@ ipcMain.on('settings:save-settings', async (_event, settings) => {
   applyAutoLaunch();
   registerAllShortcuts();
   if (tray) tray.setContextMenu(buildTrayMenu());
-  // Live toggle: takes effect immediately, without a restart, whether the
-  // widget is being shown for the first time or hidden.
-  if (Object.prototype.hasOwnProperty.call(safe, 'widgetEnabled')) applyWidgetVisibility();
-  notifyWidget(); // e.g. a language switch re-renders the widget immediately
 });
 
 ipcMain.handle('settings:save-shortcuts', (_event, shortcuts) => {
@@ -1474,7 +1468,6 @@ if (!gotSingleInstanceLock) {
     startClipboardWatcher();
     applyAutoLaunch();
     registerAllShortcuts();
-    applyWidgetVisibility(); // persistent widget - on by default, see widgetEnabled
     const { startMinimized } = store.getSettings();
     if (!startMinimized) {
       maybeShowWelcome();

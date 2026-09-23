@@ -52,11 +52,15 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border-radius: 18px;
+  border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--border);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  animation: ac-pop-in 0.16s ease;
+  /* Softer than before - this popup now opens above the copied text (see
+     computeAnchoredPopupPosition in lib/window-behavior.js) instead of on
+     top of it, so it no longer needs as heavy a shadow to visually separate
+     itself from whatever is directly underneath it. */
+  box-shadow: 0 10px 32px -6px rgba(0,0,0,0.4);
+  animation: ac-pop-in 0.14s ease;
 }
 @keyframes ac-pop-in {
   from { opacity: 0; transform: scale(0.98) translateY(3px); }
