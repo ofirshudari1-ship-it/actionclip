@@ -1077,7 +1077,7 @@ ipcMain.on('settings:clear-lead-history', () => store.clearLeadHistory());
 
 // --- IPC: generic action popup (tracking / address / url detectors) ---
 
-ipcMain.handle('action-popup:get-init-data', () => ({ action: currentGenericAction }));
+ipcMain.handle('action-popup:get-init-data', () => ({ action: currentGenericAction, settings: store.getSettings() }));
 
 ipcMain.on('action-popup:run', (_event, index) => {
   const action = currentGenericAction;
@@ -1099,7 +1099,8 @@ ipcMain.handle('history-panel:get-data', (_event, { offset = 0, limit } = {}) =>
     items: page.items,
     total: page.total,
     historyEnabled: settings.historyEnabled !== false,
-    tagRules: store.getTagRules()
+    tagRules: store.getTagRules(),
+    settings // so the panel follows the UI language, like every other window (§4)
   };
 });
 

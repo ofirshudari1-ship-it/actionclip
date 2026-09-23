@@ -1,31 +1,32 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
-<title>ActionClip - היסטוריית העתקות</title>
+<title>ActionClip</title>
 <link rel="stylesheet" href="clipboard-history.css">
+<script src="../lib/i18n-renderer.js"></script>
 </head>
 <body>
   <div class="app">
     <header class="app-header">
-      <span class="title">📋 היסטוריית העתקות</span>
-      <button id="closeBtn" class="icon-btn" title="סגור">✕</button>
+      <span class="title">📋 <span data-i18n="clip.title">Clipboard History</span></span>
+      <button id="closeBtn" class="icon-btn" data-i18n-title="popup.close" title="Close">✕</button>
     </header>
 
     <div class="toolbar">
-      <input id="searchInput" type="text" placeholder="חיפוש בהיסטוריה (כולל תגיות)...">
+      <input id="searchInput" type="text" data-i18n-placeholder="clip.panel.search" placeholder="Search history, including tags...">
     </div>
 
     <div class="filters" id="filters">
-      <button class="chip active" data-cat="all">הכל</button>
-      <button class="chip" data-cat="phone">📞 טלפון</button>
-      <button class="chip" data-cat="tracking">📦 מעקב</button>
-      <button class="chip" data-cat="address">🗺️ כתובת</button>
-      <button class="chip" data-cat="url">🔗 קישור</button>
-      <button class="chip" data-cat="email">✉️ מייל</button>
-      <button class="chip" data-cat="custom">⚡ מותאם</button>
-      <button class="chip" data-cat="text">📋 טקסט</button>
+      <button class="chip active" data-cat="all" data-i18n="clip.filter.all">All</button>
+      <button class="chip" data-cat="phone" data-i18n="clip.filter.phone">📞 Phone</button>
+      <button class="chip" data-cat="tracking" data-i18n="clip.filter.tracking">📦 Tracking</button>
+      <button class="chip" data-cat="address" data-i18n="clip.filter.address">🗺️ Address</button>
+      <button class="chip" data-cat="url" data-i18n="clip.filter.link">🔗 Link</button>
+      <button class="chip" data-cat="email" data-i18n="clip.filter.email">✉️ Email</button>
+      <button class="chip" data-cat="custom" data-i18n="clip.filter.custom">⚡ Action</button>
+      <button class="chip" data-cat="text" data-i18n="clip.filter.text">📋 Text</button>
     </div>
 
     <div class="count-row" id="countLabel"></div>
@@ -33,16 +34,16 @@
     <div class="list" id="list"></div>
     <div class="empty hidden" id="emptyState">
       <span class="empty-icon">📋</span>
-      <span id="emptyStateText">אין עדיין העתקות בהיסטוריה</span>
+      <span id="emptyStateText" data-i18n="clip.panel.empty">No copies in history yet</span>
     </div>
 
     <footer class="footer">
       <span class="status">
         <span id="pauseDot" class="pause-dot"></span>
-        <span id="statusText">מקליט</span>
-        <button id="toggleBtn">השהה</button>
+        <span id="statusText" data-i18n="clip.panel.recording">Recording</span>
+        <button id="toggleBtn" data-i18n="widget.pause">Pause</button>
       </span>
-      <button id="clearBtn">נקה הכל</button>
+      <button id="clearBtn" data-i18n="clip.panel.clearAll">Clear All</button>
     </footer>
   </div>
 

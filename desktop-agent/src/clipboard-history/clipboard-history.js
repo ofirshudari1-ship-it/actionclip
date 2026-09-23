@@ -14,6 +14,7 @@ let pageSize = 50;
 let historyEnabled = true;
 let activeCategory = 'all';
 let searchTerm = '';
+let lang = 'en';
 
 const els = {};
 
@@ -82,26 +83,35 @@ async function load(limit) {
   total = data.total || items.length;
   pageSize = limit || items.length || 50;
   historyEnabled = data.historyEnabled !== false;
+
+  // Follow the UI language, same as every other window (§4).
+  if (typeof window.i18n !== 'undefined') {
+    lang = (data.settings && data.settings.language) || 'en';
+    window.i18n.applyI18n(lang);
+  }
+
   updateStatus();
 }
 
 function updateStatus() {
+  const t = (key) => window.i18n ? window.i18n.t(lang, key) : key;
   els.pauseDot.classList.toggle('paused', !historyEnabled);
-  els.statusText.textContent = historyEnabled ? 'מקליט' : 'מושהה';
-  els.toggleBtn.textContent = historyEnabled ? 'השהה' : 'המשך';
+  els.statusText.textContent = historyEnabled ? t('clip.panel.recording') : t('clip.panel.paused');
+  els.toggleBtn.textContent = historyEnabled ? t('widget.pause') : t('widget.resume');
 }
 
 function timeAgoLabel(timestamp) {
+  const t = (key) => window.i18n ? window.i18n.t(lang, key) : key;
   const mins = Math.max(0, Math.round((Date.now() - timestamp) / 60000));
-  if (mins < 1) return 'עכשיו';
-  if (mins < 60) return `לפני ${mins} דק'`;
+  if (mins < 1) return t('widget.time.now');
+  if (mins < 60) return t('widget.time.min').replace('{n}', mins);
   const hours = Math.round(mins / 60);
-  if (hours < 24) return `לפני ${hours} שע'`;
-  return `לפני ${Math.round(hours / 24)} ימים`;
+  if (hours < 24) return t('widget.time.hour').replace('{n}', hours);
+  return t('widget.time.day').replace('{n}', Math.round(hours / 24));
 }
 
 function fullDateLabel(timestamp) {
-  return new Date(timestamp).toLocaleString('he-IL', {
+  return new Date(timestamp).toLocaleString(lang === 'he' ? 'he-IL' : 'en-US', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
   });
 }
@@ -113,6 +123,7 @@ function matchesSearch(item, term) {
 }
 
 function render() {
+  const t = (key) => window.i18n ? window.i18n.t(lang, key) : key;
   const filtered = items.filter((item) => {
     if (activeCategory !== 'all' && item.category !== activeCategory) return false;
     if (!matchesSearch(item, searchTerm)) return false;
@@ -124,12 +135,12 @@ function render() {
   if (filtered.length === 0) {
     const isFiltered = Boolean(searchTerm) || activeCategory !== 'all';
     els.emptyStateText.textContent = isFiltered
-      ? 'לא נמצאו תוצאות תואמות'
-      : 'אין עדיין העתקות בהיסטוריה';
+      ? t('clip.panel.emptyFiltered')
+      : t('clip.panel.empty');
   }
   els.countLabel.textContent = total > items.length
-    ? `מציג ${items.length} מתוך ${total}`
-    : `${total} פריטים`;
+    ? t('clip.panel.countShowing').replace('{shown}', items.length).replace('{total}', total)
+    : t('clip.panel.countTotal').replace('{n}', total);
 
   for (const item of filtered) {
     els.list.appendChild(buildRow(item));
@@ -138,7 +149,7 @@ function render() {
   if (items.length < total && !searchTerm && activeCategory === 'all') {
     const loadMoreBtn = document.createElement('button');
     loadMoreBtn.className = 'load-more';
-    loadMoreBtn.textContent = `טען עוד (${total - items.length} נוספים)`;
+    loadMoreBtn.textContent = t('clip.panel.loadMore').replace('{n}', total - items.length);
     loadMoreBtn.addEventListener('click', async () => {
       await load(pageSize + 50);
       render();
@@ -201,8 +212,9 @@ function buildRow(item) {
   }
 
   const delBtn = document.createElement('button');
-  delBtn.title = 'מחק';
-  delBtn.setAttribute('aria-label', 'מחק');
+  const deleteLabel = window.i18n ? window.i18n.t(lang, 'clip.panel.delete') : 'Delete';
+  delBtn.title = deleteLabel;
+  delBtn.setAttribute('aria-label', deleteLabel);
   delBtn.textContent = '✕';
   delBtn.addEventListener('click', (e) => {
     e.stopPropagation();

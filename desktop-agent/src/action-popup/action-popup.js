@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const titleLabel = document.getElementById('titleLabel');
   const detectLabel = document.getElementById('detectLabel');
   const detectValue = document.getElementById('detectValue');
   const actionsList = document.getElementById('actionsList');
@@ -9,9 +8,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const data = await window.actionclipAction.getInitData();
   const action = data && data.action;
 
+  // Follow the UI language, same as every other window (§4).
+  let lang = 'en';
+  if (typeof window.i18n !== 'undefined') {
+    lang = (data.settings && data.settings.language) || 'en';
+    window.i18n.applyI18n(lang);
+  }
+
   if (action) {
-    titleLabel.textContent = '📎 ActionClip';
-    detectLabel.textContent = action.title || 'זוהה';
+    detectLabel.textContent = action.title || (window.i18n ? window.i18n.t(lang, 'action.detected') : 'Detected');
     detectValue.textContent = action.display || action.raw || '';
     detectValue.title = action.raw || '';
 

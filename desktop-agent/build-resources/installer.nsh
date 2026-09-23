@@ -170,6 +170,16 @@
 LangString UninstalledMsg 1033 "ActionClip removed. Settings were kept in AppData."
 LangString UninstalledMsg 1037 "הוסר ActionClip. הגדרות נשמרו ב-AppData."
 
+; Uninstall-time data prompt (STANDARDS.md uninstall-UX). Defaults to NOT
+; deleting: MB_DEFBUTTON2 makes "No" the pre-selected/focused button, so
+; pressing Enter without reading keeps the user's data - matching
+; deleteAppDataOnUninstall: false in package.json.
+LangString UninstallConfirmText 1033 "Do you also want to delete your ActionClip settings, templates, clipboard history and send history? This cannot be undone.$\r$\n$\r$\nChoose No to keep your data (recommended if you plan to reinstall)."
+LangString UninstallConfirmText 1037 "למחוק גם את ההגדרות, תבניות ההודעה, היסטוריית ההעתקות והיסטוריית השליחות של ActionClip? לא ניתן לבטל פעולה זו.$\r$\n$\r$\nבחר לא כדי לשמור על הנתונים (מומלץ אם מתכננים להתקין מחדש)."
+
+LangString UninstalledDataDeletedMsg 1033 "ActionClip removed. Settings and history were deleted."
+LangString UninstalledDataDeletedMsg 1037 "הוסר ActionClip. ההגדרות וההיסטוריה נמחקו."
+
 !macro customUnInstall
   DeleteRegKey SHCTX "Software\ActionClip"
   ; Legacy uninstall-metadata key written by versions up to 2.7.4.
@@ -177,6 +187,16 @@ LangString UninstalledMsg 1037 "הוסר ActionClip. הגדרות נשמרו ב-
   ; Remove firewall rule(s) added during install
   nsExec::ExecToStack 'netsh advfirewall firewall delete rule name="ActionClip"'
   Pop $0
-  ; AppData settings preserved so user keeps config on reinstall
-  DetailPrint "$(UninstalledMsg)"
+
+  ; Ask whether to also delete user data (settings/templates/history), kept
+  ; in %APPDATA%\ActionClip via electron-store. Default answer is No.
+  MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(UninstallConfirmText)" IDYES deleteUserData IDNO keepUserData
+  deleteUserData:
+    RMDir /r "$APPDATA\ActionClip"
+    DetailPrint "$(UninstalledDataDeletedMsg)"
+    Goto uninstallDataDone
+  keepUserData:
+    ; AppData settings preserved so user keeps config on reinstall
+    DetailPrint "$(UninstalledMsg)"
+  uninstallDataDone:
 !macroend

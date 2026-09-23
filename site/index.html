@@ -344,7 +344,7 @@
         <svg viewBox="0 0 24 24" fill="none"><rect x="6.5" y="5" width="11" height="15" rx="2.2" fill="none" stroke="#fff" stroke-width="1.4"/><rect x="9.5" y="3.5" width="5" height="2.6" rx="1" fill="#fff"/><path d="M13.2 8.5 L8.8 14.5 L11.3 14.5 L10 19.5 L15.2 12.7 L12.6 12.7 Z" fill="#fde68a"/></svg>
       </span>
       <span class="brand-word">ActionClip</span>
-      <span class="ver-badge">v2.8.0</span>
+      <span class="ver-badge">v2.8.1</span>
     </div>
     <nav class="links">
       <a href="#how">How it works</a>
@@ -600,6 +600,43 @@
     <div class="timeline">
       <div class="tl-item current">
         <div class="tl-head">
+          <span class="tl-ver">v2.8.1</span>
+          <span class="tl-date">2026-09-23</span>
+        </div>
+        <p class="tl-title">Full localization, uninstall data prompt</p>
+        <ul class="tl-list">
+          <li><b>Full localization:</b> the clipboard history panel and the generic action popup (tracking, address, link, email) now go through the app's existing i18n system and follow the UI language chosen in Settings, like every other window.</li>
+          <li><b>Uninstall prompt:</b> the uninstaller now actually asks whether to also delete your settings, templates, clipboard history and send history. Default is "keep", so reinstalling doesn't silently lose your data.</li>
+          <li>Housekeeping: removed unused locale JSON files from the repo.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.8.0</span>
+          <span class="tl-date">2026-09-23</span>
+        </div>
+        <p class="tl-title">Monitoring sync, privacy-on-resume fix, High Contrast, RTL fix, uninstall cleanup</p>
+        <ul class="tl-list">
+          <li><b>Real privacy bug fixed:</b> whatever you copied while monitoring was paused still got logged to history the moment you resumed, because the first check after resuming read whatever was still sitting on the clipboard from the pause. Resuming now baselines the current clipboard first, before it starts logging again.</li>
+          <li>Pausing from the tray or the widget could be silently undone: saving any unrelated setting in the Settings window resent its own stale "on" state, turning monitoring back on even though it had been paused elsewhere.</li>
+          <li><b>Uninstall cleanup:</b> the uninstaller never actually removed the registry keys or the firewall rule the installer created, so both were left behind on the machine even after a full uninstall.</li>
+          <li>Windows High Contrast / forced-colors support across every app window.</li>
+          <li><b>RTL fix:</b> the Settings on/off switch knob escaped past its track's edge when the UI language was Hebrew.</li>
+          <li>The desktop widget now follows the UI language selected in Settings, including RTL layout.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.7.4</span>
+          <span class="tl-date">2026-09-22</span>
+        </div>
+        <p class="tl-title">Persistent desktop widget</p>
+        <ul class="tl-list">
+          <li>A small, always-on-top desktop widget showing live monitoring status (active/paused), with one-click pause/resume and "open history" — no need to open the tray menu.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
           <span class="tl-ver">v2.5.6</span>
           <span class="tl-date">2026-09-18</span>
         </div>
@@ -747,7 +784,7 @@
       </div>
       <div class="install-card">
         <h3>🖥️ Desktop agent</h3>
-        <span class="path">ActionClip-Setup-2.8.0.exe</span>
+        <span class="path">ActionClip-Setup-2.8.1.exe</span>
         <ol class="install-steps">
           <li>Run the Setup file (admin rights required — the agent installs per-machine)</li>
           <li>Go through the standard Windows wizard steps</li>
@@ -835,7 +872,7 @@
         <svg viewBox="0 0 24 24" fill="none"><rect x="6.5" y="5" width="11" height="15" rx="2.2" fill="none" stroke="#fff" stroke-width="1.4"/><rect x="9.5" y="3.5" width="5" height="2.6" rx="1" fill="#fff"/><path d="M13.2 8.5 L8.8 14.5 L11.3 14.5 L10 19.5 L15.2 12.7 L12.6 12.7 Z" fill="#fde68a"/></svg>
       </span>
       <span class="brand-word">ActionClip</span>
-      <span class="ver-badge">v2.8.0</span>
+      <span class="ver-badge">v2.8.1</span>
     </div>
     <nav class="links">
       <a href="#how-he">איך זה עובד</a>
@@ -1089,6 +1126,43 @@
     <div class="timeline">
       <div class="tl-item current">
         <div class="tl-head">
+          <span class="tl-ver">v2.8.1</span>
+          <span class="tl-date">2026-09-23</span>
+        </div>
+        <p class="tl-title">השלמת תרגום, שאלת מחיקת נתונים בהסרת התקנה</p>
+        <ul class="tl-list">
+          <li><b>תרגום מלא:</b> חלון היסטוריית ההעתקות וחלון חלונית הפעולה הכללית (מעקב, כתובת, קישור, אימייל) עברו למנגנון ה-i18n הקיים, ועוקבים עכשיו אחרי שפת הממשק שנבחרה בהגדרות, בדיוק כמו כל שאר חלונות האפליקציה.</li>
+          <li><b>הסרת התקנה:</b> נוספה שאלה אמיתית בזמן ההסרה, האם למחוק גם את ההגדרות, התבניות והיסטוריית ההעתקות והשליחות. ברירת המחדל היא לא למחוק, כדי שאפשר יהיה להתקין מחדש בלי לאבד נתונים בטעות.</li>
+          <li>ניקוי קוד: קובצי locales שלא היו בשימוש הוסרו מהריפו.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.8.0</span>
+          <span class="tl-date">2026-09-23</span>
+        </div>
+        <p class="tl-title">סנכרון ניטור, תיקון פרטיות בחזרה מהשהיה, ניגודיות גבוהה, תיקון RTL, ניקוי הסרת התקנה</p>
+        <ul class="tl-list">
+          <li><b>באג פרטיות אמיתי:</b> העתקה בזמן שהניטור מושהה נרשמה בכל זאת להיסטוריה עם חידוש הניטור, כי הבדיקה הראשונה אחרי החידוש קראה את מה שהיה בלוח מזמן ההשהיה. עכשיו חידוש ניטור מאפס את מצב הלוח הנוכחי, לפני שממשיכים לעקוב.</li>
+          <li>השהיית ניטור מהמגש או מהווידג'ט הייתה יכולה להתבטל בטעות: שמירת הגדרה כללית בחלון ההגדרות שלחה מחדש את מצב ה"פעיל" הישן שלה, גם אם הניטור הושהה בינתיים ממקום אחר.</li>
+          <li><b>ניקוי הסרת התקנה:</b> ה-uninstaller לא ניקה בפועל את מפתחות הרישום ואת כלל חומת האש שההתקנה יצרה, ונשארו שאריות במחשב גם אחרי הסרה מלאה.</li>
+          <li>תמיכה במצב ניגודיות גבוהה (High Contrast) של Windows בכל חלונות האפליקציה.</li>
+          <li><b>תיקון RTL:</b> מתג ההפעלה בהגדרות היה בורח מחוץ לגבול המסגרת שלו כששפת הממשק עברית.</li>
+          <li>הווידג'ט על שולחן העבודה עוקב עכשיו אחרי שפת הממשק שנבחרה בהגדרות, כולל כיוון RTL.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.7.4</span>
+          <span class="tl-date">2026-09-22</span>
+        </div>
+        <p class="tl-title">ווידג'ט קבוע לשולחן העבודה</p>
+        <ul class="tl-list">
+          <li>נוסף ווידג'ט קטן, צף ותמיד למעלה, שמציג בזמן אמת אם הניטור פעיל או מושהה, ומאפשר השהיה/המשך ופתיחת היסטוריה בלחיצה אחת - בלי לפתוח את תפריט המגש.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
           <span class="tl-ver">v2.5.6</span>
           <span class="tl-date">2026-09-18</span>
         </div>
@@ -1236,7 +1310,7 @@
       </div>
       <div class="install-card">
         <h3>🖥️ סוכן שולחן עבודה</h3>
-        <span class="path">ActionClip-Setup-2.8.0.exe</span>
+        <span class="path">ActionClip-Setup-2.8.1.exe</span>
         <ol class="install-steps">
           <li>מריצים את קובץ ה-Setup (נדרשות הרשאות מנהל — ההתקנה היא ברמת המחשב)</li>
           <li>עוברים את שלבי האשף הרגילים של Windows</li>
