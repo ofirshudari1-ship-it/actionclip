@@ -22,5 +22,13 @@ contextBridge.exposeInMainWorld('actionclipSettings', {
   clearLeadHistory: () => ipcRenderer.send('settings:clear-lead-history'),
   testLeadChannel: (payload) => ipcRenderer.invoke('lead:test-channel', payload),
   exportLeadHistoryCsv: () => ipcRenderer.invoke('settings:export-lead-history-csv'),
-  openExternal: (target) => ipcRenderer.send('settings:open-external', target)
+  openExternal: (target) => ipcRenderer.send('settings:open-external', target),
+  // Monitoring paused/resumed from the tray menu or the desktop widget while
+  // this window is open (or hidden to tray) - keeps the General panel's
+  // switch truthful so its Save button can't silently revert that change.
+  onMonitoringChanged: (callback) => {
+    const listener = (_e, enabled) => callback(enabled === true);
+    ipcRenderer.on('settings:monitoring-changed', listener);
+    return () => ipcRenderer.removeListener('settings:monitoring-changed', listener);
+  }
 });

@@ -312,6 +312,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   s.enabledCheck.checked = settings.enabled;
+  if (window.actionclipSettings.onMonitoringChanged) {
+    window.actionclipSettings.onMonitoringChanged((enabled) => {
+      settings.enabled = enabled;
+      s.enabledCheck.checked = enabled;
+    });
+  }
   s.autoLaunchCheck.checked = settings.autoLaunch;
   s.pollInput.value = settings.pollMs;
   s.dedupeInput.value = settings.dedupeSeconds;
@@ -501,10 +507,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function setupTabs() {
   const buttons = document.querySelectorAll('.nav-btn');
+  buttons.forEach((b) => { if (b.classList.contains('active')) b.setAttribute('aria-current', 'page'); });
   buttons.forEach((btn) => {
     btn.addEventListener('click', () => {
-      buttons.forEach((b) => b.classList.remove('active'));
+      buttons.forEach((b) => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
       btn.classList.add('active');
+      // Screen readers announce which section is showing (the .active class
+      // is visual-only), and High Contrast mode styles off this too.
+      btn.setAttribute('aria-current', 'page');
       document.querySelectorAll('.tab-panel').forEach((panel) => {
         panel.classList.toggle('active', panel.id === `tab-${btn.dataset.tab}`);
       });

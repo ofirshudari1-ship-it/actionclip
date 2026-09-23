@@ -230,3 +230,17 @@ html, body {
 }
 .load-more:hover { background: var(--surface); color: var(--fg); }
 .load-more:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 1px; }
+
+/* ─── Windows High Contrast / forced colors (STANDARDS.md §20.2) ───
+   The active filter chip and the recording/paused dot were conveyed by
+   background color alone, which a contrast theme overrides - restore both
+   with system colors and a shape difference (filled vs hollow dot; the
+   status text next to it already says it in words too). */
+@media (forced-colors: active) {
+  .chip { border: 1px solid ButtonText; }
+  .chip.active { border: 2px solid Highlight; }
+  .pause-dot { forced-color-adjust: none; background: CanvasText; }
+  .pause-dot.paused { background: transparent; border: 1.5px solid CanvasText; box-sizing: border-box; }
+  .icon-btn, .footer button, .load-more { border: 1px solid ButtonText; }
+  :focus-visible { outline-color: Highlight !important; }
+}

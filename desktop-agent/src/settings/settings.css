@@ -232,7 +232,12 @@ code {
 .switch .slider::before {
   content: ""; position: absolute;
   height: 17px; width: 17px;
-  left: 3px; top: 2px;
+  /* Logical, not physical: the knob rests at the inline-START edge (left in
+     English, right in Hebrew) and slides toward inline-END when on - a real
+     mirrored toggle. It used to be a physical `left: 3px` + translateX(-17px),
+     which pushed the "on" knob out past the track's left edge in BOTH
+     languages. */
+  inset-inline-start: 3px; top: 2px;
   background: #fff; border-radius: 50%;
   transition: transform 0.15s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.4);
@@ -241,7 +246,12 @@ code {
   background: linear-gradient(120deg, var(--brand-start), var(--brand-end));
   border-color: transparent;
 }
-.switch input:checked + .slider::before { transform: translateX(-17px); }
+.switch input:checked + .slider::before { transform: translateX(17px); }
+[dir="rtl"] .switch input:checked + .slider::before { transform: translateX(-17px); }
+/* The real <input> is visually hidden, so keyboard focus has to be shown on
+   the visible track - previously Tab onto any switch showed no indicator at
+   all (WCAG 2.4.7). */
+.switch input:focus-visible + .slider { outline: 2px solid var(--brand-start); outline-offset: 2px; }
 
 /* ─── Number/text input ─── */
 .row {
@@ -722,4 +732,31 @@ textarea:focus {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ─── Windows High Contrast / forced colors (STANDARDS.md §20.2) ───
+   With a Windows contrast theme on, Chromium replaces author colors with the
+   user's system colors - which silently erased every state here that was
+   drawn with background color alone: the switch knob/track (on vs off
+   became indistinguishable), the active nav item and the active segmented
+   button. These rules restore each state with system colors + borders,
+   never the brand palette, so the user's chosen theme is respected. The
+   media query is live, so toggling a contrast theme applies immediately. */
+@media (forced-colors: active) {
+  .switch .slider { border: 1px solid CanvasText; }
+  .switch .slider::before { forced-color-adjust: none; background: CanvasText; box-shadow: none; }
+  .switch input:checked + .slider { forced-color-adjust: none; background: Highlight; border-color: Highlight; }
+  .switch input:checked + .slider::before { background: HighlightText; }
+  .switch input:focus-visible + .slider,
+  .btn:focus-visible, .nav-btn:focus-visible, .seg-btn:focus-visible { outline-color: Highlight; }
+  .nav-btn.active, .nav-btn[aria-current="page"] { border: 2px solid Highlight; }
+  .seg-btn.active { border: 2px solid Highlight; }
+  .btn, .seg-btn, .header-pill { border: 1px solid ButtonText; }
+}
+
+/* Windows "more contrast" preference without a full contrast theme: firm up
+   the low-alpha borders that separate cards/inputs from the background. */
+@media (prefers-contrast: more) {
+  :root { --border: var(--border-light); }
+  .label-sub { color: var(--fg); }
 }

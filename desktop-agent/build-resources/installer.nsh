@@ -36,9 +36,6 @@
   LangString InstalledMsg 1033 "ActionClip ${VERSION} installed successfully to $INSTDIR"
   LangString InstalledMsg 1037 "ActionClip ${VERSION} הותקן בהצלחה ב-$INSTDIR"
 
-  LangString UninstalledMsg 1033 "ActionClip removed. Settings were kept in AppData."
-  LangString UninstalledMsg 1037 "הוסר ActionClip. הגדרות נשמרו ב-AppData."
-
   LangString UninstallComment 1033 "Smart clipboard agent — phone, address, tracking, links"
   LangString UninstallComment 1037 "סוכן לוח ההעתקה החכם — טלפון, כתובת, מעקב, קישורים"
 
@@ -56,10 +53,14 @@
 
   ; ── Detect existing installation ────────────────────────────
   !macro customInit
-    ; Check for existing install (HKLM first, then HKCU)
-    ReadRegStr $ExistingVersion HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}_is1" "DisplayVersion"
+    ; Check for existing install (HKLM first, then HKCU).
+    ; ${UNINSTALL_APP_KEY} is electron-builder's real Add/Remove Programs key
+    ; (a GUID derived from appId). This used to read "${APP_ID}_is1" - an
+    ; Inno Setup naming convention electron-builder never writes - so an
+    ; existing install was never detected and UpdateMode was always "0".
+    ReadRegStr $ExistingVersion HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTALL_APP_KEY}" "DisplayVersion"
     ${If} $ExistingVersion == ""
-      ReadRegStr $ExistingVersion HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}_is1" "DisplayVersion"
+      ReadRegStr $ExistingVersion HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTALL_APP_KEY}" "DisplayVersion"
     ${EndIf}
 
     ${If} $ExistingVersion != ""
@@ -105,7 +106,9 @@
   !macro customFinishPage
     !define MUI_FINISHPAGE_TITLE "$(FinishTitle)"
     !define MUI_FINISHPAGE_TEXT "$(FinishText)$\r$\n$\r$\n© 2024–2026 ActionClip. All rights reserved."
-    !define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_FILENAME}"
+    ; ${APP_EXECUTABLE_FILENAME} = ActionClip.exe. (${APP_FILENAME} is
+    ; electron-builder's install-DIRECTORY name, not the exe.)
+    !define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_EXECUTABLE_FILENAME}"
     !define MUI_FINISHPAGE_RUN_TEXT "$(FinishRunText)"
     !define MUI_FINISHPAGE_SHOWREADME ""
     !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
@@ -119,27 +122,32 @@
     WriteRegStr SHCTX "Software\ActionClip" "Version" "${VERSION}"
     WriteRegStr SHCTX "Software\ActionClip" "InstallDir" "$INSTDIR"
 
-    ; Write uninstall DisplayIcon
-    WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}_is1" \
-      "DisplayIcon" "$INSTDIR\${APP_FILENAME}"
+    ; Extra Add/Remove Programs metadata, written to electron-builder's REAL
+    ; uninstall key (${UNINSTALL_APP_KEY}; it already writes DisplayIcon and
+    ; Publisher there itself), which its own uninstaller removes. Previously
+    ; all of this went to "Uninstall\${APP_ID}_is1" - a key nothing read or
+    ; deleted, so every install left it behind as registry residue (§11.5).
+    DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}_is1" ; legacy key from <= 2.7.4
 
-    ; Write uninstall Publisher info
-    WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}_is1" \
-      "Publisher" "ActionClip"
-
-    WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}_is1" \
+    WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTALL_APP_KEY}" \
       "HelpLink" "https://actionclip.app"
 
-    WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}_is1" \
+    WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTALL_APP_KEY}" \
       "URLInfoAbout" "https://actionclip.app"
 
-    WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}_is1" \
+    WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTALL_APP_KEY}" \
       "Comments" "$(UninstallComment)"
 
     ; Add Windows Firewall inbound rule so Windows doesn't show a "blocked
     ; features" dialog on first launch (§11.8). Silent — no error if netsh
     ; fails (non-fatal for clipboard agent; only affects network channels).
-    nsExec::ExecToStack 'netsh advfirewall firewall add rule name="ActionClip" dir=in action=allow program="$INSTDIR\${APP_FILENAME}" enable=yes profile=any description="ActionClip clipboard agent"'
+    ; Delete-then-add: "add rule" never de-duplicates, so every update used to
+    ; stack one more identical "ActionClip" rule. The program path must be the
+    ; real exe - the old rule used ${APP_FILENAME} (the install directory
+    ; name), pointed at a non-existent file and never matched the app.
+    nsExec::ExecToStack 'netsh advfirewall firewall delete rule name="ActionClip"'
+    Pop $0
+    nsExec::ExecToStack 'netsh advfirewall firewall add rule name="ActionClip" dir=in action=allow program="$INSTDIR\${APP_EXECUTABLE_FILENAME}" enable=yes profile=any description="ActionClip clipboard agent"'
     Pop $0
 
     ${If} $UpdateMode == "1"
@@ -149,14 +157,26 @@
     ${EndIf}
   !macroend
 
-  ; ── Uninstall: clean registry and firewall rule ─────────────
-  !macro customUnInstall
-    DeleteRegKey SHCTX "Software\ActionClip"
-    ; Remove firewall rule added during install
-    nsExec::ExecToStack 'netsh advfirewall firewall delete rule name="ActionClip"'
-    Pop $0
-    ; AppData settings preserved so user keeps config on reinstall
-    DetailPrint "$(UninstalledMsg)"
-  !macroend
-
 !endif
+
+; ── Uninstall: clean registry and firewall rule ───────────────────
+; Deliberately OUTSIDE the `!ifndef BUILD_UNINSTALLER` block above.
+; electron-builder compiles the uninstaller in a separate makensis pass with
+; BUILD_UNINSTALLER defined (its templates/nsis/installer.nsi only includes
+; uninstaller.nsh - the only caller of customUnInstall - in that pass). While
+; this macro lived inside the block it was never defined in the pass that
+; actually builds the uninstaller, so uninstalling never removed
+; HKxx\Software\ActionClip or the firewall rule.
+LangString UninstalledMsg 1033 "ActionClip removed. Settings were kept in AppData."
+LangString UninstalledMsg 1037 "הוסר ActionClip. הגדרות נשמרו ב-AppData."
+
+!macro customUnInstall
+  DeleteRegKey SHCTX "Software\ActionClip"
+  ; Legacy uninstall-metadata key written by versions up to 2.7.4.
+  DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}_is1"
+  ; Remove firewall rule(s) added during install
+  nsExec::ExecToStack 'netsh advfirewall firewall delete rule name="ActionClip"'
+  Pop $0
+  ; AppData settings preserved so user keeps config on reinstall
+  DetailPrint "$(UninstalledMsg)"
+!macroend

@@ -257,6 +257,26 @@ const STRINGS = {
     'leads.slack.url.label': 'Slack Incoming Webhook URL',
     'leads.ai.key.label': 'Anthropic API Key',
     'leads.saved': 'נשמר ✓',
+    // Desktop widget (src/widget/) - existing strings, moved here verbatim
+    // from widget.js/main.js so the widget follows the UI language.
+    'widget.loading': 'טוען…',
+    'widget.status.active': 'ניטור פעיל',
+    'widget.status.paused': 'ניטור מושהה',
+    'widget.pause': 'השהה',
+    'widget.resume': 'המשך',
+    'widget.history': 'היסטוריה',
+    'widget.hide': "הסתר ווידג'ט",
+    'widget.recent': '{label} זוהה {time}',
+    'widget.time.now': 'הרגע',
+    'widget.time.min': "לפני {n} דק'",
+    'widget.time.hour': "לפני {n} שע'",
+    'widget.time.day': 'לפני {n} ימים',
+    'widget.cat.phone': 'מספר טלפון',
+    'widget.cat.tracking': 'מספר מעקב',
+    'widget.cat.address': 'כתובת',
+    'widget.cat.url': 'קישור',
+    'widget.cat.email': 'אימייל',
+    'widget.cat.custom': 'פעולה',
   },
   en: {
     // Nav groups
@@ -512,6 +532,25 @@ const STRINGS = {
     'leads.slack.url.label': 'Slack Incoming Webhook URL',
     'leads.ai.key.label': 'Anthropic API Key',
     'leads.saved': 'Saved ✓',
+    // Desktop widget (src/widget/)
+    'widget.loading': 'Loading…',
+    'widget.status.active': 'Monitoring on',
+    'widget.status.paused': 'Monitoring paused',
+    'widget.pause': 'Pause',
+    'widget.resume': 'Resume',
+    'widget.history': 'History',
+    'widget.hide': 'Hide widget',
+    'widget.recent': '{label} · {time}',
+    'widget.time.now': 'just now',
+    'widget.time.min': '{n} min ago',
+    'widget.time.hour': '{n} hr ago',
+    'widget.time.day': '{n} d ago',
+    'widget.cat.phone': 'Phone number',
+    'widget.cat.tracking': 'Tracking number',
+    'widget.cat.address': 'Address',
+    'widget.cat.url': 'Link',
+    'widget.cat.email': 'Email',
+    'widget.cat.custom': 'Action',
   }
 };
 

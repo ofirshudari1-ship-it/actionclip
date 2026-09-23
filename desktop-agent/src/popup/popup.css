@@ -333,3 +333,11 @@ select { cursor: pointer; }
 [data-theme="light"] .ch-cp { background: rgba(148,163,184,0.06); }
 [data-theme="light"] .app { box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
 [data-theme="light"] .hint-box.hint-inline { background: #f0f2fb; border-color: #d4d8ec; }
+
+/* ─── Windows High Contrast / forced colors (STANDARDS.md §20.2) ───
+   Borderless buttons lose their visible edge once a contrast theme replaces
+   their background color - give every button a system-colored border. */
+@media (forced-colors: active) {
+  .btn, .icon-btn { border: 1px solid ButtonText; }
+  :focus-visible { outline-color: Highlight !important; }
+}

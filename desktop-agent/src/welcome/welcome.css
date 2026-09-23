@@ -252,3 +252,12 @@ html, body {
 [data-theme="light"] .app { box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
 [data-theme="light"] .footer { background: #f0f2fb; }
 [data-theme="light"] .feature-list li:hover { background: #e8eaf2; }
+
+/* ─── Windows High Contrast / forced colors (STANDARDS.md §20.2) ───
+   The step dots and buttons were distinguished by background color only. */
+@media (forced-colors: active) {
+  .dot { forced-color-adjust: none; background: GrayText; }
+  .dot.active { background: Highlight; }
+  .btn, .hdr-pill { border: 1px solid ButtonText; }
+  :focus-visible { outline-color: Highlight !important; }
+}

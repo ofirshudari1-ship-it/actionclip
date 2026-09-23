@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   els.statusText = document.getElementById('statusText');
   els.countLabel = document.getElementById('countLabel');
 
+  document.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c.classList.contains('active'))));
+
   await load();
   render();
 
@@ -43,7 +45,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btn = e.target.closest('.chip');
     if (!btn) return;
     activeCategory = btn.dataset.cat;
-    document.querySelectorAll('.chip').forEach((c) => c.classList.toggle('active', c === btn));
+    document.querySelectorAll('.chip').forEach((c) => {
+      c.classList.toggle('active', c === btn);
+      c.setAttribute('aria-pressed', String(c === btn)); // selected filter, for screen readers
+    });
     render();
   });
 

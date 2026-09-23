@@ -132,3 +132,11 @@ html, body {
 .btn.secondary:hover { background: var(--border); }
 .btn.secondary:active { transform: scale(0.98); }
 .btn:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 2px; }
+
+/* ─── Windows High Contrast / forced colors (STANDARDS.md §20.2) ───
+   Borderless buttons lose their visible edge once a contrast theme replaces
+   their background color - give every button a system-colored border. */
+@media (forced-colors: active) {
+  .btn, .icon-btn { border: 1px solid ButtonText; }
+  :focus-visible { outline-color: Highlight !important; }
+}

@@ -38,7 +38,8 @@ const { findPhone, fillTemplate, buildWhatsAppUrl } = require('./lib/phone');
 const { findGenericAction } = require('./lib/detectors');
 const store = require('./lib/store');
 const { postJson, cleanupLeadWithAi, buildShareText, buildMailtoUrl } = require('./lib/lead-delivery');
-const { shouldHideToTray, shouldShowTrayHideHint, autoLaunchNeedsReconcile, resolveTrayClickTarget, resolveWidgetVisibility, widgetDefaultPosition } = require('./lib/window-behavior');
+const { shouldHideToTray, shouldShowTrayHideHint, autoLaunchNeedsReconcile, resolveTrayClickTarget, resolveWidgetVisibility, widgetDefaultPosition, resolveWidgetPosition, buildWidgetState, shouldPrimeClipboardOnResume } = require('./lib/window-behavior');
+const { sanitizeSettingsPatch } = require('./lib/settings-guard');
 const { version: APP_VERSION } = require('../package.json');
 const { buildDate: APP_BUILD_DATE } = (() => { try { return require('../../version.json'); } catch { return {}; } })();
 
@@ -496,17 +497,53 @@ const WIDGET_WIDTH = 240;
 const WIDGET_HEIGHT = 156;
 let widgetPositionSaveTimer = null;
 
-// Single source of truth for pausing/resuming monitoring, shared by BOTH the
-// tray menu's "ניטור לוח פעיל" checkbox and the widget's pause/resume
-// button — neither reimplements this, they both call it, so the two
-// surfaces can never drift out of sync with each other.
-function toggleMonitoring(forceValue) {
-  const settings = store.getSettings();
-  const next = typeof forceValue === 'boolean' ? forceValue : !settings.enabled;
+// Re-reads the clipboard right now and records it as "already seen", without
+// logging or acting on it. Called just before monitoring resumes: the poll
+// loop doesn't read the clipboard at all while paused, so without this the
+// first tick after resuming would treat whatever was copied DURING the pause
+// as new and write it to the on-disk history (and pop a popup for it) -
+// exactly what the user paused to avoid. See shouldPrimeClipboardOnResume.
+async function primeClipboardBaseline() {
+  try {
+    const text = await clipboard.readText();
+    if (typeof text === 'string') lastClipboardText = text;
+  } catch (_) { /* unreadable clipboard - nothing to baseline against */ }
+}
+
+// Single source of truth for pausing/resuming monitoring, shared by the
+// tray menu's "ניטור לוח פעיל" checkbox, the widget's pause/resume button
+// AND the Settings window's General > monitoring switch - none of them
+// reimplement this, so the surfaces can never drift out of sync.
+async function setMonitoringEnabled(next) {
+  const wasEnabled = store.getSettings().enabled;
+  if (shouldPrimeClipboardOnResume({ wasEnabled, willBeEnabled: next })) {
+    await primeClipboardBaseline(); // BEFORE saving, so no poll tick can slip in between
+  }
   store.saveSettings({ enabled: next });
+  if (wasEnabled !== next) log(LOG_LEVELS.INFO, `Clipboard monitoring ${next ? 'resumed' : 'paused'}`);
+  broadcastMonitoringState();
+  return next;
+}
+
+function toggleMonitoring(forceValue) {
+  const next = typeof forceValue === 'boolean' ? forceValue : !store.getSettings().enabled;
+  return setMonitoringEnabled(next);
+}
+
+// Pushes the current monitoring state to every surface that displays it:
+// tray menu/tooltip, desktop widget, and an open (or hidden-to-tray)
+// Settings window. The Settings push matters for correctness, not just
+// looks: its General panel "Save" sends `enabled` from its own checkbox, so
+// a stale checkbox (monitoring paused from the tray/widget while Settings
+// was open) used to silently turn monitoring back on the next time the user
+// saved any unrelated general setting.
+function broadcastMonitoringState() {
+  const { enabled } = store.getSettings();
   if (tray && !tray.isDestroyed()) tray.setContextMenu(buildTrayMenu());
   notifyWidget();
-  return next;
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.webContents.send('settings:monitoring-changed', enabled);
+  }
 }
 
 function notifyWidget() {
@@ -515,18 +552,32 @@ function notifyWidget() {
   }
 }
 
+// After clipboard history is deleted/cleared, both places that summarize it
+// must drop what they were showing: the tray's "recent actions" submenu
+// (which previews the copied TEXT itself - leaving it would keep showing
+// content the user just explicitly deleted) and the widget's recent row.
+function refreshHistorySummaries() {
+  if (tray && !tray.isDestroyed()) tray.setContextMenu(buildTrayMenu());
+  notifyWidget();
+}
+
 function createWidgetWindow() {
   if (widgetWindow && !widgetWindow.isDestroyed()) return;
 
   const settings = store.getSettings();
-  const saved = settings.widgetPosition;
-  const pos = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)
-    ? saved
-    : widgetDefaultPosition({
-        workArea: screen.getPrimaryDisplay().workArea,
-        width: WIDGET_WIDTH,
-        height: WIDGET_HEIGHT
-      });
+  // A saved position is only reused if it still lands on a display that
+  // exists now (monitor unplugged / resolution changed -> back to default,
+  // STANDARDS.md §12.3) - otherwise the widget could reopen invisible.
+  const pos = resolveWidgetPosition({
+    saved: settings.widgetPosition,
+    workAreas: screen.getAllDisplays().map((d) => d.workArea),
+    width: WIDGET_WIDTH,
+    height: WIDGET_HEIGHT
+  }) || widgetDefaultPosition({
+    workArea: screen.getPrimaryDisplay().workArea,
+    width: WIDGET_WIDTH,
+    height: WIDGET_HEIGHT
+  });
 
   widgetWindow = new BrowserWindow({
     width: WIDGET_WIDTH,
@@ -804,11 +855,6 @@ function maybeShowTrayHideHint(settings) {
 
 const CATEGORY_TRAY_ICON = { phone: '📞', tracking: '📦', address: '🗺️', url: '🔗', email: '✉️', custom: '⚡', text: '📋' };
 
-// Widget's "recent action" row label — deliberately a category label only
-// (never the copied text itself), since the widget sits visibly on the
-// desktop at all times and isn't the place to surface clipboard content.
-const CATEGORY_WIDGET_LABEL = { phone: 'מספר טלפון', tracking: 'מספר מעקב', address: 'כתובת', url: 'קישור', email: 'אימייל', custom: 'פעולה' };
-
 // Tray-menu label for one recent-actions entry: icon + a short preview of
 // what was copied, truncated so it doesn't blow out the menu's width.
 function trayActionLabel(item) {
@@ -1074,10 +1120,12 @@ ipcMain.on('history-panel:run-action', (_event, { id, index }) => {
 });
 
 ipcMain.on('history-panel:delete-item', (_event, id) => {
+  if (typeof id !== 'string') return;
   store.deleteClipboardHistoryItem(id);
   if (historyWindow && !historyWindow.isDestroyed()) {
     historyWindow.webContents.send('history-panel:items-changed');
   }
+  refreshHistorySummaries();
 });
 
 ipcMain.on('history-panel:clear-all', () => {
@@ -1085,9 +1133,11 @@ ipcMain.on('history-panel:clear-all', () => {
   if (historyWindow && !historyWindow.isDestroyed()) {
     historyWindow.webContents.send('history-panel:items-changed');
   }
+  refreshHistorySummaries();
 });
 
 ipcMain.on('history-panel:toggle-enabled', (_event, enabled) => {
+  if (typeof enabled !== 'boolean') return;
   store.saveSettings({ historyEnabled: enabled });
 });
 
@@ -1097,20 +1147,14 @@ ipcMain.on('history-panel:dismiss', () => {
 
 // --- IPC: desktop widget ---
 
-ipcMain.handle('widget:get-init-data', () => {
-  const settings = store.getSettings();
-  const recent = store.getRecentActionableHistory(1)[0] || null;
-  return {
-    enabled: settings.enabled,
-    recent: recent
-      ? {
-          icon: CATEGORY_TRAY_ICON[recent.category] || '📋',
-          label: CATEGORY_WIDGET_LABEL[recent.category] || 'פעולה',
-          copiedAt: recent.copiedAt
-        }
-      : null
-  };
-});
+// Payload is built by buildWidgetState (lib/window-behavior.js), which only
+// ever passes through monitoring state, UI language and the *category* +
+// timestamp of the latest detected action - never the copied text or its
+// action labels/URLs. The widget renders the localized label itself.
+ipcMain.handle('widget:get-init-data', () => buildWidgetState({
+  settings: store.getSettings(),
+  recentItem: store.getRecentActionableHistory(1)[0] || null
+}));
 
 // Reuses toggleMonitoring — the exact same function the tray menu's
 // "ניטור לוח פעיל" checkbox calls - so the two surfaces never drift apart.
@@ -1138,8 +1182,16 @@ ipcMain.on('welcome:skip', () => {
 // --- IPC: settings window ---
 
 ipcMain.handle('settings:get', () => store.getSettings());
-ipcMain.handle('settings:save-one', (_e, { key, value }) => {
-  store.saveSettings({ [key]: value });
+// Used by the welcome window's language/theme toggles. Goes through the same
+// allowlist + type validation as 'settings:save-settings' (previously it
+// wrote any key/value the renderer sent straight into the store).
+ipcMain.handle('settings:save-one', (_e, payload) => {
+  const { key, value } = payload || {};
+  if (typeof key !== 'string') return false;
+  const safe = sanitizeSettingsPatch({ [key]: value });
+  if (!Object.keys(safe).length) return false;
+  store.saveSettings(safe);
+  if ('language' in safe) notifyWidget(); // widget follows the UI language live
   return true;
 });
 
@@ -1159,29 +1211,20 @@ ipcMain.on('settings:save-templates', (_event, { templates, defaultTemplateId })
 
 ipcMain.on('settings:reset-templates', () => store.resetTemplates());
 
-// Keys the settings UI is actually allowed to write via the generic
-// 'settings:save-settings' channel - kept in sync with every key sent from
-// desktop-agent/src/settings/settings.js's various onSave* handlers. (This
-// list previously used a different, older naming scheme - e.g.
-// `monitorEnabled`/`detectPhone`/`defaultPhoneAction` - that no longer
-// matched what the UI sends, silently dropping saves for the General,
-// Detectors, Clipboard History and Default Action panels. If you add a new
-// setting field, add its top-level key here too or it won't persist.)
-const SETTINGS_ALLOWLIST = new Set([
-  'enabled', 'autoLaunch', 'pollMs', 'dedupeSeconds', 'autoCloseSeconds',
-  'sendDedupeMinutes', 'autoRunAction', 'autoRunDelaySeconds',
-  'actionPreferences', 'detectors',
-  'startMinimized', 'closeToTray', 'showTrayNotification', 'soundOnDetect',
-  'quietHours', 'historyEnabled', 'historyStorageLimit', 'historyPreviewLimit',
-  'language', 'theme', 'trayClickAction', 'startPaused', 'widgetEnabled',
-]);
-
-ipcMain.on('settings:save-settings', (_event, settings) => {
-  const safe = {};
-  for (const key of Object.keys(settings || {})) {
-    if (SETTINGS_ALLOWLIST.has(key)) safe[key] = settings[key];
-  }
+// Allowlist + per-key type validation lives in lib/settings-guard.js
+// (SETTINGS_ALLOWLIST / sanitizeSettingsPatch) - shared with
+// 'settings:save-one' above so both write paths enforce the same rules.
+ipcMain.on('settings:save-settings', async (_event, settings) => {
+  const safe = sanitizeSettingsPatch(settings);
+  // Monitoring on/off goes through the same path as the tray and widget
+  // (baseline-on-resume, broadcast to every surface), not a raw store write.
+  const hasEnabled = Object.prototype.hasOwnProperty.call(safe, 'enabled');
+  const nextEnabled = safe.enabled;
+  delete safe.enabled;
   store.saveSettings(safe);
+  if (hasEnabled && nextEnabled !== store.getSettings().enabled) {
+    await setMonitoringEnabled(nextEnabled);
+  }
   startClipboardWatcher();
   applyAutoLaunch();
   registerAllShortcuts();
@@ -1189,6 +1232,7 @@ ipcMain.on('settings:save-settings', (_event, settings) => {
   // Live toggle: takes effect immediately, without a restart, whether the
   // widget is being shown for the first time or hidden.
   if (Object.prototype.hasOwnProperty.call(safe, 'widgetEnabled')) applyWidgetVisibility();
+  notifyWidget(); // e.g. a language switch re-renders the widget immediately
 });
 
 ipcMain.handle('settings:save-shortcuts', (_event, shortcuts) => {
@@ -1222,6 +1266,7 @@ ipcMain.on('settings:clear-clipboard-history', () => {
   if (historyWindow && !historyWindow.isDestroyed()) {
     historyWindow.webContents.send('history-panel:items-changed');
   }
+  refreshHistorySummaries();
 });
 
 function csvEscape(value) {
