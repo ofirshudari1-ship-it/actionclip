@@ -49,6 +49,14 @@ const { buildDate: APP_BUILD_DATE } = (() => { try { return require('../../versi
 // isn't holding it anymore (Settings > System > Clipboard > Clipboard
 // history, turned off) - that's a system-settings change this app can't
 // make for the user. Ctrl+Alt+V is a fallback that works regardless.
+// Above this length, a copy is a paragraph/document, not a phone number,
+// tracking number, address or URL - none of which are ever this long. Running
+// the detectors (and popping a popup) on large copies was just noise, so
+// automatic clipboard polling skips detection entirely past this point; a
+// manual re-check (tray "בדוק שוב"/shortcut) still runs detection regardless,
+// since that's an explicit ask, not something we're second-guessing.
+const MAX_ACTION_DETECT_LENGTH = 500;
+
 const DEFAULT_SHORTCUTS = {
   manual: 'CommandOrControl+Alt+P',
   history: 'Super+V',
@@ -212,6 +220,8 @@ async function checkClipboard() {
   // popup instead of the tracking one. Structured patterns (UPS/DHL/S10
   // prefixes, address regex, bare-URL) are inherently less prone to false
   // positives than that heuristic, so they get first refusal.
+  if (text.length > MAX_ACTION_DETECT_LENGTH) return; // large copy - see MAX_ACTION_DETECT_LENGTH
+
   const detectors = settings.detectors || {};
   const action = findGenericAction(text, detectors, store.getCustomActionRules());
   if (action) {
