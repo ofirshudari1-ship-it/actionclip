@@ -117,3 +117,66 @@ Reasons:
 1. A real accessibility pass (axe + keyboard-only) on the built app, specifically exercising the new reorder buttons and favorite star via actual Tab focus, not just programmatic clicks.
 2. A short inline message when the 3-favorite cap is hit (one more `hebrew-copywriting` string), closing the one remaining "unclear what to do" gap this sprint otherwise fixed.
 3. Housekeeping: my own evaluator harness left `desktop-agent/eval-capture-settings.tmp.js` and `desktop-agent/eval-screens/` as untracked scratch files in the working tree — safe to delete, not part of the product; I was not able to remove them myself under this session's sandbox restrictions on `rm -rf`.
+
+---
+
+# EVAL — TapAct Settings Window — סבב 3 (S5 accessibility, v3.2.1)
+
+> מעריך: upgrade-evaluator, context נפרד. תאריך: 2026-09-24. נבדק מול: UPGRADE-PLAN.md (Round 3 / S5) + UPGRADE-REPORT.md (Round 3), commit d66d3bc (= master = tag v3.2.1).
+> אפליקציה רצה: כן. כתבתי הרנס Electron משלי (לא drive.cjs ולא harness-main.js של ה-upgrader), שמור ב-scratchpad של הסשן ולא בריפו. הוא טוען את settings.html/settings.js/preload.js האמיתיים מול store.js אמיתי ב-userData מבודד, עם נתונים מוזרעים: 4 תבניות (2 מועדפות), 3 כללים מותאמים, 2 תגיות, 3 פריטי לוח כולל מחרוזת הבדיקה שלום John 050-1234567 ₪1,234, ושורת היסטוריה אחת. axe-core 4.13.0 מוזרק דרך CDP. לחיצות מקלדת נשלחות כאירועי CDP Input.dispatchKeyEvent אמיתיים, ועץ ה-AX נקרא דרך Accessibility.getFullAXTree.
+> ריצת ביקורת: אותו הרנס רץ על קוד לפני הסבב (git archive 28ddcb6) ומצא 95 צמתים עם הפרות ב-he-dark, כלומר ההרנס כן מזהה הפרות.
+> כלל: ברירת מחדל 5, עולים רק עם ראיה.
+
+## בדיקת Contracts
+
+| # | contract | תוצאה | ראיה (שאספתי בעצמי) |
+|---|---|---|---|
+| S5.1 | 0 הפרות axe בכל טאב ובכל קונפיגורציה | **PASS** | 0 הפרות ב-10/10 טאבים בכל אחת מ-4 קונפיגורציות: he-dark, he-light, en-dark, en-light (en-light לא נבדקה על ידי ה-upgrader). ריצת הביקורת על הקוד הישן: 95 צמתים (color-contrast 70, label 18, label-title-only 3, select-name 1, nested-interactive 3). באחת הריצות המקבילות הראשונות he-light הראה 10 הפרות contrast על תוויות הניווט. זה לא שוחזר בריצה חוזרת (0). ההסבר הסביר: artifact של ההרנס, כי חלונות מוסתרים זה מאחורי זה מקפיאים את מעבר ה-color של 0.12s. זו לא בעיה במוצר. 3-10 פריטי incomplete ל-color-contrast בכל טאב (gradient/pseudo) מכוסים בחישוב הידני בהמשך. |
+| S5.2 | 0 רכיבים אינטראקטיביים בלי שם נגיש בעץ ה-AX | **PASS** | 0 בכל הטאבים ב-4 הקונפיגורציות. בקוד הישן: 8 (templates), 4 (detectors), 6 (settings), 1 (leads), 2 (clipboard). |
+| S5.3 | לכל עצירת Tab יש מחוון פוקוס | **PASS** | כל עצירה שעברתי בה הראתה outline solid (בכפתורים) או box-shadow (בשדות קיצור). |
+| S5.4 | אפשר ללחוץ ▲/▼ שוב ושוב מהמקלדת, והפוקוס עוקב אחרי הכלל | **PASS** | הגעתי ב-Tab לכפתור הזז למטה של הכלל מספר הזמנה. Enter: הסדר עבר מ-[מספר הזמנה, Jira, חשבונית] ל-[Jira, מספר הזמנה, חשבונית], והפוקוס נשאר על אותו כפתור של אותו כלל. Space: הכלל ירד לתחתית, והפוקוס עבר לכפתור הזז למעלה של אותו כלל (כפתור ה-down מושבת בקצה). |
+| S5.5 | כוכב המועדפים ומחיקות לא מאבדים את הפוקוס | **PASS** | כוכב: Enter הסיר מהמועדפים והרשימה מוינה מחדש, והפוקוס נשאר על הכוכב של פנייה ראשונה (השם הנגיש התחלף להוסף למועדפים). Space החזיר, והפוקוס נשאר. מחיקת תבנית: מ-4 ל-3 תבניות, הפוקוס עבר ל-addBtn. מחיקת כלל: הפוקוס עבר ל-addCustomRuleBtn. אף פעם לא נפל ל-body. |
+| S5.6 | אפשר להקליט קיצור מקלדת בלי עכבר | **PASS (כלשונו), עם ממצא High חדש** | Tab לשדה shortcutManualInput ואז Enter: השדה נכנס למצב capturing. Ctrl+Alt+K נרשם כ-CommandOrControl+Alt+K. אבל: (א) לחיצה על Tab במהלך הקלטה נרשמת כקיצור Tab (ראיה: הערך בשדה הפך ל-Tab). ב-main.js:1331 (tryRegister) אין ולידציה, כך שאחרי Save ייעשה ניסיון לרשום את Tab כקיצור גלובלי. את זה לא הרצתי, כדי לא לגעת במערכת. (ב) Escape במהלך הקלטה סוגר את חלון ההגדרות (ראיה: אירוע closed נורה, windowClosed=true). ה-listener של ה-capture ב-settings.js:49-56 מסיר את המחלקה capturing לפני שה-handler של Esc ב-settings.js:614-618 בודק אותה, ולכן ההגנה שמתוארת בהערה בקוד לא עובדת בפועל. (ג) הטקסט הקבוע בעברית ב-settings.js:48 (הקש קיצור...) מוצג גם בממשק האנגלי (נצפה ב-en-dark). הבאג קיים מלפני הסבב, אבל הוא נמצא בדיוק במסלול המקלדת שהסבב הזה הציג כמתוקן, ומשתמש מקלדת הוא בדיוק מי שילחץ Tab או Esc. |
+| S5.7 | ניגודיות: טקסט לפחות 4.5:1, אייקונים לפחות 3:1 | **PASS** | חישבתי מחדש מה-CSS הנוכחי, ו-getComputedStyle החי מאשר את הצבעים: כותרת משנה בהדר בערכה בהירה 1.00 לפני (מאומת) ו-4.75/5.22 אחרי. תוויות קבוצה בניווט: בהירה 2.47 ל-4.84, כהה 3.01 ל-5.17. כפתור primary: 3.96 ל-5.38/5.44. danger בבהירה: 3.95 ל-5.30. כוכב בבהירה: 2.85 ל-4.49. muted בכהה: 4.44 ל-4.79. כל הערכים תואמים לדוח. חריג אחד: תג פעיל בבהירה יצא לי 3.08 ל-6.67, מול 2.77 ל-6.00 בדוח. הפער נובע מהנחה שונה על הרקע, והכיוון זהה. |
+| S5.8 | npm test 124/124 | **PASS** | הרצתי בעצמי: 6 suites, 124/124. |
+| scope | רק settings.html/js/css + package.json | **PASS** | git diff 28ddcb6..HEAD --stat: אין שינויים ב-main.js, ב-lib/ או ב-preload.js. |
+| שמות עבריים ad-hoc | שם התבנית, העתק | **PASS לגבי הקוד. לא ניתן לאמת את אירוע הביקורת** | settings.js:16 מכיל את שתי המחרוזות, והן נכונות ותקניות (שם עצם מיודע, ופועל ציווי מקובל בממשקים כמו ב-Windows בעברית). לא מצאתי בריפו שום עקבה לביקורת hebrew-copywriting: אין commit אחרי d66d3bc, והמחרוזות לא השתנו. זה תואם לאישור כמו שהן, אבל אני לא יכול לאשר את האירוע עצמו. REPORT עדיין מציג את זה כ-needs-human #1, כלומר המסמך לא מעודכן. |
+| Hard rules | check-ignore / אין הרצת exe / release | **PASS** | git check-ignore -v: CHANGELOG/SPEC/PROJECT/RELEASE-CHECKLIST/DELETIONS מוחרגים (.claude/upgrade במעקב, כמו בסבבים קודמים). release v3.2.1 פורסם (לא draft) עם TapAct-Setup-3.2.1.exe בגודל 111,972,064, וה-sha256 9ede87d2... זהה לקובץ המקומי ב-dist/. אין TapAct מותקן ב-LOCALAPPDATA/Programs. הריפו PUBLIC, ו-.claude/upgrade כולל את קבצי ה-JSON של ה-a11y נדחף ל-master. הנתונים מוזרעים ולא אמיתיים, אז אין דליפה, אבל כדאי לדעת. |
+
+**אי-דיוק בתיעוד:** בדוח כתוב 118/138/118 → 0, אבל סכום צמתי ההפרות בקבצי ה-JSON של ה-upgrader עצמו הוא 98/118/98 (אצלי בביקורת: 95). מספרי ה-before בדוח מנופחים בכ-20 בלי הסבר. זה לא משנה את ה-after, שהוא 0.
+
+## הערכת הפערים שה-upgrader דיווח עליהם בעצמו
+
+| פער | מדויק? | ראיה | חוסם? |
+|---|---|---|---|
+| לא הורץ screen reader אמיתי | מדויק | אין שום ראיה ל-NVDA/Narrator. גם אני לא הרצתי. | לא, כל עוד ממד 3 לא עולה מעל 8. |
+| ▲/▼ לא מכריז על המיקום החדש | מדויק | אין aria-live בקוד ה-reorder. הפוקוס עובר כמצופה, אבל אין הכרזה על מיקום. | לא, Medium. |
+| מהניווט לתוכן צריך לעבור על כל הניווט | מדויק, לא מוקטן | מדדתי: 10 לחיצות Tab מפריט הניווט הראשון עד השדה הראשון ב-main. אין skip link ואין roving tabindex. | לא, Medium. |
+| חסר בדיווח העצמי | - | Esc/Tab בזמן הקלטת קיצור (ראו S5.6 למעלה). הדוח כתב רק שההקלטה מסתיימת. | ה-follow-up הראשון בעדיפות. |
+
+## ציונים (מצטבר)
+
+| # | ממד | אחרי סבב 2 | אחרי סבב 3 | ראיה |
+|---|---|---|---|---|
+| 1 | RTL ועברית | 8 | 8 | ללא שינוי. Nit: שורת הזכויות בטאב אודות (settings.html) מוצגת בהקשר RTL עם טווח שנים הפוך, 2026–2024 (נצפה בצילום he-light). צריך dir=ltr או bdi. |
+| 2 | רספונסיביות | 8 | 8 | לא נגעו בו. |
+| 3 | נגישות | 7 | **8** | 0 הפרות axe ב-40 ריצות (טאב × קונפיגורציה, 4 קונפיגורציות), 0 רכיבים בלי שם, ▲/▼, כוכב ומחיקות עובדים במקלדת אמיתית, והניגודיות חושבה מחדש. לא 9: אין SR אמיתי, אין aria-live, אין skip link, ו-Esc/Tab בהקלטת קיצור. |
+| 4 | עיצוב ומותג | 7 | 7 | שינויי הצבע שמרו על משפחת הגוונים (נראה בצילום). צריך אישור מותג על brand-fill. |
+| 5 | UX flows ו-states | 7 | 7 | הודעת תקרת המועדפים קיימת (settings.js:911, role=status). Esc בזמן הקלטה שסוגר את החלון מונע עלייה. |
+| 6 | טפסים | 7 | 7 | 19 שדות קיבלו label for (שיפור אמיתי). אבל ה-placeholder של שדה הקיצור עדיין אומר ללחוץ, בלי רמז למסלול Enter, ואין ולידציה על קיצור בלי modifier. |
+| 7 | ביצועים נתפסים | 7 | 7 | 0 שגיאות console בהרנס. |
+| 8 | קלות הגדרה | 8 | 8 | ללא שינוי. |
+| 9 | שכבת AI | ❓ | ❓ | מחוץ ל-scope. |
+| 10 | בריאות קוד-UI | 7 | 7 | diff תוספתי ומתועד. A11Y_STRINGS הוא מילון שלישי מקביל ל-i18n-renderer. |
+
+## רגרסיות שנמצאו
+אין. רגרסיית v3.2.0 (switches בלי שם) תוקנה: לחיצת עכבר אמיתית על טקסט השורה detLabel-phone מחליפה את המתג (true → false), ו-label.control הוא detectPhoneCheck.
+
+## 3 הדברים הכי גרועים שנשארו
+1. **[High] הקלטת קיצור:** Esc סוגר את חלון ההגדרות, ו-Tab נרשם כקיצור הגלובלי Tab בלי ולידציה ב-main (settings.js:43-70, settings.js:614-618, main.js:1331). צריך: Esc לביטול ושחזור הערך, Tab לא נקלט, חובת modifier, ותרגום של טקסט ההקלטה.
+2. **[Medium] ניווט מקלדת/SR:** 10 לחיצות Tab מהסרגל לתוכן, אין הכרזת מיקום אחרי reorder, ואין סשן NVDA/Narrator. הכל מדווח בכנות, ועדיין פתוח.
+3. **[Low] שרידי i18n/bidi:** טקסט ההקלטה וסטטוסי פעיל/תפוס (settings.js:48, 76-77) וה-aria-label של כפתור ה-theme בהדר מופיעים בעברית גם בממשק האנגלי. שורת ה-© מתהפכת ב-RTL. version.json עדיין 3.0.0.
+
+## Verdict
+**PASS** לסבב 3. כל ה-contracts של S5 אומתו באופן עצמאי: axe, AX, פוקוס, ניגודיות, בדיקות ו-release. תיקון רגרסיית v3.2.0 אמיתי.
+Definition of Done ברמת Professional לכל המערכת לא הושג: ממדים 4/5/6/7/10 ב-7, ממד 9 ❓, ויש High פתוח אחד (הקלטת קיצור). מומלץ ספרינט קטן וממוקד לפריט 1, ולא סבב נוסף על הכל.

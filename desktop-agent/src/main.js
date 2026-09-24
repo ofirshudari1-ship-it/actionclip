@@ -1328,8 +1328,16 @@ function registerAllShortcuts() {
   }
 }
 
+// Defense-in-depth backstop: the Settings UI's shortcut recorder already
+// refuses to let Tab/Escape become a saved shortcut value (see
+// settings.js's setupShortcutCapture), but this also guards any other path
+// that could reach here with one (a hand-edited settings file, a future
+// bug) - globalShortcut.register is OS-wide, so letting a bare navigation
+// key like this through would intercept it everywhere on the system.
+const UNSAFE_BARE_ACCELERATORS = new Set(['Tab', 'Escape']);
+
 function tryRegister(accelerator, handler) {
-  if (!accelerator) return false;
+  if (!accelerator || UNSAFE_BARE_ACCELERATORS.has(accelerator)) return false;
   try {
     return globalShortcut.register(accelerator, handler);
   } catch (err) {

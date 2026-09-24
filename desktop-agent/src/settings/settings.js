@@ -45,8 +45,29 @@ function setupShortcutCapture(field) {
   const startCapture = () => {
     if (input.classList.contains('capturing')) return; // already listening - don't stack a second keydown listener
     input.classList.add('capturing');
-    input.value = 'הקש קיצור...';
+    input.value = clipT('shortcuts.recording');
     const onKey = (e) => {
+      // Escape cancels capture instead of being recorded as the shortcut -
+      // stopPropagation is required, not optional: the page-wide "Esc closes
+      // Settings" handler below is on the bubble phase, and by the time it
+      // ran, this same keydown had already cleared the 'capturing' class
+      // (synchronously, in this same handler, during the capture phase that
+      // always finishes before bubble starts) - so its `.capturing` guard
+      // never actually caught this case and the window closed underneath
+      // the user mid-capture. Stopping propagation here means that bubble
+      // handler never sees this Escape at all.
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        input.value = shortcuts[field] || '';
+        input.classList.remove('capturing');
+        document.removeEventListener('keydown', onKey, true);
+        return;
+      }
+      // Tab must keep doing normal focus navigation, never get captured as
+      // a shortcut - Electron's globalShortcut is OS-wide, so accidentally
+      // saving bare Tab here would intercept Tab everywhere on the system.
+      if (e.key === 'Tab') return;
       e.preventDefault();
       const accelerator = acceleratorFromEvent(e);
       if (!accelerator) return;
@@ -73,8 +94,8 @@ function renderShortcuts(status) {
   for (const field of Object.keys(SHORTCUT_KEYS)) {
     s[SHORTCUT_KEYS[field]].value = shortcuts[field] || defaultShortcuts[field];
     const statusEl = s[SHORTCUT_STATUS_KEYS[field]];
-    if (status[field] === true) { statusEl.textContent = '✓ פעיל'; statusEl.className = 'shortcut-status ok'; }
-    else if (status[field] === false) { statusEl.textContent = '✗ תפוס'; statusEl.className = 'shortcut-status fail'; }
+    if (status[field] === true) { statusEl.textContent = clipT('shortcuts.status.active'); statusEl.className = 'shortcut-status ok'; }
+    else if (status[field] === false) { statusEl.textContent = clipT('shortcuts.status.taken'); statusEl.className = 'shortcut-status fail'; }
     else { statusEl.textContent = ''; statusEl.className = 'shortcut-status'; }
   }
   // Hide the Win+V hint when it's actually registered

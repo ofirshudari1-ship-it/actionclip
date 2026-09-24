@@ -118,6 +118,9 @@ const STRINGS = {
     'templates.add': '+ תבנית חדשה',
     'templates.save': 'שמור תבניות',
     'templates.fav.capReached': '⭐ אפשר עד 3 מועדפות - הסירו אחת כדי להוסיף חדשה',
+    'shortcuts.recording': 'הקש קיצור...',
+    'shortcuts.status.taken': '✗ תפוס',
+    'shortcuts.status.active': '✓ פעיל',
     'templates.reset': 'אפס לברירת מחדל',
     // Detectors page
     'detectors.title': 'סוגי זיהוי',
@@ -406,6 +409,9 @@ const STRINGS = {
     'templates.add': '+ New Template',
     'templates.save': 'Save Templates',
     'templates.fav.capReached': '⭐ Up to 3 favorites - remove one to add another',
+    'shortcuts.recording': 'Press a key combo...',
+    'shortcuts.status.taken': '✗ Taken',
+    'shortcuts.status.active': '✓ Active',
     'templates.reset': 'Reset to Defaults',
     // Detectors page
     'detectors.title': 'Detection Types',
