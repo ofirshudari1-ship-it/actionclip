@@ -517,6 +517,12 @@ function setupTabs() {
       document.querySelectorAll('.tab-panel').forEach((panel) => {
         panel.classList.toggle('active', panel.id === `tab-${btn.dataset.tab}`);
       });
+      // All tabs share one scrollable .content column. Without this, switching
+      // to a new tab kept whatever scroll position the previous (longer or
+      // shorter) tab was left at, so the new tab could open mid-scroll,
+      // looking like its top controls had vanished - part of what made the
+      // window feel confusing ("not clear what to do").
+      document.querySelector('.content')?.scrollTo({ top: 0 });
     });
   });
 }

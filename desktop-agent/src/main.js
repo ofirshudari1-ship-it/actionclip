@@ -753,10 +753,15 @@ function openSettingsWindow() {
     return;
   }
   settingsWindow = new BrowserWindow({
-    width: 720,
-    height: 760,
-    minWidth: 640,
-    minHeight: 600,
+    // Was 720x760 (min 640x600) - too cramped for the sidebar-nav + panel
+    // layout once the clipboard-history tab was inlined as real DOM: the
+    // 3-column preference grids and the history list both had to squeeze
+    // into ~460px of usable content width. Wider default + higher floor so
+    // the layout in settings.css has room to breathe; still user-resizable.
+    width: 1040,
+    height: 780,
+    minWidth: 860,
+    minHeight: 620,
     title: 'TapAct - הגדרות',
     webPreferences: {
       preload: path.join(__dirname, 'settings', 'preload.js'),
