@@ -135,3 +135,108 @@ on tab switch).
 3. If the 3-favorite cap turns out to be confusing in practice, add a short
    inline message when the cap is hit (needs one more short Hebrew string
    via `hebrew-copywriting`).
+
+---
+
+# Round 3 — Accessibility pass (WCAG 2.2 AA), shipped as v3.2.1
+
+Branch `upgrade/2026-09-24-a11y`. Scope: `desktop-agent/src/settings/{settings.html,settings.js,settings.css}`.
+`preload.js` needed no change; the only other file touched is the `package.json` version bump.
+This round exists because both evaluator rounds held dimension 3 at 7: nobody had run a live keyboard or axe pass.
+Round-2 `[needs-human]` #1 (this pass) and #3 (favorites-cap message, committed as the WIP commit at the start of this branch) are now closed.
+
+## Method (live, not code-reading)
+
+- **Harness** `.claude/upgrade/a11y-harness/harness-main.js`: a standalone Electron main.
+  - Loads the real `settings.html` / `settings.js` / `preload.js` against the real `lib/store.js` in an isolated userData dir.
+  - Mirrors main.js's IPC channel names, including `sanitizeSettingsPatch`.
+  - Seeded with 4 templates (2 favorited), 3 custom rules, 1 tag rule, 3 clipboard items (incl. `שלום John 050-1234567 ₪1,234`) and 1 send-history row.
+- **Driver** `.claude/upgrade/a11y-harness/drive.cjs`: launches Electron with `--remote-debugging-port` and connects Playwright via `chromium.connectOverCDP`.
+  - Playwright's `_electron.launch` fails on Electron 44 ("Process failed to launch").
+  - All keyboard input is real CDP key events (`keyboard.press('Tab'|'Enter'|'Space')`), not `.click()`.
+- **Per tab × config** (10 tabs × {he-dark, he-light, en-dark}):
+  - Tab-walk from the nav into the panel, recording every focus stop plus its computed focus indicator. For a switch, the indicator is read from the visible `.slider`.
+  - axe-core (wcag2a/2aa/21aa/22aa + best-practice).
+  - Chromium's full AX tree via CDP `Accessibility.getFullAXTree`, listing interactive nodes with an empty name.
+  - A computed-color contrast sweep of every visible text node. It alpha-composites ancestor backgrounds and opacity, and tests **each gradient stop** (axe only reports gradients as "incomplete").
+- **Raw results:** `.claude/upgrade/a11y-{before,after}-{he-dark,he-light,en-dark}.json`.
+- **Screenshots:** `screenshots/a11y-before/` and `screenshots/a11y-after/` (`<tab>__1040x780__<theme>__<lang>.png` plus `focus-*` close-ups).
+
+## Findings (before) → fix → verified after
+
+| # | Finding (evidence) | Sev | Fix | After (evidence) |
+|---|---|---|---|---|
+| A1 | **Focus dropped to `<body>` after ▲/▼ reorder.** Tab to ▼ on rule 1 → Enter: the order did change, but `activeElement=body` (`a11y-before-he-dark.json` → `interactions.reorder.focusAfterEnter`). A 2nd Space did nothing: the buttons work once, then the keyboard user is lost. | high | `moveCustomRule`: after re-render, focus the moved rule's same-direction button (or the opposite one at the edge) | Enter → focus `הזז למטה: מספר הזמנה פנימי`; Space moves it again (rule now 3rd), focus → `הזז למעלה: …` |
+| A2 | Same focus loss on the **favorite star** (`favorite.focusAfter=body`) and on **delete** in tag rules (`deleteFocus=body`) | high | Star refocuses its own button after the re-sort (`data-template-id`). Deletes (templates / rules / tags) focus the list's "+ add" button | star → `הסר מהמועדפים: הצעת מחיר`; delete → `addTagRuleBtn` |
+| A3 | **Detector rows (v3.2.0 regression).** The row `<label>` wraps both the new `<select>` and the switch, so `label.control` = the select (`labelControl: prefPhoneSelect`). 4 switches had **no accessible name**, and clicking the row text focused the dropdown instead of toggling (`afterClick.checked=false`) | high | `for="detectXCheck"` on each row. Switch: `aria-labelledby` (type name) + `aria-describedby` (description). Select: `aria-labelledby` | `labelControl: detectPhoneCheck`; row click toggles (`checked: true`); 0 unnamed |
+| A4 | **Unnamed form controls.** axe `label` ×18 + `select-name` ×1: template name inputs/textareas (8), `trayClickSelect`, 5 General number inputs, `leadDupWindow`, 2 clip-history limits. The `div.field-label` text was not associated with its input | high | 17 `div.field-label` → `<label for>` (same class/text). Template name `aria-label` "שם התבנית"; textarea `aria-labelledby` its name field. Quiet-hours `<label for>` | axe label/select-name 0; AX unnamed 21 → 0 |
+| A5 | Custom-rule switch named by `title` only (axe `label-title-only` ×3) | med | `aria-label` "פעיל: <rule>" | 0 |
+| A6 | Clipboard row = `role=button` containing ▶/✕ buttons (axe `nested-interactive` ×3) | med | Copy target moved to the text block (`.clip-item-content`, role=button, Enter/Space). Actions are siblings; a mouse click anywhere on the row still copies | 0 |
+| A7 | **Shortcut fields mouse-only.** Capture started on `click` only (the field is readonly). Each click also stacked another document keydown listener | high | Enter/Space on the focused field starts capture; re-entry guard | Tab → field → Enter → capturing → Ctrl+Alt+K recorded, capture ends |
+| A8 | Segmented controls (language/theme/density) exposed no state (`aria-pressed` null ×6); captions were `<label>`s bound to nothing | med | `aria-pressed` synced in `applyAppLanguage/Theme/Density`; `role=group` + `aria-labelledby` | `[true,false,true,false,true,false]` |
+| A9 | Footer 🌐 was a click-only `<span>` (tabIndex -1); header pills were named "🌙" / "🌐 EN" | low | Footer → real `<button>`; pills get `aria-label` (existing titles) | footer BUTTON, tabIndex 0 |
+| A10 | `<input type=time>`: the 3rd tab stop (picker) had no ring (`quietHoursStart/EndInput`) | med | `input[type=time]:focus-within` ring, plus a zero-specificity `:where(...):focus-visible` fallback ring | 0 gaps, all configs |
+| A11 | Save/status messages silent to screen readers | low | `role="status"` on all 20 `.saved-msg` (incl. favorites-cap) | `capMsg.role=status` |
+| A12 | English UI had Hebrew aria-labels on JS-built controls | low | `A11Y_STRINGS` he/en + `a11yT()` (reads `document.lang`); cards rebuilt on language switch; names include the item ("Move down: <rule>") | en: `Move down: מספר הזמנה פנימי` |
+
+### Contrast — computed ratios (AA: text 4.5:1; icons and control boundaries 3:1)
+
+| Element | Theme | Before | After | Change |
+|---|---|---|---|---|
+| Header subtitle (`--muted` on purple header) | light | **1.00** | 4.75+ | white 0.88 |
+| Header title (gradient text fading to navy on purple) | light | fails (gradient) | white | solid white in light |
+| Header pills (white on white-washed purple) | light | 3.97 | 7.59 | dark tint |
+| Nav group labels / footer (`--faint`) | dark | 3.01 | 5.17 | #5a6478 → #808aa0 |
+| Nav group labels / footer (`--faint`) | light | 2.47 | 4.84 | #9198b0 → #60677f |
+| White on brand gradient, `#a855f7` stop (primary buttons, active seg/chip) | both | 3.96 | 5.38 | `--brand-fill-*` #5558e0 → #9333ea (text-bearing fills only; the switch track keeps the decorative gradient) |
+| Inactive seg button (`--muted` on `--input-bg`) | dark | 4.44 | 4.79 | `--muted` #8892a4 → #8e98aa |
+| Danger buttons | light | 3.95 | 5.30 | #dc2626 → #b91c1c |
+| "✓ פעיל" shortcut badge | light | 2.77 | 6.00 | #16a34a → #166534 |
+| Favorite star ★ (icon) | light | 2.85 | 4.49 | `--warning` #d97706 → #b45309 |
+| `code` tokens / clip tag chips | light | 1.66 / 1.59 | 5.18 | #4f52c8 |
+| About version/build/copyright (opacity 0.6 / 0.5) | light | 4.31 / 3.20 | ≥5.3 | `color: var(--muted)` instead of opacity |
+| Input/select/textarea border vs panel (1.4.11) | dark / light | 1.39 / 1.59 | 3.45 / 3.61 | `--control-border` |
+| Focus ring #6366f1 vs surfaces (1.4.11) | dark / light | 3.12-4.22 / 3.72-4.47 | same | already ≥3:1 |
+
+Remaining sweep items after the fix, all documented false-positives:
+- ☆ / ⠿ at 4.41: these are icons, so the requirement is 3:1.
+- ▶ / ✕ in clipboard rows at "1.0": they are `opacity:0` until row hover/focus-within; when visible they are 12.7:1.
+
+## Contracts
+
+| Contract | Before | After |
+|---|---|---|
+| axe violations, 10 tabs × 3 configs | he-dark 118 · he-light 138 · en-dark 118 | **0 in every tab of every config** |
+| Interactive AX nodes with empty name | 21 per config | **0** |
+| Tab stops with no computed focus indicator | 2 per config | **0** |
+| ▲/▼ usable repeatedly by keyboard | once, then focus lost | **yes** |
+| Star / delete keep focus | no | **yes** |
+| Shortcut recordable without mouse | no | **yes** |
+| Distinct text-contrast failures (own sweep, incl. gradient stops) | 26 dark / 42 light | **0 real** |
+| `npm test` | 124/124 | **124/124** |
+
+## Score — dimension 3 only (others not re-scored this round)
+
+| # | Dimension | Before | After | Evidence |
+|---|---|---|---|---|
+| 3 | Accessibility (WCAG 2.2) | 7 | **8** | 0 axe / 0 unnamed / 0 focus-ring gaps over 30 tab×config runs. Every custom control was operated with real key events. Every contrast pair was recomputed from live computed styles. |
+
+Why 8 and not 9:
+- **No real screen reader was run** (NVDA/Narrator). Announcement behaviour is unverified, e.g. whether `role=status` fires when a message un-hides from `display:none`.
+- **Focus stays on the nav after a tab is activated**, so reaching the content means tabbing through the remaining nav items.
+- **A reorder doesn't announce the rule's new position.**
+
+## New Hebrew text — flagged for copy review
+
+This agent had no Skill tool, so `hebrew-copywriting` could not be invoked. The 2 new strings were drafted by following that skill's SKILL.md (read from disk): plain wording, regular hyphen, no emoji. Both are screen-reader-only (aria-label):
+- `שם התבנית` (template name field)
+- `העתק` (clipboard copy target, as `העתק: <text>`)
+
+Everything else reuses existing strings.
+
+## `[needs-human]` (round 3)
+
+1. Copy review of the 2 strings above (STANDARDS §20.5).
+2. One real NVDA or Narrator session on the installed 3.2.1 (live-region announcements, reorder).
+3. Brand sign-off on `--brand-fill-*` (#5558e0 → #9333ea): the same gradient one step deeper, used only under white text.
+4. Repo-root `version.json` still says 3.0.0 (stale since before round 1; the app reads `package.json`). Untouched.

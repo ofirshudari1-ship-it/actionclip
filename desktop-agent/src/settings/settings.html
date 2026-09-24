@@ -18,8 +18,8 @@
         <p data-i18n="header.subtitle">סוכן לוח ההעתקה החכם שלך</p>
       </div>
       <div class="header-controls">
-        <button id="langToggleBtn" class="header-pill" title="שנה שפה / Change language">🌐 EN</button>
-        <button id="themeToggleBtn" class="header-pill" title="ערכת נושא">🌙</button>
+        <button type="button" id="langToggleBtn" class="header-pill" title="שנה שפה / Change language" aria-label="שנה שפה / Change language">🌐 EN</button>
+        <button type="button" id="themeToggleBtn" class="header-pill" title="ערכת נושא" aria-label="ערכת נושא">🌙</button>
       </div>
     </header>
 
@@ -82,7 +82,7 @@
           <strong data-i18n="templates.hint.title">איך עובד:</strong> <span data-i18n="templates.hint.body">כשמספר טלפון מועתק, TapAct פותח חלונית עם התבנית שנבחרה. {שם} מוחלף בשם שמקלידים שם.</span>
         </div>
         <div id="list" class="list"></div>
-        <span id="favCapMsg" class="saved-msg hidden" data-i18n="templates.fav.capReached">⭐ אפשר עד 3 מועדפות - הסירו אחת כדי להוסיף חדשה</span>
+        <span id="favCapMsg" class="saved-msg hidden" role="status" data-i18n="templates.fav.capReached">⭐ אפשר עד 3 מועדפות - הסירו אחת כדי להוסיף חדשה</span>
         <div class="actions">
           <button id="addBtn" class="btn secondary small" data-i18n="templates.add">+ תבנית חדשה</button>
         </div>
@@ -93,7 +93,7 @@
         <div class="actions">
           <button id="saveTemplatesBtn" class="btn primary small" data-i18n="templates.save">שמור תבניות</button>
           <button id="resetBtn" class="btn danger small" data-i18n="templates.reset">↺ אפס לברירת מחדל</button>
-          <span id="savedMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+          <span id="savedMsg" class="saved-msg hidden" role="status" data-i18n="settings.saved">נשמר ✓</span>
         </div>
       </section>
 
@@ -116,91 +116,91 @@
              enabling a type and choosing what it does live in one place. -->
         <div class="panel">
           <div class="panel-title" data-i18n="detectors.group.contact">יצירת קשר</div>
-          <label class="detector-item">
+          <label class="detector-item" for="detectPhoneCheck">
             <span class="det-icon">📞</span>
             <div class="det-info">
-              <div class="det-label" data-i18n="detectors.phone.label">מספר טלפון ישראלי</div>
-              <div class="det-desc" data-i18n="detectors.phone.desc">מזהה מספר → פותח חלונית לכידת ליד עם שליחה ל-WhatsApp וערוצים נוספים</div>
+              <div class="det-label" id="detLabel-phone" data-i18n="detectors.phone.label">מספר טלפון ישראלי</div>
+              <div class="det-desc" id="detDesc-phone" data-i18n="detectors.phone.desc">מזהה מספר → פותח חלונית לכידת ליד עם שליחה ל-WhatsApp וערוצים נוספים</div>
             </div>
-            <select class="det-pref" id="prefPhoneSelect">
+            <select class="det-pref" id="prefPhoneSelect" aria-labelledby="detLabel-phone">
               <option value="" data-i18n="settings.pref.phone.popup">פתח חלון לכידת ליד (ברירת מחדל)</option>
               <option value="whatsapp" data-i18n="settings.pref.phone.whatsapp">פתח WhatsApp ישירות</option>
               <option value="call" data-i18n="settings.pref.phone.call">חייג ישירות (Click to Call)</option>
               <option value="none" data-i18n="settings.pref.phone.none">לא לבצע כלום</option>
             </select>
-            <span class="switch"><input type="checkbox" id="detectPhoneCheck"><span class="slider"></span></span>
+            <span class="switch"><input type="checkbox" id="detectPhoneCheck" aria-labelledby="detLabel-phone" aria-describedby="detDesc-phone"><span class="slider"></span></span>
           </label>
           <div class="divider"></div>
-          <label class="detector-item">
+          <label class="detector-item" for="detectEmailCheck">
             <span class="det-icon">✉️</span>
             <div class="det-info">
-              <div class="det-label" data-i18n="detectors.email.label">כתובת אימייל</div>
-              <div class="det-desc" data-i18n="detectors.email.desc">אימייל בודד → פתיחת הרכבת הודעה (mailto / Gmail)</div>
+              <div class="det-label" id="detLabel-email" data-i18n="detectors.email.label">כתובת אימייל</div>
+              <div class="det-desc" id="detDesc-email" data-i18n="detectors.email.desc">אימייל בודד → פתיחת הרכבת הודעה (mailto / Gmail)</div>
             </div>
-            <select class="det-pref" id="prefEmailSelect">
+            <select class="det-pref" id="prefEmailSelect" aria-labelledby="detLabel-email">
               <option value="" data-i18n="settings.pref.email.default">מייל חדש (ברירת מחדל)</option>
               <option value="mailto" data-i18n="settings.pref.email.mailto">אפליקציית מייל מקומית</option>
               <option value="gmail" data-i18n="settings.pref.email.gmail">Gmail בדפדפן</option>
             </select>
-            <span class="switch"><input type="checkbox" id="detectEmailCheck"><span class="slider"></span></span>
+            <span class="switch"><input type="checkbox" id="detectEmailCheck" aria-labelledby="detLabel-email" aria-describedby="detDesc-email"><span class="slider"></span></span>
           </label>
         </div>
 
         <div class="panel">
           <div class="panel-title" data-i18n="detectors.group.logistics">ניווט ומשלוחים</div>
-          <label class="detector-item">
+          <label class="detector-item" for="detectTrackingCheck">
             <span class="det-icon">📦</span>
             <div class="det-info">
-              <div class="det-label" data-i18n="detectors.tracking.label">מספר מעקב משלוח</div>
-              <div class="det-desc" data-i18n="detectors.tracking.desc">דואר ישראל / UPS / FedEx / DHL → מעקב אחר החבילה</div>
+              <div class="det-label" id="detLabel-tracking" data-i18n="detectors.tracking.label">מספר מעקב משלוח</div>
+              <div class="det-desc" id="detDesc-tracking" data-i18n="detectors.tracking.desc">דואר ישראל / UPS / FedEx / DHL → מעקב אחר החבילה</div>
             </div>
-            <select class="det-pref" id="prefTrackingSelect">
+            <select class="det-pref" id="prefTrackingSelect" aria-labelledby="detLabel-tracking">
               <option value="" data-i18n="settings.pref.tracking.default">חברה המשלחת (ברירת מחדל)</option>
               <option value="carrier" data-i18n="settings.pref.tracking.carrier">אתר החברה המשלחת</option>
               <option value="17track" data-i18n="settings.pref.tracking.17track">17track (כללי)</option>
             </select>
-            <span class="switch"><input type="checkbox" id="detectTrackingCheck"><span class="slider"></span></span>
+            <span class="switch"><input type="checkbox" id="detectTrackingCheck" aria-labelledby="detLabel-tracking" aria-describedby="detDesc-tracking"><span class="slider"></span></span>
           </label>
           <div class="divider"></div>
-          <label class="detector-item">
+          <label class="detector-item" for="detectAddressCheck">
             <span class="det-icon">🗺️</span>
             <div class="det-info">
-              <div class="det-label" data-i18n="detectors.address.label">כתובת</div>
-              <div class="det-desc" data-i18n="detectors.address.desc">כתובת ישראלית → ניווט ב-Google Maps / Waze</div>
+              <div class="det-label" id="detLabel-address" data-i18n="detectors.address.label">כתובת</div>
+              <div class="det-desc" id="detDesc-address" data-i18n="detectors.address.desc">כתובת ישראלית → ניווט ב-Google Maps / Waze</div>
             </div>
-            <select class="det-pref" id="prefAddressSelect">
+            <select class="det-pref" id="prefAddressSelect" aria-labelledby="detLabel-address">
               <option value="" data-i18n="settings.pref.address.default">Google Maps (ברירת מחדל)</option>
               <option value="maps">Google Maps</option>
               <option value="waze">Waze</option>
             </select>
-            <span class="switch"><input type="checkbox" id="detectAddressCheck"><span class="slider"></span></span>
+            <span class="switch"><input type="checkbox" id="detectAddressCheck" aria-labelledby="detLabel-address" aria-describedby="detDesc-address"><span class="slider"></span></span>
           </label>
         </div>
 
         <div class="panel">
           <div class="panel-title" data-i18n="detectors.group.content">קישורים ותוכן</div>
-          <label class="detector-item">
+          <label class="detector-item" for="detectUrlCheck">
             <span class="det-icon">🔗</span>
             <div class="det-info">
-              <div class="det-label" data-i18n="detectors.link.label">קישור</div>
-              <div class="det-desc" data-i18n="detectors.link.desc">קישור בודד → פתיחה בדפדפן ברירת המחדל</div>
+              <div class="det-label" id="detLabel-link" data-i18n="detectors.link.label">קישור</div>
+              <div class="det-desc" id="detDesc-link" data-i18n="detectors.link.desc">קישור בודד → פתיחה בדפדפן ברירת המחדל</div>
             </div>
-            <span class="switch"><input type="checkbox" id="detectUrlCheck"><span class="slider"></span></span>
+            <span class="switch"><input type="checkbox" id="detectUrlCheck" aria-labelledby="detLabel-link" aria-describedby="detDesc-link"><span class="slider"></span></span>
           </label>
           <div class="divider"></div>
-          <label class="detector-item">
+          <label class="detector-item" for="detectDatetimeCheck">
             <span class="det-icon">📅</span>
             <div class="det-info">
-              <div class="det-label" data-i18n="detectors.datetime.label">תאריך / שעה</div>
-              <div class="det-desc" data-i18n="detectors.datetime.desc">תאריך שהועתק → שמירה ביומן Google</div>
+              <div class="det-label" id="detLabel-datetime" data-i18n="detectors.datetime.label">תאריך / שעה</div>
+              <div class="det-desc" id="detDesc-datetime" data-i18n="detectors.datetime.desc">תאריך שהועתק → שמירה ביומן Google</div>
             </div>
-            <span class="switch"><input type="checkbox" id="detectDatetimeCheck"><span class="slider"></span></span>
+            <span class="switch"><input type="checkbox" id="detectDatetimeCheck" aria-labelledby="detLabel-datetime" aria-describedby="detDesc-datetime"><span class="slider"></span></span>
           </label>
         </div>
 
         <div class="actions">
           <button id="saveDetectorsBtn" class="btn primary small" data-i18n="detectors.save">שמור</button>
-          <span id="savedDetectorsMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+          <span id="savedDetectorsMsg" class="saved-msg hidden" role="status" data-i18n="settings.saved">נשמר ✓</span>
         </div>
       </section>
 
@@ -229,7 +229,7 @@
         </div>
         <div class="actions">
           <button id="saveCustomRulesBtn" class="btn primary small" data-i18n="settings.save">שמור כללים</button>
-          <span id="savedCustomRulesMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+          <span id="savedCustomRulesMsg" class="saved-msg hidden" role="status" data-i18n="settings.saved">נשמר ✓</span>
         </div>
       </section>
 
@@ -295,7 +295,7 @@
             <span class="switch"><input type="checkbox" id="startPausedCheck"><span class="slider"></span></span>
           </label>
           <div class="field-row">
-            <div class="field-label" data-i18n="settings.trayClick">לחיצה בודדת על אייקון המגש</div>
+            <label class="field-label" for="trayClickSelect" data-i18n="settings.trayClick">לחיצה בודדת על אייקון המגש</label>
             <select id="trayClickSelect">
               <option value="history" data-i18n="settings.trayClick.history">פתח היסטוריית העתקות</option>
               <option value="settings" data-i18n="settings.trayClick.settings">פתח הגדרות</option>
@@ -304,24 +304,24 @@
           </div>
           <div class="divider"></div>
           <div class="field-row">
-            <div class="field-label" data-i18n="settings.poll">מרווח סריקה (מ״ש)</div>
+            <label class="field-label" for="pollInput" data-i18n="settings.poll">מרווח סריקה (מ״ש)</label>
             <input type="number" id="pollInput" min="200" max="5000" step="100">
           </div>
           <div class="field-row">
-            <div class="field-label" data-i18n="settings.dedupe">חסימת קפיצות חוזרות לאותו טקסט (שניות)</div>
+            <label class="field-label" for="dedupeInput" data-i18n="settings.dedupe">חסימת קפיצות חוזרות לאותו טקסט (שניות)</label>
             <input type="number" id="dedupeInput" min="0" max="600" step="5">
           </div>
           <div class="field-row">
-            <div class="field-label" data-i18n="settings.autoClose">סגירה אוטומטית של החלונית (שניות, 0 = ללא)</div>
+            <label class="field-label" for="autoCloseInput" data-i18n="settings.autoClose">סגירה אוטומטית של החלונית (שניות, 0 = ללא)</label>
             <input type="number" id="autoCloseInput" min="0" max="120" step="5">
           </div>
           <div class="field-row">
-            <div class="field-label" data-i18n="settings.sendDedupe">התרעת כפילות שליחה (דקות)</div>
+            <label class="field-label" for="sendDedupeInput" data-i18n="settings.sendDedupe">התרעת כפילות שליחה (דקות)</label>
             <input type="number" id="sendDedupeInput" min="0" max="1440" step="5">
           </div>
           <div class="actions">
             <button id="saveSettingsBtn" class="btn primary small" data-i18n="settings.save">שמור הגדרות</button>
-            <span id="savedSettingsMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+            <span id="savedSettingsMsg" class="saved-msg hidden" role="status" data-i18n="settings.saved">נשמר ✓</span>
           </div>
         </div>
 
@@ -329,24 +329,24 @@
           <div class="panel-title" data-i18n="settings.appearance.title">מראה ושפה</div>
           <div class="prefs-grid">
             <div class="pref-item">
-              <label data-i18n="settings.language">שפת ממשק</label>
-              <div class="seg-control" id="languageSeg">
-                <button class="seg-btn" data-val="he">🇮🇱 עברית</button>
-                <button class="seg-btn" data-val="en">🇺🇸 English</button>
+              <span class="pref-label" id="languageSegLabel" data-i18n="settings.language">שפת ממשק</span>
+              <div class="seg-control" id="languageSeg" role="group" aria-labelledby="languageSegLabel">
+                <button type="button" class="seg-btn" data-val="he">🇮🇱 עברית</button>
+                <button type="button" class="seg-btn" data-val="en">🇺🇸 English</button>
               </div>
             </div>
             <div class="pref-item">
-              <label data-i18n="settings.theme">ערכת נושא</label>
-              <div class="seg-control" id="themeSeg">
-                <button class="seg-btn" data-val="dark">🌙 <span data-i18n="settings.theme.dark">כהה</span></button>
-                <button class="seg-btn" data-val="light">☀️ <span data-i18n="settings.theme.light">בהיר</span></button>
+              <span class="pref-label" id="themeSegLabel" data-i18n="settings.theme">ערכת נושא</span>
+              <div class="seg-control" id="themeSeg" role="group" aria-labelledby="themeSegLabel">
+                <button type="button" class="seg-btn" data-val="dark">🌙 <span data-i18n="settings.theme.dark">כהה</span></button>
+                <button type="button" class="seg-btn" data-val="light">☀️ <span data-i18n="settings.theme.light">בהיר</span></button>
               </div>
             </div>
             <div class="pref-item">
-              <label data-i18n="settings.density">צפיפות תצוגה</label>
-              <div class="seg-control" id="densitySeg">
-                <button class="seg-btn" data-val="comfortable" data-i18n="settings.density.comfortable">נוח</button>
-                <button class="seg-btn" data-val="compact" data-i18n="settings.density.compact">קומפקטי</button>
+              <span class="pref-label" id="densitySegLabel" data-i18n="settings.density">צפיפות תצוגה</span>
+              <div class="seg-control" id="densitySeg" role="group" aria-labelledby="densitySegLabel">
+                <button type="button" class="seg-btn" data-val="comfortable" data-i18n="settings.density.comfortable">נוח</button>
+                <button type="button" class="seg-btn" data-val="compact" data-i18n="settings.density.compact">קומפקטי</button>
               </div>
             </div>
           </div>
@@ -363,17 +363,17 @@
           </label>
           <div class="prefs-grid cols-2">
             <div class="pref-item">
-              <label data-i18n="settings.quietHours.start">משעה</label>
+              <label for="quietHoursStartInput" data-i18n="settings.quietHours.start">משעה</label>
               <input type="time" id="quietHoursStartInput">
             </div>
             <div class="pref-item">
-              <label data-i18n="settings.quietHours.end">עד שעה</label>
+              <label for="quietHoursEndInput" data-i18n="settings.quietHours.end">עד שעה</label>
               <input type="time" id="quietHoursEndInput">
             </div>
           </div>
           <div class="actions">
             <button id="saveQuietHoursBtn" class="btn primary small" data-i18n="settings.save">שמור הגדרות</button>
-            <span id="savedQuietHoursMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+            <span id="savedQuietHoursMsg" class="saved-msg hidden" role="status" data-i18n="settings.saved">נשמר ✓</span>
           </div>
         </div>
 
@@ -394,12 +394,12 @@
             <span class="switch"><input type="checkbox" id="autoRunCheck"><span class="slider"></span></span>
           </label>
           <div class="field-row">
-            <div class="field-label" data-i18n="settings.autoRunDelay">השהיה לפני הרצה אוטומטית (שניות)</div>
+            <label class="field-label" for="autoRunDelayInput" data-i18n="settings.autoRunDelay">השהיה לפני הרצה אוטומטית (שניות)</label>
             <input type="number" id="autoRunDelayInput" min="1" max="30" step="1">
           </div>
           <div class="actions">
             <button id="saveActionPrefsBtn" class="btn primary small" data-i18n="settings.save.actions">שמור</button>
-            <span id="savedActionPrefsMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+            <span id="savedActionPrefsMsg" class="saved-msg hidden" role="status" data-i18n="settings.saved">נשמר ✓</span>
           </div>
         </div>
 
@@ -436,7 +436,7 @@
           <div class="actions">
             <button id="saveShortcutsBtn" class="btn primary small" data-i18n="shortcuts.save">שמור קיצורים</button>
             <button id="resetShortcutsBtn" class="btn secondary small" data-i18n="shortcuts.reset">אפס לברירת מחדל</button>
-            <span id="savedShortcutsMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+            <span id="savedShortcutsMsg" class="saved-msg hidden" role="status" data-i18n="settings.saved">נשמר ✓</span>
           </div>
         </div>
         <div class="hint-box warn" id="shortcutHint" data-i18n="shortcuts.hint">
@@ -462,7 +462,7 @@
           </div>
           <div class="actions">
             <button id="saveTagRulesBtn" class="btn primary small" data-i18n="tags.save">שמור כללים</button>
-            <span id="savedTagRulesMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+            <span id="savedTagRulesMsg" class="saved-msg hidden" role="status" data-i18n="settings.saved">נשמר ✓</span>
           </div>
         </div>
         <div class="hint-box" data-i18n="tags.hint">שינוי כלל לא מתייג מחדש העתקות ישנות — רק חדשות מכאן ואילך.</div>
@@ -516,17 +516,17 @@
           </label>
           <div class="divider"></div>
           <div class="field-row">
-            <div class="field-label" data-i18n="clip.storageLimit">מספר פריטים לשמור (מאחורי הקלעים)</div>
+            <label class="field-label" for="clipHistoryStorageInput" data-i18n="clip.storageLimit">מספר פריטים לשמור (מאחורי הקלעים)</label>
             <input type="number" id="clipHistoryStorageInput" min="50" max="5000" step="50">
           </div>
           <div class="field-row">
-            <div class="field-label" data-i18n="clip.previewLimit">פריטים בפאנל בכל טעינה ("טען עוד" מביא יותר)</div>
+            <label class="field-label" for="clipHistoryPreviewInput" data-i18n="clip.previewLimit">פריטים בפאנל בכל טעינה ("טען עוד" מביא יותר)</label>
             <input type="number" id="clipHistoryPreviewInput" min="10" max="200" step="10">
           </div>
           <div class="actions">
             <button id="saveClipHistorySettingsBtn" class="btn primary small" data-i18n="clip.save">שמור</button>
             <button id="clearClipHistoryBtn" class="btn danger small" data-i18n="clip.clear">נקה היסטוריית לוח</button>
-            <span id="savedClipHistoryMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
+            <span id="savedClipHistoryMsg" class="saved-msg hidden" role="status" data-i18n="settings.saved">נשמר ✓</span>
           </div>
         </div>
         <div class="hint-box" data-i18n="clip.hint">
@@ -567,7 +567,7 @@
           </div>
           <div id="historyList" class="history-list"></div>
           <p id="historyEmpty" class="muted hidden" data-i18n="history.empty">עדיין אין שליחות מתועדות.</p>
-          <p id="exportMsg" class="saved-msg hidden"></p>
+          <p id="exportMsg" class="saved-msg hidden" role="status"></p>
         </div>
       </section>
 
@@ -592,7 +592,7 @@
             <span class="switch"><input type="checkbox" id="leadChWhatsapp"><span class="slider"></span></span>
           </label>
           <div class="field-row" id="leadWhatsappRow">
-            <div class="field-label" data-i18n="leads.whatsapp.number.label">מספר WhatsApp (ברירת מחדל לשליחה)</div>
+            <label class="field-label" for="leadWhatsappNumber" data-i18n="leads.whatsapp.number.label">מספר WhatsApp (ברירת מחדל לשליחה)</label>
             <input type="text" id="leadWhatsappNumber" placeholder="9725012345678" dir="ltr">
           </div>
 
@@ -605,20 +605,20 @@
           </label>
           <div id="leadWebhookRows">
             <div class="field-row">
-              <div class="field-label" data-i18n="leads.webhook.url.label">Webhook URL</div>
+              <label class="field-label" for="leadWebhookUrl" data-i18n="leads.webhook.url.label">Webhook URL</label>
               <input type="text" id="leadWebhookUrl" placeholder="https://..." dir="ltr">
             </div>
             <div class="field-row">
-              <div class="field-label" data-i18n="leads.webhook.header.name">Header (שם)</div>
+              <label class="field-label" for="leadWebhookHeaderName" data-i18n="leads.webhook.header.name">Header (שם)</label>
               <input type="text" id="leadWebhookHeaderName" placeholder="Authorization" dir="ltr">
             </div>
             <div class="field-row">
-              <div class="field-label" data-i18n="leads.webhook.header.value">Header (ערך)</div>
+              <label class="field-label" for="leadWebhookHeaderValue" data-i18n="leads.webhook.header.value">Header (ערך)</label>
               <input type="text" id="leadWebhookHeaderValue" placeholder="Bearer token..." dir="ltr">
             </div>
             <div class="actions">
               <button id="testWebhookBtn" class="btn secondary small" data-i18n="leads.test.connection">🔗 בדוק חיבור</button>
-              <span id="testWebhookMsg" class="saved-msg hidden"></span>
+              <span id="testWebhookMsg" class="saved-msg hidden" role="status"></span>
             </div>
           </div>
 
@@ -631,12 +631,12 @@
           </label>
           <div id="leadSlackRow">
             <div class="field-row">
-              <div class="field-label" data-i18n="leads.slack.url.label">Slack Incoming Webhook URL</div>
+              <label class="field-label" for="leadSlackWebhookUrl" data-i18n="leads.slack.url.label">Slack Incoming Webhook URL</label>
               <input type="text" id="leadSlackWebhookUrl" placeholder="https://hooks.slack.com/..." dir="ltr">
             </div>
             <div class="actions">
               <button id="testSlackBtn" class="btn secondary small" data-i18n="leads.test.connection">🔗 בדוק חיבור</button>
-              <span id="testSlackMsg" class="saved-msg hidden"></span>
+              <span id="testSlackMsg" class="saved-msg hidden" role="status"></span>
             </div>
           </div>
 
@@ -648,7 +648,7 @@
             <span class="switch"><input type="checkbox" id="leadChEmail"><span class="slider"></span></span>
           </label>
           <div class="field-row" id="leadEmailRow">
-            <div class="field-label" data-i18n="leads.email.address.label">כתובת מייל</div>
+            <label class="field-label" for="leadEmailAddress" data-i18n="leads.email.address.label">כתובת מייל</label>
             <input type="text" id="leadEmailAddress" placeholder="you@example.com" dir="ltr">
           </div>
 
@@ -680,7 +680,7 @@
             <span class="switch"><input type="checkbox" id="leadAiEnabled"><span class="slider"></span></span>
           </label>
           <div class="field-row" id="leadAiKeyRow">
-            <div class="field-label" data-i18n="leads.ai.key.label">Anthropic API Key</div>
+            <label class="field-label" for="leadAiApiKey" data-i18n="leads.ai.key.label">Anthropic API Key</label>
             <input type="password" id="leadAiApiKey" placeholder="sk-ant-..." dir="ltr">
           </div>
           <div class="hint-box warn" data-i18n="leads.ai.key.hint">המפתח נשמר מקומית בלבד במחשבך ולא נשלח לשום שרת מלבד Anthropic.</div>
@@ -689,11 +689,11 @@
         <div class="panel">
           <div class="panel-title" data-i18n="leads.more.title">הגדרות נוספות</div>
           <div class="field-row">
-            <div class="field-label" data-i18n="leads.dup.window.label">חלון כפילות לידים (שעות)</div>
+            <label class="field-label" for="leadDupWindow" data-i18n="leads.dup.window.label">חלון כפילות לידים (שעות)</label>
             <input type="number" id="leadDupWindow" min="0" max="72" step="1" value="6">
           </div>
           <div class="field-row">
-            <div class="field-label" data-i18n="leads.custom.sources.label">מקורות מותאמים (מופרדים בפסיקים)</div>
+            <label class="field-label" for="leadCustomSources" data-i18n="leads.custom.sources.label">מקורות מותאמים (מופרדים בפסיקים)</label>
             <input type="text" id="leadCustomSources" placeholder="TikTok, YouTube, כנס">
           </div>
         </div>
@@ -708,12 +708,12 @@
           </div>
           <div id="leadHistoryList" class="history-list"></div>
           <p id="leadHistoryEmpty" class="muted hidden" data-i18n="leads.history.empty">אין לידים שנשלחו עדיין.</p>
-          <p id="exportLeadMsg" class="saved-msg hidden"></p>
+          <p id="exportLeadMsg" class="saved-msg hidden" role="status"></p>
         </div>
 
         <div class="actions">
           <button id="saveLeadSettingsBtn" class="btn primary small" data-i18n="leads.save">שמור הגדרות לידים</button>
-          <span id="savedLeadMsg" class="saved-msg hidden" data-i18n="leads.saved">נשמר ✓</span>
+          <span id="savedLeadMsg" class="saved-msg hidden" role="status" data-i18n="leads.saved">נשמר ✓</span>
         </div>
       </section>
 
@@ -729,15 +729,15 @@
           <img src="../../assets/logo.png" alt="TapAct" style="width:72px;height:72px;border-radius:16px;">
           <div style="text-align:center">
             <div style="font-size:22px;font-weight:700;">TapAct</div>
-            <div style="font-size:14px;opacity:0.7;margin-top:4px;" data-i18n="about.subtitle">סוכן לוח ההעתקה החכם</div>
+            <div style="font-size:14px;color:var(--muted);margin-top:4px;" data-i18n="about.subtitle">סוכן לוח ההעתקה החכם</div>
           </div>
           <table style="border-collapse:collapse;font-size:14px;min-width:260px;">
             <tr>
-              <td style="padding:6px 16px 6px 0;opacity:0.6;" data-i18n="about.version">גרסה</td>
+              <td style="padding:6px 16px 6px 0;color:var(--muted);" data-i18n="about.version">גרסה</td>
               <td style="padding:6px 0;font-weight:600;" id="aboutVersion">—</td>
             </tr>
             <tr>
-              <td style="padding:6px 16px 6px 0;opacity:0.6;" data-i18n="about.buildDate">תאריך בנייה</td>
+              <td style="padding:6px 16px 6px 0;color:var(--muted);" data-i18n="about.buildDate">תאריך בנייה</td>
               <td style="padding:6px 0;" id="aboutBuildDate">—</td>
             </tr>
           </table>
@@ -745,14 +745,14 @@
             <button class="btn secondary small" id="openChangelogBtn" data-i18n="about.btn.changelog">יומן שינויים (CHANGELOG)</button>
             <button class="btn secondary small" id="openSiteBtn" data-i18n="about.btn.site">אתר TapAct</button>
           </div>
-          <div style="font-size:12px;opacity:0.5;margin-top:8px;">© 2024–2026 TapAct. All rights reserved.</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:8px;">© 2024–2026 TapAct. All rights reserved.</div>
         </div>
       </section>
 
     </main>
   </div>
 
-  <footer class="version-footer">TapAct <span id="versionLabel"></span> · <span id="footerLang" style="cursor:pointer;opacity:0.6" title="Change language">🌐</span> · © 2024–2026 TapAct</footer>
+  <footer class="version-footer">TapAct <span id="versionLabel"></span> · <button type="button" id="footerLang" class="footer-lang" title="Change language" aria-label="שנה שפה / Change language">🌐</button> · © 2024–2026 TapAct</footer>
 
   <script src="settings.js"></script>
 </body>

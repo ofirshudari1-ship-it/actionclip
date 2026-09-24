@@ -8,6 +8,21 @@ let customRules = [];
 
 const s = {};
 
+// Accessible names for controls built in JS. They follow the UI language
+// (document lang, set by i18n applyI18n) instead of being hardcoded Hebrew, so
+// a screen reader in the English UI doesn't read Hebrew labels. Hebrew values
+// are the strings these controls already used as aria-label/title.
+const A11Y_STRINGS = {
+  he: { moveUp: 'הזז למעלה', moveDown: 'הזז למטה', favAdd: 'הוסף למועדפים', favRemove: 'הסר מהמועדפים', remove: 'מחק', enabled: 'פעיל', templateName: 'שם התבנית', dragHint: 'גרור לשינוי סדר', copy: 'העתק' },
+  en: { moveUp: 'Move up', moveDown: 'Move down', favAdd: 'Add to favorites', favRemove: 'Remove from favorites', remove: 'Delete', enabled: 'Enabled', templateName: 'Template name', dragHint: 'Drag to reorder', copy: 'Copy' }
+};
+function a11yT(key, subject) {
+  const lang = document.documentElement.lang === 'en' ? 'en' : 'he';
+  const base = A11Y_STRINGS[lang][key];
+  const name = (subject || '').trim();
+  return name ? `${base}: ${name}` : base;
+}
+
 const SHORTCUT_KEYS = { manual: 'shortcutManualInput', history: 'shortcutHistoryInput', historyFallback: 'shortcutFallbackInput' };
 const SHORTCUT_STATUS_KEYS = { manual: 'shortcutManualStatus', history: 'shortcutHistoryStatus', historyFallback: 'shortcutFallbackStatus' };
 
@@ -27,7 +42,8 @@ function acceleratorFromEvent(e) {
 
 function setupShortcutCapture(field) {
   const input = s[SHORTCUT_KEYS[field]];
-  input.addEventListener('click', () => {
+  const startCapture = () => {
+    if (input.classList.contains('capturing')) return; // already listening - don't stack a second keydown listener
     input.classList.add('capturing');
     input.value = 'הקש קיצור...';
     const onKey = (e) => {
@@ -40,6 +56,16 @@ function setupShortcutCapture(field) {
       document.removeEventListener('keydown', onKey, true);
     };
     document.addEventListener('keydown', onKey, true);
+  };
+  input.addEventListener('click', startCapture);
+  // Keyboard path: the field is readonly and capture used to start on mouse
+  // click only, so a keyboard user could focus it but never set a shortcut.
+  // Enter/Space starts capture; the NEXT key combo is what gets recorded.
+  input.addEventListener('keydown', (e) => {
+    if (input.classList.contains('capturing')) return;
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    startCapture();
   });
 }
 
@@ -94,9 +120,11 @@ function buildTagRuleCard(rule) {
   const removeBtn = document.createElement('button');
   removeBtn.className = 'btn danger xs';
   removeBtn.textContent = '✕ מחק';
+  removeBtn.setAttribute('aria-label', a11yT('remove', rule.label));
   removeBtn.addEventListener('click', () => {
     tagRules = tagRules.filter((r) => r !== rule);
     renderTagRules();
+    s.addTagRuleBtn?.focus(); // the focused button was just removed from the DOM - don't drop focus to <body>
   });
 
   head.appendChild(labelInput);
@@ -145,6 +173,17 @@ function moveCustomRule(rule, delta) {
   customRules.splice(from, 1);
   customRules.splice(to, 0, rule);
   renderCustomRules();
+  // renderCustomRules() rebuilds every card, so the button that was just
+  // pressed no longer exists and keyboard focus fell to <body>. Put focus back
+  // on the same-direction button of the moved rule (or the other one once it
+  // hits the top/bottom and that button is disabled) so the arrows can be
+  // pressed repeatedly without re-tabbing through the list.
+  const card = s.customRulesList.children[to];
+  if (card) {
+    let btn = card.querySelector(delta < 0 ? '.reorder-up' : '.reorder-down');
+    if (!btn || btn.disabled) btn = card.querySelector(delta < 0 ? '.reorder-down' : '.reorder-up');
+    btn?.focus();
+  }
 }
 
 function buildCustomRuleCard(rule, index) {
@@ -177,23 +216,23 @@ function buildCustomRuleCard(rule, index) {
   dragHandle.className = 'drag-handle';
   dragHandle.textContent = '⠿';
   dragHandle.setAttribute('aria-hidden', 'true');
-  dragHandle.title = 'גרור לשינוי סדר';
+  dragHandle.title = a11yT('dragHint');
 
   const moveUpBtn = document.createElement('button');
   moveUpBtn.type = 'button';
-  moveUpBtn.className = 'btn secondary xs reorder-btn';
+  moveUpBtn.className = 'btn secondary xs reorder-btn reorder-up';
   moveUpBtn.textContent = '▲';
-  moveUpBtn.setAttribute('aria-label', 'הזז למעלה');
-  moveUpBtn.title = 'הזז למעלה';
+  moveUpBtn.setAttribute('aria-label', a11yT('moveUp', rule.label));
+  moveUpBtn.title = a11yT('moveUp');
   moveUpBtn.disabled = index === 0;
   moveUpBtn.addEventListener('click', () => moveCustomRule(rule, -1));
 
   const moveDownBtn = document.createElement('button');
   moveDownBtn.type = 'button';
-  moveDownBtn.className = 'btn secondary xs reorder-btn';
+  moveDownBtn.className = 'btn secondary xs reorder-btn reorder-down';
   moveDownBtn.textContent = '▼';
-  moveDownBtn.setAttribute('aria-label', 'הזז למטה');
-  moveDownBtn.title = 'הזז למטה';
+  moveDownBtn.setAttribute('aria-label', a11yT('moveDown', rule.label));
+  moveDownBtn.title = a11yT('moveDown');
   moveDownBtn.disabled = index === customRules.length - 1;
   moveDownBtn.addEventListener('click', () => moveCustomRule(rule, 1));
 
@@ -209,7 +248,8 @@ function buildCustomRuleCard(rule, index) {
   const enabledInput = document.createElement('input');
   enabledInput.type = 'checkbox';
   enabledInput.checked = rule.enabled !== false;
-  enabledInput.title = 'פעיל';
+  enabledInput.title = a11yT('enabled');
+  enabledInput.setAttribute('aria-label', a11yT('enabled', rule.label)); // title alone is not a reliable accessible name (axe label-title-only)
   enabledInput.addEventListener('change', () => { rule.enabled = enabledInput.checked; });
   const enabledSlider = document.createElement('span');
   enabledSlider.className = 'slider';
@@ -219,9 +259,11 @@ function buildCustomRuleCard(rule, index) {
   const removeBtn = document.createElement('button');
   removeBtn.className = 'btn danger xs';
   removeBtn.textContent = '✕ מחק';
+  removeBtn.setAttribute('aria-label', a11yT('remove', rule.label));
   removeBtn.addEventListener('click', () => {
     customRules = customRules.filter((r) => r !== rule);
     renderCustomRules();
+    s.addCustomRuleBtn?.focus();
   });
 
   head.appendChild(dragHandle);
@@ -752,11 +794,6 @@ function renderClipHistory() {
 function buildClipRow(item) {
   const row = document.createElement('div');
   row.className = 'clip-item';
-  // Keyboard-operable, not just clickable: Tab reaches the row, Enter/Space
-  // copies it - matching what a mouse click does (see keydown handler below).
-  row.tabIndex = 0;
-  row.setAttribute('role', 'button');
-  row.setAttribute('aria-label', item.text);
 
   const icon = document.createElement('span');
   icon.className = 'clip-item-icon';
@@ -764,6 +801,14 @@ function buildClipRow(item) {
 
   const content = document.createElement('div');
   content.className = 'clip-item-content';
+  // Keyboard-operable copy target. It used to be the whole row with
+  // role=button, but the row also contains the run/delete buttons, and a
+  // button inside a button is announced ambiguously by screen readers (axe
+  // nested-interactive). The text block is now the copy button and the
+  // action buttons are its siblings. Mouse click anywhere on the row still copies.
+  content.tabIndex = 0;
+  content.setAttribute('role', 'button');
+  content.setAttribute('aria-label', a11yT('copy', item.text));
   const text = document.createElement('div');
   text.className = 'clip-item-text';
   text.textContent = item.text;
@@ -821,8 +866,8 @@ function buildClipRow(item) {
   row.appendChild(actions);
 
   row.addEventListener('click', () => window.tapactSettings.clipHistoryCopyItem(item.id));
-  row.addEventListener('keydown', (e) => {
-    if (e.target !== row) return; // let the go/delete buttons handle their own Enter/Space
+  content.addEventListener('keydown', (e) => {
+    if (e.target !== content) return;
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault(); // Space must not also scroll the list
     window.tapactSettings.clipHistoryCopyItem(item.id);
@@ -856,8 +901,10 @@ function buildCard(template) {
   const isFav = template.favorite === true;
   favBtn.textContent = isFav ? '★' : '☆';
   favBtn.classList.toggle('active', isFav);
-  favBtn.setAttribute('aria-label', isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים');
-  favBtn.title = isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים';
+  favBtn.dataset.templateId = template.id;
+  favBtn.setAttribute('aria-pressed', String(isFav));
+  favBtn.setAttribute('aria-label', a11yT(isFav ? 'favRemove' : 'favAdd', template.label));
+  favBtn.title = a11yT(isFav ? 'favRemove' : 'favAdd');
   favBtn.addEventListener('click', () => {
     if (!template.favorite) {
       const favCount = templates.filter((t) => t.favorite).length;
@@ -865,18 +912,21 @@ function buildCard(template) {
     }
     template.favorite = !template.favorite;
     render();
+    // render() rebuilt the list (and re-sorted it - the card may have moved),
+    // so refocus this template's star instead of letting focus drop to <body>.
+    s.list.querySelector(`.fav-star-btn[data-template-id="${CSS.escape(template.id)}"]`)?.focus();
   });
 
   const labelInput = document.createElement('input');
   labelInput.type = 'text';
   labelInput.className = 'label-input';
+  labelInput.id = `tplLabel-${template.id}`;
+  labelInput.setAttribute('aria-label', a11yT('templateName'));
   labelInput.value = template.label;
-  labelInput.addEventListener('input', () => {
-    template.label = labelInput.value;
-    renderDefaultSelect();
-  });
 
   const textArea = document.createElement('textarea');
+  // The message text is named by its template's name field (e.g. "פנייה ראשונה").
+  textArea.setAttribute('aria-labelledby', labelInput.id);
   textArea.rows = 3;
   textArea.value = template.text;
   textArea.addEventListener('input', () => { template.text = textArea.value; });
@@ -884,10 +934,20 @@ function buildCard(template) {
   const removeBtn = document.createElement('button');
   removeBtn.className = 'btn danger small';
   removeBtn.textContent = 'מחק';
+  removeBtn.setAttribute('aria-label', a11yT('remove', template.label));
   removeBtn.addEventListener('click', () => {
     templates = templates.filter(t => t.id !== template.id);
     if (defaultId === template.id) defaultId = templates[0] ? templates[0].id : null;
     render();
+    s.addBtn?.focus();
+  });
+
+  labelInput.addEventListener('input', () => {
+    template.label = labelInput.value;
+    renderDefaultSelect();
+    // keep the per-card button names in step with the renamed template
+    favBtn.setAttribute('aria-label', a11yT(template.favorite ? 'favRemove' : 'favAdd', template.label));
+    removeBtn.setAttribute('aria-label', a11yT('remove', template.label));
   });
 
   const row = document.createElement('div');
@@ -969,7 +1029,7 @@ function applyAppLanguage(lang) {
   if (typeof window.i18n === 'undefined') return;
   window.i18n.applyI18n(lang);
   // Update segmented controls
-  document.querySelectorAll('#languageSeg .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.val === lang));
+  document.querySelectorAll('#languageSeg .seg-btn').forEach((b) => { b.classList.toggle('active', b.dataset.val === lang); b.setAttribute('aria-pressed', String(b.dataset.val === lang)); });
   // Update header pill text
   if (s.langToggleBtn) s.langToggleBtn.textContent = lang === 'he' ? '🌐 EN' : '🌐 עב';
   // The clip-history list's rows/status/counts are built in JS (not
@@ -977,12 +1037,17 @@ function applyAppLanguage(lang) {
   // them explicitly whenever the language changes.
   updateClipHistoryStatus();
   renderClipHistory();
+  // Accessible names on the JS-built template / custom-rule cards come from
+  // a11yT(), which reads the document language - rebuild them so a screen
+  // reader hears the new language too (list state lives in the arrays, not the DOM).
+  if (s.list) render();
+  if (s.customRulesList) renderCustomRules();
 }
 
 function applyAppTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   // Update segmented controls
-  document.querySelectorAll('#themeSeg .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.val === theme));
+  document.querySelectorAll('#themeSeg .seg-btn').forEach((b) => { b.classList.toggle('active', b.dataset.val === theme); b.setAttribute('aria-pressed', String(b.dataset.val === theme)); });
   // Update header pill
   if (s.themeToggleBtn) s.themeToggleBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
 }
@@ -1008,7 +1073,7 @@ function writeStoredDensity(value) {
 
 function applyAppDensity(density) {
   document.documentElement.setAttribute('data-density', density === 'compact' ? 'compact' : 'comfortable');
-  document.querySelectorAll('#densitySeg .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.val === density));
+  document.querySelectorAll('#densitySeg .seg-btn').forEach((b) => { const on = b.dataset.val === (density === 'compact' ? 'compact' : 'comfortable'); b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); });
 }
 
 function onSaveDetectors() {

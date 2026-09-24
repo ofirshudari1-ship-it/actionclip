@@ -85,3 +85,25 @@ pre-upgrade files extracted via `git show master:...` to render an honest
 `.exe` was built-and-run for this; screenshots are the evidence.
 
 Screenshots: `.claude/upgrade/screenshots/before/` and `/after/`.
+
+---
+
+## Round 3 — S5 Accessibility (WCAG 2.2 AA) — executed as v3.2.1
+
+All contracts were measured live by `.claude/upgrade/a11y-harness/drive.cjs` (10 tabs × he-dark / he-light / en-dark). Real CDP key events drove every step; results are in `a11y-{before,after}-*.json`.
+
+| # | Contract | Status |
+|---|---|---|
+| S5.1 | axe-core violations (wcag2a/aa, 21aa, 22aa, best-practice) = 0 on every tab, every config | PASS (118/138/118 → 0) |
+| S5.2 | 0 interactive nodes with an empty accessible name in Chromium's AX tree | PASS (21 → 0) |
+| S5.3 | Every Tab stop shows a computed focus indicator (outline/box-shadow; switches measured on `.slider`) | PASS (2 → 0 gaps) |
+| S5.4 | Custom-rule ▲/▼ usable repeatedly by keyboard; focus follows the moved rule | PASS |
+| S5.5 | Favorite star and list deletes keep focus inside the tab (never `<body>`) | PASS |
+| S5.6 | Keyboard shortcuts recordable without a mouse | PASS |
+| S5.7 | Text ≥ 4.5:1, icons/control boundaries ≥ 3:1, both themes, every gradient stop | PASS (only documented false-positives remain) |
+| S5.8 | `npm test` 124/124 | PASS |
+
+Proposed follow-ups (not done):
+- **S5.9:** arrow-key roving tabindex (or a skip link) on the sidebar nav.
+- **S5.10:** a polite live region announcing a rule's new position after ▲/▼. This is new Hebrew copy, so it goes through `hebrew-copywriting`.
+- **S5.11:** one real NVDA/Narrator session on the installed build `[needs-human]`.

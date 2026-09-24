@@ -5,12 +5,22 @@
   --card-bg: #1f2535;
   --input-bg: #252c3d;
   --fg: #eef0f6;
-  --muted: #8892a4;
-  --faint: #5a6478;
+  /* a11y round (v3.2.1): measured live, --muted was 4.44:1 on --input-bg and
+     --faint 3.01:1 on the sidebar (WCAG AA needs 4.5:1 for this 10-12px text). */
+  --muted: #8e98aa;
+  --faint: #808aa0;
   --border: #252d3d;
   --border-light: #2e3750;
   --brand-start: #6366f1;
   --brand-end: #a855f7;
+  /* Text-bearing brand fills (primary buttons, active segmented/filter chips).
+     White on the decorative #a855f7 stop measured 3.96:1 - below AA for 12px
+     text. Same hue family, one step deeper: white is 5.44:1 / 5.38:1. */
+  --brand-fill-start: #5558e0;
+  --brand-fill-end: #9333ea;
+  /* Input/select/textarea outlines: --border-light was 1.39:1 against the
+     panel, below the 3:1 WCAG 1.4.11 asks of a control boundary. */
+  --control-border: #68738c;
   --brand-glow: rgba(99, 102, 241, 0.18);
   --danger: #f87171;
   --danger-bg: #2a1616;
@@ -903,14 +913,15 @@ textarea:focus {
   --input-bg: #e8eaf2;
   --fg: #1a1d2e;
   --muted: #5a6078;
-  --faint: #9198b0;
+  --faint: #60677f; /* was #9198b0: 2.47:1 on the light sidebar */
+  --control-border: #80869e;
   --border: #d4d8e8;
   --border-light: #c8cce0;
   --brand-glow: rgba(99, 102, 241, 0.12);
-  --danger: #dc2626;
+  --danger: #b91c1c; /* was #dc2626: 3.95:1 on --danger-bg */
   --danger-bg: #fee2e2;
-  --success: #16a34a;
-  --warning: #d97706;
+  --success: #166534; /* was #16a34a: 2.77:1 for the "active" shortcut badge */
+  --warning: #b45309; /* was #d97706: favorite star 2.85:1 (icon needs 3:1) */
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
   --shadow-md: 0 8px 24px rgba(0,0,0,0.12);
 }
@@ -1016,3 +1027,66 @@ textarea:focus {
 [data-density="compact"] .clip-item { padding: 6px 8px; }
 [data-density="compact"] .switch-row { padding: 2px 8px; }
 [data-density="compact"] .page-title { padding-bottom: 8px; }
+
+/* ─── Accessibility round (v3.2.1) - findings from a live keyboard/axe/contrast
+   pass on this window (see .claude/upgrade/UPGRADE-REPORT.md "Round 3"). ─── */
+
+/* Text on brand gradients: deeper stops so white text clears 4.5:1. The
+   switch track keeps the lighter decorative gradient - it carries no text. */
+.btn.primary,
+.seg-btn.active,
+.clip-chip.active { background: linear-gradient(135deg, var(--brand-fill-start), var(--brand-fill-end)); }
+
+/* Control boundaries at 3:1 (WCAG 1.4.11). Focus still switches the border to
+   the brand color + glow, so the focused state stays distinct. */
+input[type="number"], input[type="text"], input[type="password"], input[type="time"],
+select, textarea, .card textarea, .shortcut-input, .clip-search-input { border-color: var(--control-border); }
+input:focus, select:focus, textarea:focus, .card textarea:focus,
+.shortcut-input:focus, .clip-search-input:focus { border-color: var(--brand-start); }
+
+/* Safety net: any focusable element without its own :focus-visible rule
+   (the clipboard row's copy target, the footer language button, links added
+   later) still gets a visible ring instead of relying on Chromium's default,
+   which the per-element `outline: none` rules above can suppress. */
+:where(button, [role="button"], a[href], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--brand-start);
+  outline-offset: 2px;
+}
+/* <input type=time> is one element with several tab stops (hour, minute,
+   picker). The picker stop lost the :focus glow - key the ring off
+   :focus-within so every stop inside the field shows it. */
+input[type="time"]:focus-within { border-color: var(--brand-start); box-shadow: 0 0 0 3px var(--brand-glow); }
+
+/* Clipboard row: the copy target is now the text block (was the whole row). */
+.clip-item .clip-item-content { border-radius: 6px; }
+.clip-item .clip-item-content:focus-visible { outline: 2px solid var(--brand-start); outline-offset: 2px; }
+.clip-item:has(.clip-item-content:focus-visible) { background: var(--card-bg); border-color: var(--border); }
+
+/* Segmented-control group labels (were <label>s not tied to any control). */
+.pref-item .pref-label { font-size: 12px; color: var(--muted); }
+
+/* Footer language control: now a real <button> (was a click-only <span>). */
+.footer-lang {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 4px;
+}
+
+/* Light theme: the header is a saturated purple gradient, but its subtitle
+   used --muted (1.0:1 - invisible) and the title faded to near-navy. White
+   text on this header is 4.75:1+ ; pills get a dark tint instead of a white
+   wash (white-on-pill was 3.97:1). */
+[data-theme="light"] .header-text p { color: rgba(255, 255, 255, 0.88); }
+[data-theme="light"] .header-text h1 { background: none; -webkit-text-fill-color: #fff; color: #fff; }
+[data-theme="light"] .header-pill { background: rgba(0, 0, 0, 0.18); border-color: rgba(255, 255, 255, 0.45); }
+[data-theme="light"] code { color: #4f52c8; }
+[data-theme="light"] .clip-item .clip-tag-chip { color: #4f52c8; }
+
+@media (forced-colors: active) {
+  .clip-item .clip-item-content:focus-visible, .footer-lang:focus-visible { outline-color: Highlight; }
+  .fav-star-btn[aria-pressed="true"] { forced-color-adjust: none; color: Highlight; }
+}
