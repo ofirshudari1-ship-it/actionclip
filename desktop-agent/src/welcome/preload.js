@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('actionclipWelcome', {
+contextBridge.exposeInMainWorld('tapactWelcome', {
   finish: () => ipcRenderer.send('welcome:finish'),
   skip: () => ipcRenderer.send('welcome:skip'),
   getSettings: () => ipcRenderer.invoke('settings:get'),

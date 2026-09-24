@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('actionclipHistory', {
+contextBridge.exposeInMainWorld('tapactHistory', {
   getData: (limit) => ipcRenderer.invoke('history-panel:get-data', { offset: 0, limit }),
   copyItem: (id) => ipcRenderer.send('history-panel:copy-item', id),
   runAction: (id, index) => ipcRenderer.send('history-panel:run-action', { id, index }),

@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('actionclipAction', {
+contextBridge.exposeInMainWorld('tapactAction', {
   getInitData: () => ipcRenderer.invoke('action-popup:get-init-data'),
   runAction: (index) => ipcRenderer.send('action-popup:run', index),
   dismiss: () => ipcRenderer.send('action-popup:dismiss'),

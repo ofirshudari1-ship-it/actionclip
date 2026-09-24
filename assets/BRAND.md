@@ -1,4 +1,4 @@
-# ActionClip Brand Guidelines
+# TapAct Brand Guidelines
 
 ## Color Palette
 

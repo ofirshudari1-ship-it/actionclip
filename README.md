@@ -1,4 +1,4 @@
-# ActionClip
+# TapAct
 
 **מעתיקים משהו, מקבלים בלחיצה אחת את הפעולה הנכונה הבאה.** מספר טלפון
 פותח WhatsApp עם הודעה מוכנה, מספר מעקב משלוח פותח מעקב אצל החברה
@@ -12,7 +12,7 @@
 **גרסה נוכחית:** 2.5.0 (סוכן שולחן עבודה) / 1.2.1 (תוסף Chrome) - ממוספרים
 בנפרד בכוונה (הסוכן משתחרר בקצב מהיר יותר לתיקוני באגים; לתוסף יש מחזור
 פרסום איטי יותר כי כל שינוי דורש בדיקה מול Chrome). שונה שם מ-PingClip
-ל-ActionClip ב-2.0.0.
+ל-TapAct ב-2.0.0.
 
 ## מפת המסמכים - איפה מה
 
@@ -31,13 +31,13 @@
 ## מבנה התיקייה
 
 ```
-ActionClip - WhatsApp Copy Tool/
+TapAct - WhatsApp Copy Tool/
 ├── README.md                 המסמך הזה - נקודת כניסה
 ├── INSTALL.md                מדריך התקנה למשתמש קצה
 ├── CHANGELOG.md              יומן גרסאות מלא (כולל כל באג שנמצא ותוקן)
 ├── docs/
 │   ├── SPEC.md                מסמך האפיון המורחב - מה/איך/למה
-│   └── ACTIONCLIP-SPEC.md     מחקר תחרותי + החלטות ארכיטקטורה, מנוע הגלאים
+│   └── TAPACT-SPEC.md     מחקר תחרותי + החלטות ארכיטקטורה, מנוע הגלאים
 ├── site/
 │   └── index.html             דף נחיתה שיווקי (Artifact מפורסם)
 ├── desktop-agent/             קוד המקור של סוכן שולחן העבודה (Electron)
@@ -46,8 +46,8 @@ ActionClip - WhatsApp Copy Tool/
 │   ├── package.json             גרסה + קונפיגורציית build (electron-builder)
 │   └── dist/                    פלט בנייה (נוצר ע"י npm run dist)
 ├── chrome-extension/          קוד המקור של תוסף ה-Chrome (טלפון בלבד)
-└── ActionClip/                  קובץ ההתקנה המוכן להפצה
-    └── ActionClip-Setup-<version>.exe
+└── TapAct/                  קובץ ההתקנה המוכן להפצה
+    └── TapAct-Setup-<version>.exe
 ```
 
 **כלל אצבע:** מקור אמת יחיד לכל דבר. הגרסה - `desktop-agent/package.json`.
@@ -80,8 +80,8 @@ npm start
 cd desktop-agent
 npm run dist
 ```
-מייצר `dist/ActionClip-Setup-<version>.exe`. יש להעתיק אותו ל-
-`ActionClip/` ולמחוק את גרסת ה-exe הקודמת משם ומ-`dist/`, כדי שלא יישארו
+מייצר `dist/TapAct-Setup-<version>.exe`. יש להעתיק אותו ל-
+`TapAct/` ולמחוק את גרסת ה-exe הקודמת משם ומ-`dist/`, כדי שלא יישארו
 כפילויות. `generate-icons.cjs` (בשורש) מייצר מחדש את ערכת האייקונים
 (תוסף Chrome + אייקון מגש/exe) ממקור SVG יחיד, למי שרוצה למתג מחדש.
 

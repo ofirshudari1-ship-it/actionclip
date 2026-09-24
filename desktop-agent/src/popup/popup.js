@@ -123,7 +123,7 @@ function showStatus(msg, kind) {
   els.sendStatus.textContent = msg;
   els.sendStatus.className = 'send-status ' + kind;
   els.sendStatus.classList.remove('hidden');
-  if (kind === 'ok') setTimeout(() => window.actionclip.dismiss(), 1200);
+  if (kind === 'ok') setTimeout(() => window.tapact.dismiss(), 1200);
 }
 
 async function doSendChannel(channel) {
@@ -133,11 +133,11 @@ async function doSendChannel(channel) {
   if (channel === 'whatsapp') {
     const template = state.templates.find((t) => t.id === state.selectedTemplateId) || state.templates[0];
     const message = template ? fillWhatsappTemplate(template.text, lead.name) : '';
-    window.actionclip.sendWhatsapp({ phone: state.phone, message, name: lead.name, templateLabel: template?.label || '' });
+    window.tapact.sendWhatsapp({ phone: state.phone, message, name: lead.name, templateLabel: template?.label || '' });
     return { ok: true };
   }
 
-  return window.actionclip.sendLeadChannel({ channel, lead, leadSettings: ls });
+  return window.tapact.sendLeadChannel({ channel, lead, leadSettings: ls });
 }
 
 async function onSendChannel(channel) {
@@ -185,7 +185,7 @@ async function onAiImprove() {
   els.aiStatus.classList.remove('hidden');
 
   const lead = currentLead();
-  const result = await window.actionclip.aiCleanupLead(lead);
+  const result = await window.tapact.aiCleanupLead(lead);
 
   els.aiImproveBtn.disabled = false;
   els.aiImproveBtn.textContent = '✨ שפר עם AI';
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   els.closeBtn          = document.getElementById('closeBtn');
   els.openLeadSettingsLink = document.getElementById('openLeadSettingsLink');
 
-  const data = await window.actionclip.getInitData();
+  const data = await window.tapact.getInitData();
 
   // Apply language and theme from saved settings
   if (typeof window.i18n !== 'undefined') {
@@ -298,18 +298,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.dupConfirmedPhone = state.phone?.normalized || null;
     els.dupWarningBlock.classList.add('hidden');
   });
-  els.settingsBtn.addEventListener('click', () => window.actionclip.openSettings());
-  els.closeBtn.addEventListener('click', () => window.actionclip.dismiss());
-  els.openLeadSettingsLink?.addEventListener('click', (e) => { e.preventDefault(); window.actionclip.openLeadSettings(); });
+  els.settingsBtn.addEventListener('click', () => window.tapact.openSettings());
+  els.closeBtn.addEventListener('click', () => window.tapact.dismiss());
+  els.openLeadSettingsLink?.addEventListener('click', (e) => { e.preventDefault(); window.tapact.openLeadSettings(); });
 
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.actionclip.dismiss(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.tapact.dismiss(); });
 
   if (data.phone) els.nameInput.focus();
   else els.manualPhone.focus();
 });
 
 async function checkManualPhone() {
-  const found = await window.actionclip.checkPhone(els.manualPhone.value);
+  const found = await window.tapact.checkPhone(els.manualPhone.value);
   if (found) { applyPhone(found); els.nameInput.focus(); }
   else { els.manualPhone.focus(); els.manualPhone.select(); }
 }
@@ -318,5 +318,5 @@ let activityThrottle = null;
 function notifyActivity() {
   if (activityThrottle) return;
   activityThrottle = setTimeout(() => { activityThrottle = null; }, 500);
-  window.actionclip.notifyActivity();
+  window.tapact.notifyActivity();
 }

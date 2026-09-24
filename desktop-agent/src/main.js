@@ -3,7 +3,19 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 
-// File logger — writes to %APPDATA%\ActionClip\logs\actionclip.log
+// Explicit app identity (v3.0.0 rebrand from ActionClip -> TapAct): Electron
+// derives app.getPath('userData') and the taskbar/notification identity
+// (AppUserModelId on Windows) from app.setName()/productName, and would
+// otherwise keep resolving to the old "actionclip"-derived name from a
+// stale package.json read or Windows' cached shortcut data. Set both
+// explicitly and early so every OS-facing identity actually matches
+// the new package.json `productName`/`build.appId` (com.tapact.app).
+app.setName('TapAct');
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.tapact.app');
+}
+
+// File logger — writes to %APPDATA%\TapAct\logs\tapact.log
 // Rotates when the file exceeds 5 MB (keeps previous file as .1).
 const LOG_LEVELS = { INFO: 'INFO', WARN: 'WARN', ERROR: 'ERROR' };
 let _logStream = null;
@@ -11,9 +23,9 @@ let _logStream = null;
 function _getLogStream() {
   if (_logStream) return _logStream;
   try {
-    const logsDir = path.join(app.getPath('userData'), '..', 'ActionClip', 'logs');
+    const logsDir = path.join(app.getPath('userData'), '..', 'TapAct', 'logs');
     fs.mkdirSync(logsDir, { recursive: true });
-    const logFile = path.join(logsDir, 'actionclip.log');
+    const logFile = path.join(logsDir, 'tapact.log');
     try {
       const stat = fs.statSync(logFile);
       if (stat.size > 5 * 1024 * 1024) {
@@ -368,7 +380,7 @@ function openPopupWindow() {
     if (s.showTrayNotification !== false && tray && !tray.isDestroyed()) {
       tray.displayBalloon({
         iconType: 'info',
-        title: 'ActionClip — מספר זוהה',
+        title: 'TapAct — מספר זוהה',
         content: currentPopupPhone ? currentPopupPhone.display : 'מספר טלפון חדש זוהה',
         largeIcon: false,
         noSound: true
@@ -606,12 +618,12 @@ const SPLASH_MIN_MS = 800;
 const SPLASH_SAFETY_TIMEOUT_MS = 8000;
 
 function maybeShowWelcome() {
-  // ActionClip is a tray-first background agent — on every launch after the
+  // TapAct is a tray-first background agent — on every launch after the
   // very first one, isWelcomeSeen() is true and the app goes straight to the
   // tray with zero windows (see app.whenReady below). A splash screen only
   // makes sense for the one case where a window does appear on startup: the
   // first-run welcome screen. It is intentionally skipped on all later
-  // launches and when reopened from the tray's "מה זה ActionClip?" item
+  // launches and when reopened from the tray's "מה זה TapAct?" item
   // (openWelcomeWindow) — a branded loading screen in front of an
   // already-seen, instantly-loading local window would just be an
   // unnecessary delay, not real loading feedback.
@@ -619,7 +631,7 @@ function maybeShowWelcome() {
 }
 
 // Branded splash screen per STANDARDS.md §19 — frameless, transparent,
-// rounded corners via CSS, ActionClip's brand gradient (assets/BRAND.md),
+// rounded corners via CSS, TapAct's brand gradient (assets/BRAND.md),
 // the real app logo as the dominant element, and a continuous spinner
 // (no fake progress bar, since there's no real percentage to report for a
 // local file load).
@@ -669,7 +681,7 @@ function showFirstRunWelcomeWithSplash() {
     frame: false,
     center: true,
     show: false,
-    title: 'ברוכים הבאים ל-ActionClip',
+    title: 'ברוכים הבאים ל-TapAct',
     webPreferences: {
       preload: path.join(__dirname, 'welcome', 'preload.js'),
       contextIsolation: true,
@@ -705,10 +717,10 @@ function showFirstRunWelcomeWithSplash() {
   }, SPLASH_SAFETY_TIMEOUT_MS);
 }
 
-// First-run onboarding: a few steps explaining what ActionClip actually
+// First-run onboarding: a few steps explaining what TapAct actually
 // does, with a skip option at every step - opens automatically once (see
 // maybeShowWelcome), and any time after that from the tray menu ("מה זה
-// ActionClip") for anyone who wants the tour again.
+// TapAct") for anyone who wants the tour again.
 function openWelcomeWindow() {
   if (welcomeWindow && !welcomeWindow.isDestroyed()) {
     welcomeWindow.focus();
@@ -720,7 +732,7 @@ function openWelcomeWindow() {
     resizable: false,
     frame: false,
     center: true,
-    title: 'ברוכים הבאים ל-ActionClip',
+    title: 'ברוכים הבאים ל-TapAct',
     webPreferences: {
       preload: path.join(__dirname, 'welcome', 'preload.js'),
       contextIsolation: true,
@@ -745,7 +757,7 @@ function openSettingsWindow() {
     height: 760,
     minWidth: 640,
     minHeight: 600,
-    title: 'ActionClip - הגדרות',
+    title: 'TapAct - הגדרות',
     webPreferences: {
       preload: path.join(__dirname, 'settings', 'preload.js'),
       contextIsolation: true,
@@ -777,8 +789,8 @@ function maybeShowTrayHideHint(settings) {
   if (tray && !tray.isDestroyed()) {
     tray.displayBalloon({
       iconType: 'info',
-      title: 'ActionClip ממשיך לרוץ',
-      content: 'החלון נסגר אבל ActionClip עדיין פעיל במגש. ליציאה מלאה: קליק ימני על האייקון > יציאה.',
+      title: 'TapAct ממשיך לרוץ',
+      content: 'החלון נסגר אבל TapAct עדיין פעיל במגש. ליציאה מלאה: קליק ימני על האייקון > יציאה.',
       largeIcon: false,
       noSound: true
     });
@@ -817,9 +829,9 @@ function buildRecentActionsSubmenu() {
 function buildTrayMenu() {
   const settings = store.getSettings();
   const configured = { ...DEFAULT_SHORTCUTS, ...(settings.shortcuts || {}) };
-  if (tray) tray.setToolTip(settings.enabled ? 'ActionClip - מוכן להעתקה' : 'ActionClip - ניטור מושהה');
+  if (tray) tray.setToolTip(settings.enabled ? 'TapAct - מוכן להעתקה' : 'TapAct - ניטור מושהה');
   return Menu.buildFromTemplate([
-    { label: settings.enabled ? 'ActionClip - פעיל' : 'ActionClip - מושהה', enabled: false },
+    { label: settings.enabled ? 'TapAct - פעיל' : 'TapAct - מושהה', enabled: false },
     { type: 'separator' },
     {
       label: 'ניטור לוח פעיל',
@@ -848,7 +860,7 @@ function buildTrayMenu() {
         }
       }
     },
-    { label: 'מה זה ActionClip? (הדרכה)', click: openWelcomeWindow },
+    { label: 'מה זה TapAct? (הדרכה)', click: openWelcomeWindow },
     { type: 'separator' },
     {
       label: 'יציאה',
@@ -1008,7 +1020,7 @@ ipcMain.handle('lead:test-channel', async (_event, { channel }) => {
   else if (channel === 'slack') { url = ls.slackWebhookUrl; }
   if (!url) return { ok: false, error: 'URL ריק — הגדר אותו בהגדרות' };
   try {
-    const testPayload = { test: true, source: 'ActionClip', timestamp: new Date().toISOString() };
+    const testPayload = { test: true, source: 'TapAct', timestamp: new Date().toISOString() };
     const result = await postJson(url, testPayload, headerName, headerValue);
     return result;
   } catch (e) {
@@ -1023,8 +1035,8 @@ ipcMain.on('settings:save-lead-settings', (_event, settings) => store.saveLeadSe
 
 ipcMain.on('settings:open-external', (_event, target) => {
   const urls = {
-    changelog: 'https://actionclip.app/changelog',
-    site: 'https://actionclip.app'
+    changelog: 'https://tapact.app/changelog',
+    site: 'https://tapact.app'
   };
   const url = urls[target];
   if (url) shell.openExternal(url);
@@ -1213,7 +1225,7 @@ ipcMain.handle('settings:export-history-csv', async () => {
   const win = settingsWindow || BrowserWindow.getFocusedWindow();
   const { canceled, filePath } = await dialog.showSaveDialog(win, {
     title: 'ייצוא היסטוריית שליחות',
-    defaultPath: `actionclip-history-${new Date().toISOString().slice(0, 10)}.csv`,
+    defaultPath: `tapact-history-${new Date().toISOString().slice(0, 10)}.csv`,
     filters: [{ name: 'CSV', extensions: ['csv'] }]
   });
   if (canceled || !filePath) return { canceled: true };
@@ -1236,7 +1248,7 @@ ipcMain.handle('settings:export-lead-history-csv', async () => {
   const win = settingsWindow || BrowserWindow.getFocusedWindow();
   const { canceled, filePath } = await dialog.showSaveDialog(win, {
     title: 'ייצוא היסטוריית לידים',
-    defaultPath: `actionclip-leads-${new Date().toISOString().slice(0, 10)}.csv`,
+    defaultPath: `tapact-leads-${new Date().toISOString().slice(0, 10)}.csv`,
     filters: [{ name: 'CSV', extensions: ['csv'] }]
   });
   if (canceled || !filePath) return { canceled: true };
@@ -1268,13 +1280,13 @@ function applyAutoLaunch() {
       app.setLoginItemSettings({ openAtLogin: autoLaunch, path: process.execPath });
       const reconfirmed = app.getLoginItemSettings({ path: process.execPath }).openAtLogin;
       if (autoLaunchNeedsReconcile({ desired: autoLaunch, actualOpenAtLogin: reconfirmed })) {
-        log(LOG_LEVELS.WARN, 'ActionClip: Windows Startup entry did not match the saved autoLaunch setting after retry.', { desired: autoLaunch, actual: reconfirmed });
+        log(LOG_LEVELS.WARN, 'TapAct: Windows Startup entry did not match the saved autoLaunch setting after retry.', { desired: autoLaunch, actual: reconfirmed });
       } else {
-        log(LOG_LEVELS.INFO, 'ActionClip: Windows Startup entry re-applied to match saved setting.', { autoLaunch });
+        log(LOG_LEVELS.INFO, 'TapAct: Windows Startup entry re-applied to match saved setting.', { autoLaunch });
       }
     }
   } catch (err) {
-    log(LOG_LEVELS.WARN, 'ActionClip: could not read back Windows Startup entry.', { message: err?.message });
+    log(LOG_LEVELS.WARN, 'TapAct: could not read back Windows Startup entry.', { message: err?.message });
   }
 }
 
@@ -1285,7 +1297,7 @@ function applyAutoLaunch() {
 // Settings saves a new binding, and from the tray's "רענן קיצורים" item -
 // that last one matters because registration is a one-time OS grab at the
 // moment it's called: if Windows still owned Win+V when the app started
-// but the user turns Windows' Clipboard History off *while ActionClip is
+// but the user turns Windows' Clipboard History off *while TapAct is
 // already running*, nothing re-tries the grab on its own until this runs
 // again.
 function registerAllShortcuts() {
@@ -1297,17 +1309,17 @@ function registerAllShortcuts() {
   shortcutStatus.historyFallback = tryRegister(configured.historyFallback, openHistoryWindow);
 
   if (!shortcutStatus.manual) {
-    log(LOG_LEVELS.WARN, `ActionClip: could not register global shortcut ${configured.manual} (already taken by another app) - the tray menu item still works.`);
+    log(LOG_LEVELS.WARN, `TapAct: could not register global shortcut ${configured.manual} (already taken by another app) - the tray menu item still works.`);
   }
   if (!shortcutStatus.history) {
     // Expected whenever Windows' own Clipboard History (Win+V) is still
     // turned on - Windows holds the shortcut first, so Electron can't grab
     // it. Documented in Settings; the fallback and the tray menu item still
     // work either way.
-    log(LOG_LEVELS.WARN, `ActionClip: could not register ${configured.history} (likely still owned by Windows' own Clipboard History, or another app - see Settings for how to free it up).`);
+    log(LOG_LEVELS.WARN, `TapAct: could not register ${configured.history} (likely still owned by Windows' own Clipboard History, or another app - see Settings for how to free it up).`);
   }
   if (!shortcutStatus.historyFallback) {
-    log(LOG_LEVELS.WARN, `ActionClip: could not register fallback shortcut ${configured.historyFallback} - the tray menu item still works.`);
+    log(LOG_LEVELS.WARN, `TapAct: could not register fallback shortcut ${configured.historyFallback} - the tray menu item still works.`);
   }
 }
 
@@ -1321,7 +1333,7 @@ function tryRegister(accelerator, handler) {
 }
 
 // ---- Auto-update (electron-updater, GitHub Releases provider) ----
-// Checks ofirshudari1-ship-it/actionclip releases for a newer desktop-agent
+// Checks ofirshudari1-ship-it/tapact releases for a newer desktop-agent
 // build. Never blocks startup and never throws past this module - a failed
 // check (offline, GitHub unreachable, etc.) is logged and otherwise
 // ignored, matching this app's existing tray-app failure posture.
@@ -1340,9 +1352,9 @@ function initAutoUpdater() {
     dialog
       .showMessageBox({
         type: 'info',
-        title: 'ActionClip Update Ready',
-        message: `ActionClip ${info.version} has been downloaded.`,
-        detail: 'Restart now to install the update, or it will install automatically the next time you quit ActionClip.',
+        title: 'TapAct Update Ready',
+        message: `TapAct ${info.version} has been downloaded.`,
+        detail: 'Restart now to install the update, or it will install automatically the next time you quit TapAct.',
         buttons: ['Restart Now', 'Later'],
         defaultId: 0,
         cancelId: 1,

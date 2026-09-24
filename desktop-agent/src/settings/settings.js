@@ -58,14 +58,14 @@ function renderShortcuts(status) {
 }
 
 async function onSaveShortcuts() {
-  const result = await window.actionclipSettings.saveShortcuts(shortcuts);
+  const result = await window.tapactSettings.saveShortcuts(shortcuts);
   renderShortcuts(result || {});
   s.savedShortcutsMsg.classList.remove('hidden');
   setTimeout(() => s.savedShortcutsMsg.classList.add('hidden'), 2200);
 }
 
 async function onResetShortcuts() {
-  const result = await window.actionclipSettings.resetShortcuts();
+  const result = await window.tapactSettings.resetShortcuts();
   shortcuts = { ...defaultShortcuts };
   renderShortcuts(result || {});
   s.savedShortcutsMsg.classList.remove('hidden');
@@ -117,7 +117,7 @@ function buildTagRuleCard(rule) {
 }
 
 async function onSaveTagRules() {
-  const result = await window.actionclipSettings.saveTagRules(tagRules);
+  const result = await window.tapactSettings.saveTagRules(tagRules);
   if (Array.isArray(result)) tagRules = result;
   renderTagRules();
   s.savedTagRulesMsg.classList.remove('hidden');
@@ -198,7 +198,7 @@ function buildCustomRuleCard(rule) {
 }
 
 async function onSaveCustomRules() {
-  const result = await window.actionclipSettings.saveCustomRules(customRules);
+  const result = await window.tapactSettings.saveCustomRules(customRules);
   if (Array.isArray(result)) customRules = result;
   renderCustomRules();
   s.savedCustomRulesMsg.classList.remove('hidden');
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupTabs();
   initClipHistoryPanel();
 
-  const data = await window.actionclipSettings.getData();
+  const data = await window.tapactSettings.getData();
   templates = data.templates.map(t => ({ ...t }));
   defaultId = data.defaultTemplateId;
   settings = data.settings;
@@ -305,15 +305,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (s.aboutVersion) s.aboutVersion.textContent = data.version ? `v${data.version}` : '—';
   if (s.aboutBuildDate) s.aboutBuildDate.textContent = data.buildDate || '—';
   if (s.openChangelogBtn) s.openChangelogBtn.addEventListener('click', () => {
-    window.actionclipSettings.openExternal && window.actionclipSettings.openExternal('changelog');
+    window.tapactSettings.openExternal && window.tapactSettings.openExternal('changelog');
   });
   if (s.openSiteBtn) s.openSiteBtn.addEventListener('click', () => {
-    window.actionclipSettings.openExternal && window.actionclipSettings.openExternal('site');
+    window.tapactSettings.openExternal && window.tapactSettings.openExternal('site');
   });
 
   s.enabledCheck.checked = settings.enabled;
-  if (window.actionclipSettings.onMonitoringChanged) {
-    window.actionclipSettings.onMonitoringChanged((enabled) => {
+  if (window.tapactSettings.onMonitoringChanged) {
+    window.tapactSettings.onMonitoringChanged((enabled) => {
       settings.enabled = enabled;
       s.enabledCheck.checked = enabled;
     });
@@ -367,10 +367,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   shortcuts = { ...defaultShortcuts, ...(settings.shortcuts || {}) };
   renderShortcuts(data.shortcutStatus || {});
 
-  tagRules = await window.actionclipSettings.getTagRules();
+  tagRules = await window.tapactSettings.getTagRules();
   renderTagRules();
 
-  customRules = await window.actionclipSettings.getCustomRules();
+  customRules = await window.tapactSettings.getCustomRules();
   renderCustomRules();
 
   render();
@@ -472,7 +472,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.leadHistoryList = document.getElementById('leadHistoryList');
   s.leadHistoryEmpty = document.getElementById('leadHistoryEmpty');
 
-  const ls = await window.actionclipSettings.getLeadSettings();
+  const ls = await window.tapactSettings.getLeadSettings();
   applyLeadSettings(ls);
 
   s.leadChWhatsapp.addEventListener('change', () => s.leadWhatsappRow.classList.toggle('hidden', !s.leadChWhatsapp.checked));
@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.testWebhookBtn.addEventListener('click', () => onTestChannel('webhook'));
   s.testSlackBtn.addEventListener('click', () => onTestChannel('slack'));
 
-  // Esc closes the Settings window, same as every other ActionClip window/
+  // Esc closes the Settings window, same as every other TapAct window/
   // popup — but not while a keyboard-shortcut field is actively capturing a
   // key combo (there, Escape is a candidate key for the shortcut itself).
   document.addEventListener('keydown', (e) => {
@@ -550,7 +550,7 @@ function initClipHistoryPanel() {
   s.clipStatusText = document.getElementById('clipStatusText');
   s.clipToggleBtn = document.getElementById('clipToggleBtn');
   s.clipClearAllBtn = document.getElementById('clipClearAllBtn');
-  if (!s.clipSearchInput || !window.actionclipSettings.clipHistoryGetData) return;
+  if (!s.clipSearchInput || !window.tapactSettings.clipHistoryGetData) return;
 
   document.querySelectorAll('.clip-chip').forEach((c) => c.setAttribute('aria-pressed', String(c.classList.contains('active'))));
 
@@ -571,7 +571,7 @@ function initClipHistoryPanel() {
   });
 
   s.clipClearAllBtn.addEventListener('click', () => {
-    window.actionclipSettings.clipHistoryClearAll();
+    window.tapactSettings.clipHistoryClearAll();
     clipItems = [];
     clipTotal = 0;
     renderClipHistory();
@@ -579,14 +579,14 @@ function initClipHistoryPanel() {
 
   s.clipToggleBtn.addEventListener('click', () => {
     clipHistoryPanelEnabled = !clipHistoryPanelEnabled;
-    window.actionclipSettings.clipHistoryToggleEnabled(clipHistoryPanelEnabled);
+    window.tapactSettings.clipHistoryToggleEnabled(clipHistoryPanelEnabled);
     updateClipHistoryStatus();
     // Keep the "storage settings" panel's own switch (further down this
     // same tab) truthful too - they both control the one historyEnabled flag.
     if (s.clipHistoryEnabledCheck) s.clipHistoryEnabledCheck.checked = clipHistoryPanelEnabled;
   });
 
-  window.actionclipSettings.onClipHistoryItemsChanged(async () => {
+  window.tapactSettings.onClipHistoryItemsChanged(async () => {
     await loadClipHistory(clipPageSize);
     renderClipHistory();
   });
@@ -595,7 +595,7 @@ function initClipHistoryPanel() {
 }
 
 async function loadClipHistory(limit) {
-  const data = await window.actionclipSettings.clipHistoryGetData(limit);
+  const data = await window.tapactSettings.clipHistoryGetData(limit);
   clipItems = data.items || [];
   clipTotal = data.total || clipItems.length;
   clipPageSize = limit || clipItems.length || 50;
@@ -716,7 +716,7 @@ function buildClipRow(item) {
     goBtn.textContent = '▶';
     goBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.actionclipSettings.clipHistoryRunAction(item.id, 0);
+      window.tapactSettings.clipHistoryRunAction(item.id, 0);
     });
     actions.appendChild(goBtn);
   }
@@ -728,7 +728,7 @@ function buildClipRow(item) {
   delBtn.textContent = '✕';
   delBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    window.actionclipSettings.clipHistoryDeleteItem(item.id);
+    window.tapactSettings.clipHistoryDeleteItem(item.id);
     clipItems = clipItems.filter((i) => i.id !== item.id);
     clipTotal = Math.max(0, clipTotal - 1);
     renderClipHistory();
@@ -739,12 +739,12 @@ function buildClipRow(item) {
   row.appendChild(content);
   row.appendChild(actions);
 
-  row.addEventListener('click', () => window.actionclipSettings.clipHistoryCopyItem(item.id));
+  row.addEventListener('click', () => window.tapactSettings.clipHistoryCopyItem(item.id));
   row.addEventListener('keydown', (e) => {
     if (e.target !== row) return; // let the go/delete buttons handle their own Enter/Space
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault(); // Space must not also scroll the list
-    window.actionclipSettings.clipHistoryCopyItem(item.id);
+    window.tapactSettings.clipHistoryCopyItem(item.id);
   });
 
   return row;
@@ -814,14 +814,14 @@ function onSaveTemplates() {
   const cleaned = templates
     .map(t => ({ id: t.id, label: t.label.trim() || 'ללא שם', text: t.text }))
     .filter(t => t.text.trim().length > 0 || t.label.trim().length > 0);
-  window.actionclipSettings.saveTemplates(cleaned, defaultId);
+  window.tapactSettings.saveTemplates(cleaned, defaultId);
   flashSaved();
 }
 
 async function onReset() {
   if (!confirm('לאפס את כל התבניות לברירת המחדל? שינויים שלא נשמרו יאבדו.')) return;
-  window.actionclipSettings.resetTemplates();
-  const data = await window.actionclipSettings.getData();
+  window.tapactSettings.resetTemplates();
+  const data = await window.tapactSettings.getData();
   templates = data.templates.map(t => ({ ...t }));
   defaultId = data.defaultTemplateId;
   render();
@@ -829,7 +829,7 @@ async function onReset() {
 }
 
 function onSaveSettings() {
-  window.actionclipSettings.saveSettings({
+  window.tapactSettings.saveSettings({
     enabled: s.enabledCheck.checked,
     autoLaunch: s.autoLaunchCheck.checked,
     startMinimized: s.startMinimizedCheck ? s.startMinimizedCheck.checked : false,
@@ -847,7 +847,7 @@ function onSaveSettings() {
 }
 
 function onSaveQuietHours() {
-  window.actionclipSettings.saveSettings({
+  window.tapactSettings.saveSettings({
     quietHours: {
       enabled: s.quietHoursEnabledCheck ? s.quietHoursEnabledCheck.checked : false,
       start: (s.quietHoursStartInput && s.quietHoursStartInput.value) || '18:00',
@@ -880,11 +880,11 @@ function applyAppTheme(theme) {
 }
 
 function saveSetting(key, value) {
-  window.actionclipSettings.saveSettings({ [key]: value });
+  window.tapactSettings.saveSettings({ [key]: value });
 }
 
 function onSaveDetectors() {
-  window.actionclipSettings.saveSettings({
+  window.tapactSettings.saveSettings({
     detectors: {
       phone: s.detectPhoneCheck.checked,
       tracking: s.detectTrackingCheck.checked,
@@ -899,7 +899,7 @@ function onSaveDetectors() {
 }
 
 function onSaveClipHistorySettings() {
-  window.actionclipSettings.saveSettings({
+  window.tapactSettings.saveSettings({
     historyEnabled: s.clipHistoryEnabledCheck.checked,
     historyStorageLimit: Math.max(50, Math.min(5000, Number(s.clipHistoryStorageInput.value) || 1000)),
     historyPreviewLimit: Math.max(10, Math.min(200, Number(s.clipHistoryPreviewInput.value) || 50))
@@ -909,7 +909,7 @@ function onSaveClipHistorySettings() {
 }
 
 function onClearClipHistory() {
-  window.actionclipSettings.clearClipboardHistory();
+  window.tapactSettings.clearClipboardHistory();
   s.savedClipHistoryMsg.textContent = 'נוקה ✓';
   s.savedClipHistoryMsg.classList.remove('hidden');
   setTimeout(() => {
@@ -919,7 +919,7 @@ function onClearClipHistory() {
 }
 
 function onSaveActionPrefs() {
-  window.actionclipSettings.saveSettings({
+  window.tapactSettings.saveSettings({
     actionPreferences: {
       phone: s.prefPhoneSelect.value,
       address: s.prefAddressSelect.value,
@@ -934,7 +934,7 @@ function onSaveActionPrefs() {
 }
 
 async function renderHistory() {
-  const history = await window.actionclipSettings.getHistory();
+  const history = await window.tapactSettings.getHistory();
   s.historyList.replaceChildren();
   s.historyEmpty.classList.toggle('hidden', history.length > 0);
   for (const entry of history) {
@@ -965,12 +965,12 @@ async function renderHistory() {
 }
 
 async function onClearHistory() {
-  window.actionclipSettings.clearHistory();
+  window.tapactSettings.clearHistory();
   await renderHistory();
 }
 
 async function onExportCsv() {
-  const result = await window.actionclipSettings.exportHistoryCsv();
+  const result = await window.tapactSettings.exportHistoryCsv();
   if (result.canceled) return;
   s.exportMsg.textContent = `יוצא בהצלחה: ${result.filePath}`;
   s.exportMsg.classList.remove('hidden');
@@ -1034,20 +1034,20 @@ function onSaveLeadSettings() {
     duplicateWindowHours: parseInt(s.leadDupWindow.value, 10) || 6,
     customSources: s.leadCustomSources.value.split(',').map((x) => x.trim()).filter(Boolean)
   };
-  window.actionclipSettings.saveLeadSettings(settings);
+  window.tapactSettings.saveLeadSettings(settings);
   s.savedLeadMsg.classList.remove('hidden');
   setTimeout(() => s.savedLeadMsg.classList.add('hidden'), 1800);
 }
 
 async function onClearLeadHistory() {
-  window.actionclipSettings.clearLeadHistory();
+  window.tapactSettings.clearLeadHistory();
   await renderLeadHistory();
 }
 
 async function onExportLeadCsv() {
   s.exportLeadCsvBtn.disabled = true;
   try {
-    const result = await window.actionclipSettings.exportLeadHistoryCsv();
+    const result = await window.tapactSettings.exportLeadHistoryCsv();
     if (!result.canceled) {
       s.exportLeadMsg.textContent = 'הקובץ נשמר ✓';
       s.exportLeadMsg.className = 'saved-msg';
@@ -1072,7 +1072,7 @@ async function onTestChannel(channel) {
   try {
     const url = channel === 'webhook' ? s.leadWebhookUrl.value.trim() : s.leadSlackWebhookUrl.value.trim();
     if (!url) { showTestResult(btn, msgEl, false, 'נדרש URL'); return; }
-    const result = await window.actionclipSettings.testLeadChannel({ channel, url,
+    const result = await window.tapactSettings.testLeadChannel({ channel, url,
       headerName: channel === 'webhook' ? s.leadWebhookHeaderName.value.trim() : '',
       headerValue: channel === 'webhook' ? s.leadWebhookHeaderValue.value.trim() : '' });
     showTestResult(btn, msgEl, result.ok, result.ok ? 'חיבור תקין ✓' : (result.error || 'שגיאה'));
@@ -1091,7 +1091,7 @@ function showTestResult(btn, msgEl, ok, text) {
 }
 
 async function renderLeadHistory() {
-  const history = await window.actionclipSettings.getLeadHistory();
+  const history = await window.tapactSettings.getLeadHistory();
   s.leadHistoryList.replaceChildren();
   if (!history || !history.length) {
     s.leadHistoryEmpty.classList.remove('hidden');

@@ -67,9 +67,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     render();
   });
 
-  els.closeBtn.addEventListener('click', () => window.actionclipHistory.dismiss());
+  els.closeBtn.addEventListener('click', () => window.tapactHistory.dismiss());
   els.clearBtn.addEventListener('click', () => {
-    window.actionclipHistory.clearAll();
+    window.tapactHistory.clearAll();
     items = [];
     total = 0;
     render();
@@ -77,22 +77,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   els.toggleBtn.addEventListener('click', () => {
     historyEnabled = !historyEnabled;
-    window.actionclipHistory.toggleEnabled(historyEnabled);
+    window.tapactHistory.toggleEnabled(historyEnabled);
     updateStatus();
   });
 
-  window.actionclipHistory.onItemsChanged(async () => {
+  window.tapactHistory.onItemsChanged(async () => {
     await load();
     render();
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !isEmbedded) window.actionclipHistory.dismiss();
+    if (e.key === 'Escape' && !isEmbedded) window.tapactHistory.dismiss();
   });
 });
 
 async function load(limit) {
-  const data = await window.actionclipHistory.getData(limit);
+  const data = await window.tapactHistory.getData(limit);
   items = data.items || [];
   total = data.total || items.length;
   pageSize = limit || items.length || 50;
@@ -220,7 +220,7 @@ function buildRow(item) {
     goBtn.textContent = '▶';
     goBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.actionclipHistory.runAction(item.id, 0);
+      window.tapactHistory.runAction(item.id, 0);
     });
     actions.appendChild(goBtn);
   }
@@ -232,7 +232,7 @@ function buildRow(item) {
   delBtn.textContent = '✕';
   delBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    window.actionclipHistory.deleteItem(item.id);
+    window.tapactHistory.deleteItem(item.id);
     items = items.filter((i) => i.id !== item.id);
     total = Math.max(0, total - 1);
     render();
@@ -243,12 +243,12 @@ function buildRow(item) {
   row.appendChild(content);
   row.appendChild(actions);
 
-  row.addEventListener('click', () => window.actionclipHistory.copyItem(item.id));
+  row.addEventListener('click', () => window.tapactHistory.copyItem(item.id));
   row.addEventListener('keydown', (e) => {
     if (e.target !== row) return; // let the go/delete buttons handle their own Enter/Space
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault(); // Space must not also scroll the list
-    window.actionclipHistory.copyItem(item.id);
+    window.tapactHistory.copyItem(item.id);
   });
 
   return row;

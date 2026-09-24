@@ -1,10 +1,10 @@
 {
-  "name": "actionclip",
-  "version": "2.10.1",
-  "description": "ActionClip desktop agent - a full clipboard-history manager (like Windows' own Win+V) that also pops up a one-click action for what you just copied: phone -> WhatsApp, tracking number -> shipment tracking, address -> navigation, link -> open.",
+  "name": "tapact",
+  "version": "3.0.0",
+  "description": "TapAct desktop agent - a full clipboard-history manager (like Windows' own Win+V) that also pops up a one-click action for what you just copied: phone -> WhatsApp, tracking number -> shipment tracking, address -> navigation, link -> open.",
   "private": true,
   "main": "src/main.js",
-  "author": "ActionClip",
+  "author": "TapAct",
   "scripts": {
     "start": "electron .",
     "icons": "node build-resources/generate-installer-header.cjs",
@@ -32,9 +32,9 @@
     }
   },
   "build": {
-    "appId": "com.actionclip.app",
-    "productName": "ActionClip",
-    "copyright": "Copyright © 2024-2026 ActionClip",
+    "appId": "com.tapact.app",
+    "productName": "TapAct",
+    "copyright": "Copyright © 2024-2026 TapAct",
     "asar": true,
     "compression": "maximum",
     "directories": {
@@ -44,7 +44,7 @@
     "publish": {
       "provider": "github",
       "owner": "ofirshudari1-ship-it",
-      "repo": "actionclip"
+      "repo": "tapact"
     },
     "files": [
       "src/**/*",
@@ -76,10 +76,10 @@
       "uninstallerSidebar": "build-resources/installer-sidebar.bmp",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "menuCategory": "ActionClip",
-      "shortcutName": "ActionClip",
+      "menuCategory": "TapAct",
+      "shortcutName": "TapAct",
       "license": "build-resources/license.txt",
-      "artifactName": "ActionClip-Setup-${version}.exe",
+      "artifactName": "TapAct-Setup-${version}.exe",
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": false,
       "displayLanguageSelector": true,

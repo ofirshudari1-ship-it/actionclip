@@ -120,7 +120,7 @@ const DEFAULT_SETTINGS = {
   // itself after this many seconds (still shows the popup first, so the
   // user can see what's about to happen and cancel by closing it). Off by
   // default - clicking is still the norm, this is for anyone who wants
-  // ActionClip to just go ahead once something matches.
+  // TapAct to just go ahead once something matches.
   autoRunAction: false,
   autoRunDelaySeconds: 4,
   // Appearance & language
@@ -131,7 +131,7 @@ const DEFAULT_SETTINGS = {
   closeToTray: true,      // X button hides instead of quitting
   showTrayNotification: true,  // balloon notification on phone detection
   // Shown once, the first time a window is ever hidden (not closed) to the
-  // tray — a short balloon explaining that ActionClip is still running and
+  // tray — a short balloon explaining that TapAct is still running and
   // how to actually quit it. Flips true after it's shown once; never shown
   // again after that regardless of how many more times a window is hidden.
   trayHideHintSeen: false,
@@ -141,7 +141,7 @@ const DEFAULT_SETTINGS = {
   trayClickAction: 'history',
   // Shared/work-PC option: every launch starts with monitoring paused,
   // regardless of whatever `enabled` was left at when the app last closed -
-  // useful on a machine other people also use, so ActionClip doesn't start
+  // useful on a machine other people also use, so TapAct doesn't start
   // silently watching the clipboard by default. Toggling "ניטור לוח פעיל"
   // back on from the tray/Settings after launch works as normal; this only
   // affects the state at startup.
@@ -149,7 +149,7 @@ const DEFAULT_SETTINGS = {
 };
 
 const store = new Store({
-  name: 'actionclip',
+  name: 'tapact',
   defaults: {
     templates: DEFAULT_TEMPLATES,
     defaultTemplateId: DEFAULT_TEMPLATES[0].id,

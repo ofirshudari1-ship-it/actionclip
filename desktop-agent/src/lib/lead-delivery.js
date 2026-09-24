@@ -12,7 +12,7 @@ function renderTemplate(template, lead) {
 function buildShareText(lead, template) {
   if (template && template.trim()) return renderTemplate(template, lead);
   const lines = [
-    'ליד חדש מ-ActionClip',
+    'ליד חדש מ-TapAct',
     `שם: ${lead.name || '-'}`,
     `טלפון: ${lead.phone || '-'}`,
     `תפקיד: ${lead.role || '-'}`,

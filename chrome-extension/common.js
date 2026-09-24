@@ -1,8 +1,8 @@
 // Shared between popup.js and options.js. Loaded as a plain <script> (no modules),
 // so it just defines globals on `window`.
 
-const ACTIONCLIP_STORAGE_KEY = 'actionclip_templates';
-const ACTIONCLIP_DEFAULT_TEMPLATE_ID = 'actionclip_default_template';
+const TAPACT_STORAGE_KEY = 'tapact_templates';
+const TAPACT_DEFAULT_TEMPLATE_ID = 'tapact_default_template';
 
 // Default lead-type templates for a sales call center. {שם} is replaced with
 // whatever the rep typed in the name field; left as-is if the field is empty.
@@ -96,13 +96,13 @@ function pcBuildWhatsAppUrl(normalizedPhone, message) {
 
 function pcLoadTemplates() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get([ACTIONCLIP_STORAGE_KEY, ACTIONCLIP_DEFAULT_TEMPLATE_ID], (data) => {
-      const templates = Array.isArray(data[ACTIONCLIP_STORAGE_KEY]) && data[ACTIONCLIP_STORAGE_KEY].length
-        ? data[ACTIONCLIP_STORAGE_KEY]
+    chrome.storage.sync.get([TAPACT_STORAGE_KEY, TAPACT_DEFAULT_TEMPLATE_ID], (data) => {
+      const templates = Array.isArray(data[TAPACT_STORAGE_KEY]) && data[TAPACT_STORAGE_KEY].length
+        ? data[TAPACT_STORAGE_KEY]
         : DEFAULT_TEMPLATES;
       resolve({
         templates,
-        defaultTemplateId: data[ACTIONCLIP_DEFAULT_TEMPLATE_ID] || templates[0].id
+        defaultTemplateId: data[TAPACT_DEFAULT_TEMPLATE_ID] || templates[0].id
       });
     });
   });
@@ -111,40 +111,40 @@ function pcLoadTemplates() {
 function pcSaveTemplates(templates, defaultTemplateId) {
   return new Promise((resolve) => {
     chrome.storage.sync.set({
-      [ACTIONCLIP_STORAGE_KEY]: templates,
-      [ACTIONCLIP_DEFAULT_TEMPLATE_ID]: defaultTemplateId
+      [TAPACT_STORAGE_KEY]: templates,
+      [TAPACT_DEFAULT_TEMPLATE_ID]: defaultTemplateId
     }, resolve);
   });
 }
 
 // --- Settings (dedupe window) ---
 
-const ACTIONCLIP_SETTINGS_KEY = 'actionclip_settings';
+const TAPACT_SETTINGS_KEY = 'tapact_settings';
 const DEFAULT_SETTINGS = { dedupeMinutes: 30 };
 
 function pcLoadSettings() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get([ACTIONCLIP_SETTINGS_KEY], (data) => {
-      resolve({ ...DEFAULT_SETTINGS, ...(data[ACTIONCLIP_SETTINGS_KEY] || {}) });
+    chrome.storage.sync.get([TAPACT_SETTINGS_KEY], (data) => {
+      resolve({ ...DEFAULT_SETTINGS, ...(data[TAPACT_SETTINGS_KEY] || {}) });
     });
   });
 }
 
 function pcSaveSettings(settings) {
   return pcLoadSettings().then((current) => new Promise((resolve) => {
-    chrome.storage.sync.set({ [ACTIONCLIP_SETTINGS_KEY]: { ...current, ...settings } }, resolve);
+    chrome.storage.sync.set({ [TAPACT_SETTINGS_KEY]: { ...current, ...settings } }, resolve);
   }));
 }
 
 // --- Send history (last 25, local to this browser profile) ---
 
-const ACTIONCLIP_HISTORY_KEY = 'actionclip_history';
-const ACTIONCLIP_HISTORY_LIMIT = 25;
+const TAPACT_HISTORY_KEY = 'tapact_history';
+const TAPACT_HISTORY_LIMIT = 25;
 
 function pcLoadHistory() {
   return new Promise((resolve) => {
-    chrome.storage.local.get([ACTIONCLIP_HISTORY_KEY], (data) => {
-      resolve(Array.isArray(data[ACTIONCLIP_HISTORY_KEY]) ? data[ACTIONCLIP_HISTORY_KEY] : []);
+    chrome.storage.local.get([TAPACT_HISTORY_KEY], (data) => {
+      resolve(Array.isArray(data[TAPACT_HISTORY_KEY]) ? data[TAPACT_HISTORY_KEY] : []);
     });
   });
 }
@@ -152,14 +152,14 @@ function pcLoadHistory() {
 // entry: { normalized, display, name, templateLabel, sentAt }
 function pcAddHistoryEntry(entry) {
   return pcLoadHistory().then((history) => new Promise((resolve) => {
-    const next = [{ ...entry, sentAt: Date.now() }, ...history].slice(0, ACTIONCLIP_HISTORY_LIMIT);
-    chrome.storage.local.set({ [ACTIONCLIP_HISTORY_KEY]: next }, () => resolve(next));
+    const next = [{ ...entry, sentAt: Date.now() }, ...history].slice(0, TAPACT_HISTORY_LIMIT);
+    chrome.storage.local.set({ [TAPACT_HISTORY_KEY]: next }, () => resolve(next));
   }));
 }
 
 function pcClearHistory() {
   return new Promise((resolve) => {
-    chrome.storage.local.set({ [ACTIONCLIP_HISTORY_KEY]: [] }, resolve);
+    chrome.storage.local.set({ [TAPACT_HISTORY_KEY]: [] }, resolve);
   });
 }
 

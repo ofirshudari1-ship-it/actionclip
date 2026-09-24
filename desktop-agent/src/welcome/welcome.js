@@ -48,19 +48,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const skipBtn = document.getElementById('skipBtn');
   skipBtn && skipBtn.addEventListener('click', () => {
-    window.actionclipWelcome && window.actionclipWelcome.skip();
+    window.tapactWelcome && window.tapactWelcome.skip();
   });
 
   nextBtn.addEventListener('click', () => {
     if (current < steps.length - 1) {
       goTo(current + 1);
     } else {
-      window.actionclipWelcome && window.actionclipWelcome.finish();
+      window.tapactWelcome && window.tapactWelcome.finish();
     }
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') window.actionclipWelcome && window.actionclipWelcome.skip();
+    if (e.key === 'Escape') window.tapactWelcome && window.tapactWelcome.skip();
     if (e.key === 'ArrowLeft') { if (document.documentElement.dir === 'rtl') nextBtn.click(); else backBtn.click(); }
     if (e.key === 'ArrowRight') { if (document.documentElement.dir === 'rtl') backBtn.click(); else nextBtn.click(); }
   });

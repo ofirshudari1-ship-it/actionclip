@@ -1,7 +1,7 @@
-# ActionClip - Chrome Extension
+# TapAct - Chrome Extension
 
 Copy any phone number (from a CRM, spreadsheet, email, a Facebook/LinkedIn
-profile - anywhere), click the ActionClip icon (or press **Alt+Shift+P**), and
+profile - anywhere), click the TapAct icon (or press **Alt+Shift+P**), and
 it opens a WhatsApp chat with a ready-made message - no retyping the number,
 no opening WhatsApp Web and starting a blank chat.
 
@@ -12,7 +12,7 @@ what - Developer mode + Load unpacked is unavoidable, so there's no
 installer here. Two ways to get the files:
 
 - Use this `chrome-extension` folder directly, or
-- Download `ActionClip-v1.2.1.zip` (same folder) and unzip it anywhere.
+- Download `TapAct-v1.2.1.zip` (same folder) and unzip it anywhere.
 
 Then:
 
@@ -20,16 +20,16 @@ Then:
 2. Turn on **Developer mode** (top-right toggle).
 3. Click **Load unpacked** and select the folder (this one, or the
    unzipped copy).
-4. Pin the ActionClip icon in the toolbar.
+4. Pin the TapAct icon in the toolbar.
 
 That's it - about 30 seconds, once per machine. Re-loading after an update
-is the same steps (or just click the refresh icon on ActionClip's card in
+is the same steps (or just click the refresh icon on TapAct's card in
 `chrome://extensions` if the folder path hasn't changed).
 
 ## Using it
 
 1. Copy a phone number (or any text that contains one) - `Ctrl+C`.
-2. Click the ActionClip icon, or press `Alt+Shift+P`.
+2. Click the TapAct icon, or press `Alt+Shift+P`.
 3. The popup shows the detected number, a name field (optional), and a
    message template. Pick a different template from the dropdown if needed,
    tweak the text, then click **פתח בוואטסאפ**.
@@ -41,7 +41,7 @@ blocked), a manual field lets you paste/type one instead.
 
 ## Managing templates, settings and history
 
-Click the ⚙ icon in the popup (or go to `chrome://extensions` → ActionClip →
+Click the ⚙ icon in the popup (or go to `chrome://extensions` → TapAct →
 Details → Extension options) for three tabs:
 
 - **תבניות הודעה** - add, edit, delete templates, and pick the default one.
@@ -61,5 +61,5 @@ only outbound action is opening a `wa.me` link in a new tab (which is just
 opening WhatsApp Web with the browser you already have signed in).
 Templates and settings are stored in `chrome.storage.sync` (your own Google
 account); send history is stored in `chrome.storage.local` (this browser
-profile only, not synced) - either way, not on any ActionClip server, because
+profile only, not synced) - either way, not on any TapAct server, because
 there isn't one. Full policy: [`../PRIVACY.md`](../PRIVACY.md).

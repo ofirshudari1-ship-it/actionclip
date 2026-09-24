@@ -1,17 +1,17 @@
-# ActionClip — User Guide / מדריך משתמש
+# TapAct — User Guide / מדריך משתמש
 
 ## English
 
-### What is ActionClip?
+### What is TapAct?
 
-ActionClip is a Windows background agent that watches your clipboard and suggests the right next action automatically. Copy a phone number → get a WhatsApp message ready. Copy a tracking number → open the shipper's tracking page. Copy an address → open navigation. Everything you copy is also saved in a searchable local history.
+TapAct is a Windows background agent that watches your clipboard and suggests the right next action automatically. Copy a phone number → get a WhatsApp message ready. Copy a tracking number → open the shipper's tracking page. Copy an address → open navigation. Everything you copy is also saved in a searchable local history.
 
 ### Installation
 
-1. Download **ActionClip-Setup-2.4.0.exe** from the project root.
+1. Download **TapAct-Setup-2.4.0.exe** from the project root.
 2. Run the installer — select your preferred language (English or Hebrew).
 3. The installer requires administrator rights to register the autostart entry.
-4. After installation, ActionClip starts automatically and appears in the system tray (bottom-right corner of the taskbar).
+4. After installation, TapAct starts automatically and appears in the system tray (bottom-right corner of the taskbar).
 
 ### First Launch
 
@@ -25,7 +25,7 @@ On first launch the system tray icon (📎) appears. Double-click it or left-cli
 
 | Action | Result |
 |--------|--------|
-| Copy any text on screen | ActionClip analyses it silently in the background |
+| Copy any text on screen | TapAct analyses it silently in the background |
 | Recognised phone number | Popup appears with WhatsApp / channel buttons |
 | Copy again while popup is open | Popup refreshes with the new content |
 | `Ctrl+Shift+V` | Opens popup regardless of clipboard content |
@@ -65,31 +65,31 @@ Duplicate detection warns you if the same number was sent recently.
 
 | Symptom | Fix |
 |---------|-----|
-| Tray icon doesn't appear after install | Restart the PC; check `Task Manager → Startup` that ActionClip is enabled |
+| Tray icon doesn't appear after install | Restart the PC; check `Task Manager → Startup` that TapAct is enabled |
 | Popup doesn't open on copy | Right-click tray → Enable; verify global shortcut is not conflicting |
 | WhatsApp messages not sending | Verify WhatsApp Web is open and logged in on this PC |
-| Log file location | `%APPDATA%\ActionClip\logs\actionclip.log` |
+| Log file location | `%APPDATA%\TapAct\logs\tapact.log` |
 
 ---
 
 ## עברית
 
-### מה זה ActionClip?
+### מה זה TapAct?
 
-ActionClip הוא סוכן רקע ל-Windows שעוקב אחרי הלוח ומציע את הפעולה הנכונה הבאה אוטומטית. מעתיקים מספר טלפון ← מקבלים הודעת WhatsApp מוכנה. מספר מעקב ← פותח דף מעקב אצל החברה המשלחת. כתובת ← פותח ניווט. כל מה שמעתיקים נשמר גם בהיסטוריה מקומית עם חיפוש.
+TapAct הוא סוכן רקע ל-Windows שעוקב אחרי הלוח ומציע את הפעולה הנכונה הבאה אוטומטית. מעתיקים מספר טלפון ← מקבלים הודעת WhatsApp מוכנה. מספר מעקב ← פותח דף מעקב אצל החברה המשלחת. כתובת ← פותח ניווט. כל מה שמעתיקים נשמר גם בהיסטוריה מקומית עם חיפוש.
 
 ### התקנה
 
-1. הורד את **ActionClip-Setup-2.4.0.exe** משורש הפרויקט.
+1. הורד את **TapAct-Setup-2.4.0.exe** משורש הפרויקט.
 2. הרץ את תוכנית ההתקנה — בחר שפה (אנגלית / עברית).
 3. ההתקנה דורשת הרשאות מנהל לצורך רישום הפעלה אוטומטית עם Windows.
-4. לאחר ההתקנה ActionClip מופעל אוטומטית ומופיע ב-System Tray (פינה ימנית-תחתונה של שורת המשימות).
+4. לאחר ההתקנה TapAct מופעל אוטומטית ומופיע ב-System Tray (פינה ימנית-תחתונה של שורת המשימות).
 
 ### שימוש יומיומי
 
 | פעולה | תוצאה |
 |-------|-------|
-| העתק כל טקסט | ActionClip מנתח אותו ברקע בשקט |
+| העתק כל טקסט | TapAct מנתח אותו ברקע בשקט |
 | מספר טלפון זוהה | פופ-אפ נפתח עם כפתורי WhatsApp / ערוצים |
 | העתקה נוספת כשהפופ-אפ פתוח | הפופ-אפ מתרענן עם התוכן החדש |
 | `Ctrl+Shift+V` | פותח פופ-אפ ללא תלות בתוכן הלוח |
@@ -108,7 +108,7 @@ ActionClip הוא סוכן רקע ל-Windows שעוקב אחרי הלוח ומצ
 
 | תסמין | פתרון |
 |-------|-------|
-| האייקון לא מופיע לאחר התקנה | הפעל מחדש את המחשב; בדוק ב-Task Manager → Startup שActionClip מופעל |
+| האייקון לא מופיע לאחר התקנה | הפעל מחדש את המחשב; בדוק ב-Task Manager → Startup שTapAct מופעל |
 | הפופ-אפ לא נפתח בהעתקה | לחץ ימני על Tray → Enable; ודא שהקיצור לא מתנגש עם תוכנה אחרת |
 | הודעות WhatsApp לא נשלחות | ודא ש-WhatsApp Web פתוח ומחובר במחשב זה |
-| מיקום קובץ לוג | `%APPDATA%\ActionClip\logs\actionclip.log` |
+| מיקום קובץ לוג | `%APPDATA%\TapAct\logs\tapact.log` |

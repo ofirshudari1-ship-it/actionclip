@@ -6,9 +6,9 @@
 //
 // The sidebar uses the shared cross-product installer palette from
 // STANDARDS.md §21 ("IObit-style" unified branding): OptiGuard, Playnest,
-// ActionClip and SnapCap all share the same dark base + accent-blue gradient
+// TapAct and SnapCap all share the same dark base + accent-blue gradient
 // in their installer wizard so the four tools read as one company's suite —
-// only the logo mark + product name/tagline inside stay ActionClip-specific.
+// only the logo mark + product name/tagline inside stay TapAct-specific.
 // Reference implementation: Playnest's build/make-installer-graphics.cjs,
 // which already generates this exact shared banner.
 //
@@ -90,7 +90,7 @@ async function main() {
   const header = `
     <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
       <rect width="${WIDTH}" height="${HEIGHT}" fill="#ffffff"/>
-      <text x="${markX + markSize + 8}" y="35" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#2F6FED">ActionClip</text>
+      <text x="${markX + markSize + 8}" y="35" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#2F6FED">TapAct</text>
     </svg>`;
 
   const { data: headerData, info: headerInfo } = await sharp(Buffer.from(header))
@@ -106,7 +106,7 @@ async function main() {
   // Welcome/finish sidebar: shared cross-product brand banner (STANDARDS.md
   // §21). Dark base -> accent-blue gradient, logo badge with an accent glow
   // ring, product name + short tagline — same treatment as Playnest's
-  // sidebar, only the logo mark and copy are ActionClip-specific.
+  // sidebar, only the logo mark and copy are TapAct-specific.
   const badgeSize = 100;
   const badgeX = Math.round((SIDEBAR_WIDTH - badgeSize) / 2);
   const badgeY = 58;
@@ -129,7 +129,7 @@ async function main() {
       <rect x="0" y="274" width="${SIDEBAR_WIDTH}" height="40" fill="#5B9AFF" opacity="0.16"/>
       <circle cx="${badgeX + badgeSize / 2}" cy="${badgeY + badgeSize / 2}" r="${badgeSize / 2}"
         fill="rgba(255,255,255,0.08)" stroke="#5B9AFF" stroke-width="2" stroke-opacity="0.55"/>
-      <text x="82" y="200" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" fill="#EAEAEA">ActionClip</text>
+      <text x="82" y="200" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" fill="#EAEAEA">TapAct</text>
       <text x="82" y="222" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#94A3B8">Smart clipboard</text>
       <text x="82" y="236" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#94A3B8">actions</text>
     </svg>`;

@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('actionclipSettings', {
+contextBridge.exposeInMainWorld('tapactSettings', {
   getData: () => ipcRenderer.invoke('settings:get-data'),
   saveTemplates: (templates, defaultTemplateId) =>
     ipcRenderer.send('settings:save-templates', { templates, defaultTemplateId }),

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
-<title>ברוכים הבאים ל-ActionClip</title>
+<title>ברוכים הבאים ל-TapAct</title>
 <link rel="stylesheet" href="welcome.css">
 <script src="../lib/i18n-renderer.js"></script>
 </head>
@@ -14,7 +14,7 @@
     <div class="welcome-header">
       <span class="brand-logo">📋</span>
       <div>
-        <div class="brand-name">ActionClip</div>
+        <div class="brand-name">TapAct</div>
         <div class="brand-sub" data-i18n="header.subtitle">סוכן לוח ההעתקה החכם שלך</div>
       </div>
       <div class="header-tools">
@@ -31,7 +31,7 @@
 
       <section class="step active" data-step="0">
         <div class="icon">📋⚡</div>
-        <h1 data-i18n="welcome.step0.title">ברוכים הבאים ל-ActionClip</h1>
+        <h1 data-i18n="welcome.step0.title">ברוכים הבאים ל-TapAct</h1>
         <p class="lede" data-i18n="welcome.step0.body">
           תוכנת רקע קטנה שרצה במגש המערכת. ברגע שאתה מעתיק משהו שהיא מזהה,
           קופצת חלונית ליד הסמן עם כפתור לפעולה הנכונה — בלי לעבור בין אפליקציות.
@@ -85,7 +85,7 @@
         <button id="nextBtn" class="btn primary" data-i18n="welcome.btn.next">הבא →</button>
       </div>
     </div>
-    <div style="text-align:center;font-size:11px;color:#666;padding:6px 0 10px;">© 2024–2026 ActionClip</div>
+    <div style="text-align:center;font-size:11px;color:#666;padding:6px 0 10px;">© 2024–2026 TapAct</div>
   </div>
 
   <script src="welcome.js"></script>
@@ -93,8 +93,8 @@
     // Apply language and theme from main process settings
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        if (window.actionclipWelcome && window.actionclipWelcome.getSettings) {
-          const s = await window.actionclipWelcome.getSettings();
+        if (window.tapactWelcome && window.tapactWelcome.getSettings) {
+          const s = await window.tapactWelcome.getSettings();
           if (s) {
             const lang = s.language || 'en';
             const theme = s.theme || 'dark';
@@ -115,8 +115,8 @@
         const next = cur === 'he' ? 'en' : 'he';
         if (typeof window.i18n !== 'undefined') window.i18n.applyI18n(next);
         updateLangBtn(next);
-        if (window.actionclipWelcome && window.actionclipWelcome.saveSetting) {
-          window.actionclipWelcome.saveSetting('language', next);
+        if (window.tapactWelcome && window.tapactWelcome.saveSetting) {
+          window.tapactWelcome.saveSetting('language', next);
         }
       });
 
@@ -125,8 +125,8 @@
         const next = cur === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
         updateThemeBtn(next);
-        if (window.actionclipWelcome && window.actionclipWelcome.saveSetting) {
-          window.actionclipWelcome.saveSetting('theme', next);
+        if (window.tapactWelcome && window.tapactWelcome.saveSetting) {
+          window.tapactWelcome.saveSetting('theme', next);
         }
       });
     });

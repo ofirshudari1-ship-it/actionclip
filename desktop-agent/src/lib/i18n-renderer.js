@@ -26,7 +26,7 @@ const STRINGS = {
     'settings.subtitle': 'ניטור לוח, תזמון, פעולות ברירת מחדל.',
     'settings.monitor.title': 'ניטור לוח',
     'settings.monitor.enabled': 'ניטור לוח פעיל',
-    'settings.monitor.enabled.sub': 'ActionClip עוקב אחרי לוח ההעתקה ברקע',
+    'settings.monitor.enabled.sub': 'TapAct עוקב אחרי לוח ההעתקה ברקע',
     'settings.autolaunch': 'הפעלה אוטומטית עם Windows',
     'settings.autolaunch.sub': 'מופעל עם כניסה למערכת',
     'settings.startMinimized': 'הפעלה ממוזערת למגש',
@@ -57,7 +57,7 @@ const STRINGS = {
     'settings.language': 'שפת ממשק',
     // Quiet hours
     'settings.quietHours.title': 'שעות שקטות',
-    'settings.quietHours.sub': 'בטווח השעות האלה ActionClip ממשיך לתעד בהיסטוריה, אבל לא פותח חלונית אוטומטית — פתיחה ידנית (Ctrl+Alt+P) תמיד עובדת.',
+    'settings.quietHours.sub': 'בטווח השעות האלה TapAct ממשיך לתעד בהיסטוריה, אבל לא פותח חלונית אוטומטית — פתיחה ידנית (Ctrl+Alt+P) תמיד עובדת.',
     'settings.quietHours.enabled': 'הפעל שעות שקטות',
     'settings.quietHours.start': 'משעה',
     'settings.quietHours.end': 'עד שעה',
@@ -107,7 +107,7 @@ const STRINGS = {
     'clip.panel.loadMore': 'טען עוד ({n} נוספים)',
     // History page
     'history.title': 'היסטוריית שליחות',
-    'history.subtitle': '25 הפעולות האחרונות שבוצעו דרך ActionClip.',
+    'history.subtitle': '25 הפעולות האחרונות שבוצעו דרך TapAct.',
     'history.recent': 'שליחות אחרונות',
     'history.export': 'ייצוא CSV',
     'history.clear': 'נקה',
@@ -143,7 +143,7 @@ const STRINGS = {
     'leads.history.clear': 'נקה',
     'leads.history.empty': 'אין לידים שנשלחו עדיין.',
     // Popup
-    'popup.title': '📎 ActionClip',
+    'popup.title': '📎 TapAct',
     'popup.settings': 'הגדרות',
     'popup.close': 'סגור',
     'popup.phoneMissing': 'הדבק/הקלד מספר טלפון:',
@@ -170,7 +170,7 @@ const STRINGS = {
     'popup.source.referral': 'הפניה',
     'popup.source.other': 'אחר',
     // Welcome screen
-    'welcome.step0.title': 'ברוכים הבאים ל-ActionClip',
+    'welcome.step0.title': 'ברוכים הבאים ל-TapAct',
     'welcome.step0.body': 'תוכנת רקע קטנה שרצה במגש המערכת. ברגע שאתה מעתיק משהו שהיא מזהה, קופצת חלונית ליד הסמן עם כפתור לפעולה הנכונה — בלי לעבור בין אפליקציות.',
     'welcome.step1.title': 'מה מזוהה אוטומטית',
     'welcome.step1.footer': 'כל גלאי ניתן לכיבוי בנפרד בהגדרות.',
@@ -198,18 +198,18 @@ const STRINGS = {
     'nav.group.about': 'אודות',
     'nav.about': 'אודות',
     // About screen
-    'about.title': 'אודות ActionClip',
+    'about.title': 'אודות TapAct',
     'about.subtitle': 'סוכן לוח ההעתקה החכם',
     'about.version': 'גרסה',
     'about.buildDate': 'תאריך בנייה',
     'about.btn.changelog': 'יומן שינויים',
-    'about.btn.site': 'אתר ActionClip',
+    'about.btn.site': 'אתר TapAct',
     // Templates section
     'templates.hint.title': 'איך עובד:',
-    'templates.hint.body': 'כשמספר טלפון מועתק, ActionClip פותח חלונית עם התבנית שנבחרה. {שם} מוחלף בשם שמקלידים שם.',
+    'templates.hint.body': 'כשמספר טלפון מועתק, TapAct פותח חלונית עם התבנית שנבחרה. {שם} מוחלף בשם שמקלידים שם.',
     'templates.default.label': 'תבנית ברירת מחדל:',
     // Detectors
-    'detectors.subtitle2': 'מה ActionClip מחפש בכל העתקה.',
+    'detectors.subtitle2': 'מה TapAct מחפש בכל העתקה.',
     'detectors.phone.label': 'מספר טלפון ישראלי',
     'detectors.phone.desc': 'מזהה מספר → פותח חלונית לכידת ליד עם שליחה ל-WhatsApp וערוצים נוספים',
     'detectors.tracking.label': 'מספר מעקב משלוח',
@@ -246,8 +246,8 @@ const STRINGS = {
     'tags.hint': 'שינוי כלל לא מתייג מחדש העתקות ישנות — רק חדשות מכאן ואילך.',
     // Clipboard history
     'clip.hint': 'העתקות שמסומנות כרגישות (למשל סיסמה מ-1Password / Bitwarden) לא נשמרות — זה אותו תקן ש-Windows עצמו מכבד.',
-    'clip.winv.title': 'להשתמש ב-Win+V עם ActionClip?',
-    'clip.winv.desc': 'Win+V שמור ל-Clipboard History המובנה של Windows. כדי ש-ActionClip יקבל אותו:',
+    'clip.winv.title': 'להשתמש ב-Win+V עם TapAct?',
+    'clip.winv.desc': 'Win+V שמור ל-Clipboard History המובנה של Windows. כדי ש-TapAct יקבל אותו:',
     'clip.winv.hint': 'הגדרות Windows ▸ מערכת ▸ לוח (Clipboard) ▸ כבה "היסטוריית לוח". לאחר מכן לחץ "שמור קיצורים" בלשונית קיצורי מקלדת.',
     'clip.winv.fallback': 'ללא שינוי זה — Ctrl+Alt+V ותפריט המגש תמיד עובדים.',
     // Leads
@@ -309,7 +309,7 @@ const STRINGS = {
     'settings.subtitle': 'Clipboard monitoring, timing, default actions.',
     'settings.monitor.title': 'Clipboard Monitor',
     'settings.monitor.enabled': 'Clipboard monitoring active',
-    'settings.monitor.enabled.sub': 'ActionClip watches the clipboard in the background',
+    'settings.monitor.enabled.sub': 'TapAct watches the clipboard in the background',
     'settings.autolaunch': 'Start with Windows',
     'settings.autolaunch.sub': 'Launches on system login',
     'settings.startMinimized': 'Start minimized to tray',
@@ -340,7 +340,7 @@ const STRINGS = {
     'settings.language': 'Interface Language',
     // Quiet hours
     'settings.quietHours.title': 'Quiet Hours',
-    'settings.quietHours.sub': "During this window ActionClip still logs to history, but skips the automatic popup — manual open (Ctrl+Alt+P) always still works.",
+    'settings.quietHours.sub': "During this window TapAct still logs to history, but skips the automatic popup — manual open (Ctrl+Alt+P) always still works.",
     'settings.quietHours.enabled': 'Enable quiet hours',
     'settings.quietHours.start': 'From',
     'settings.quietHours.end': 'To',
@@ -390,7 +390,7 @@ const STRINGS = {
     'clip.panel.loadMore': 'Load more ({n} more)',
     // History page
     'history.title': 'Send History',
-    'history.subtitle': 'Last 25 actions performed through ActionClip.',
+    'history.subtitle': 'Last 25 actions performed through TapAct.',
     'history.recent': 'Recent Sends',
     'history.export': 'Export CSV',
     'history.clear': 'Clear',
@@ -426,7 +426,7 @@ const STRINGS = {
     'leads.history.clear': 'Clear',
     'leads.history.empty': 'No leads sent yet.',
     // Popup
-    'popup.title': '📎 ActionClip',
+    'popup.title': '📎 TapAct',
     'popup.settings': 'Settings',
     'popup.close': 'Close',
     'popup.phoneMissing': 'Paste/type a phone number:',
@@ -453,7 +453,7 @@ const STRINGS = {
     'popup.source.referral': 'Referral',
     'popup.source.other': 'Other',
     // Welcome screen
-    'welcome.step0.title': 'Welcome to ActionClip',
+    'welcome.step0.title': 'Welcome to TapAct',
     'welcome.step0.body': 'A small background app that runs in your system tray. When you copy something it recognizes, a small popup appears near your cursor with a one-click action — no switching between apps.',
     'welcome.step1.title': 'What\'s auto-detected',
     'welcome.step1.footer': 'Each detector can be turned off individually in settings.',
@@ -481,18 +481,18 @@ const STRINGS = {
     'nav.group.about': 'About',
     'nav.about': 'About',
     // About screen
-    'about.title': 'About ActionClip',
+    'about.title': 'About TapAct',
     'about.subtitle': 'Your smart clipboard agent',
     'about.version': 'Version',
     'about.buildDate': 'Build date',
     'about.btn.changelog': 'Changelog',
-    'about.btn.site': 'ActionClip Website',
+    'about.btn.site': 'TapAct Website',
     // Templates section
     'templates.hint.title': 'How it works:',
-    'templates.hint.body': 'When a phone number is copied, ActionClip opens a popup with the selected template. {שם} is replaced by the name you type.',
+    'templates.hint.body': 'When a phone number is copied, TapAct opens a popup with the selected template. {שם} is replaced by the name you type.',
     'templates.default.label': 'Default template:',
     // Detectors
-    'detectors.subtitle2': 'What ActionClip looks for in every copy.',
+    'detectors.subtitle2': 'What TapAct looks for in every copy.',
     'detectors.phone.label': 'Israeli phone number',
     'detectors.phone.desc': 'Detects number → opens a lead capture popup with WhatsApp and more',
     'detectors.tracking.label': 'Tracking number',
@@ -529,8 +529,8 @@ const STRINGS = {
     'tags.hint': "Changing a rule won't re-tag old copies — only new ones from this point on.",
     // Clipboard history
     'clip.hint': 'Copies marked as sensitive (e.g. a password from 1Password / Bitwarden) are not saved — the same standard Windows itself honors.',
-    'clip.winv.title': 'Use Win+V with ActionClip?',
-    'clip.winv.desc': "Win+V is reserved by Windows' built-in Clipboard History. To let ActionClip use it:",
+    'clip.winv.title': 'Use Win+V with TapAct?',
+    'clip.winv.desc': "Win+V is reserved by Windows' built-in Clipboard History. To let TapAct use it:",
     'clip.winv.hint': 'Windows Settings ▸ System ▸ Clipboard ▸ Turn off "Clipboard history". Then click "Save Shortcuts" in the Keyboard Shortcuts tab.',
     'clip.winv.fallback': 'Without this — Ctrl+Alt+V and the tray menu always work.',
     // Leads

@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Builds the ActionClip installer and places the EXE at the project root.
+    Builds the TapAct installer and places the EXE at the project root.
 .DESCRIPTION
     1. Reads version from version.json (single source of truth)
     2. Syncs version into desktop-agent/package.json
@@ -18,7 +18,7 @@ $AgentDir    = Join-Path $ProjectRoot 'desktop-agent'
 $VersionFile = Join-Path $ProjectRoot 'version.json'
 
 Write-Host ""
-Write-Host "=== ActionClip Build ===" -ForegroundColor Cyan
+Write-Host "=== TapAct Build ===" -ForegroundColor Cyan
 
 # 1. Read version
 $versionObj = Get-Content $VersionFile -Raw | ConvertFrom-Json
@@ -46,7 +46,7 @@ try {
 }
 
 # 4. Find the EXE (may be in dist\ or a sub-folder)
-$exeName = "ActionClip-Setup-$Version.exe"
+$exeName = "TapAct-Setup-$Version.exe"
 $exeSrc  = Get-ChildItem (Join-Path $AgentDir 'dist') -Filter $exeName -Recurse | Select-Object -First 1
 
 if (-not $exeSrc) {

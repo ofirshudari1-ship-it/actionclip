@@ -199,7 +199,7 @@ async function onExportCsv() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `actionclip-history-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `tapact-history-${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();

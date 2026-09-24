@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const settingsBtn = document.getElementById('settingsBtn');
   const closeBtn = document.getElementById('closeBtn');
 
-  const data = await window.actionclipAction.getInitData();
+  const data = await window.tapactAction.getInitData();
   const action = data && data.action;
 
   // Follow the UI language, same as every other window (§4).
@@ -24,18 +24,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       const btn = document.createElement('button');
       btn.className = index === 0 ? 'btn primary' : 'btn secondary';
       btn.textContent = a.label;
-      btn.addEventListener('click', () => window.actionclipAction.runAction(index));
+      btn.addEventListener('click', () => window.tapactAction.runAction(index));
       actionsList.appendChild(btn);
     });
   }
 
-  settingsBtn.addEventListener('click', () => window.actionclipAction.openSettings());
-  closeBtn.addEventListener('click', () => window.actionclipAction.dismiss());
+  settingsBtn.addEventListener('click', () => window.tapactAction.openSettings());
+  closeBtn.addEventListener('click', () => window.tapactAction.dismiss());
 
-  // Esc dismisses the popup, same as every other ActionClip window/popup.
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.actionclipAction.dismiss(); });
+  // Esc dismisses the popup, same as every other TapAct window/popup.
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.tapactAction.dismiss(); });
 
   ['keydown', 'click'].forEach((evt) =>
-    document.addEventListener(evt, () => window.actionclipAction.notifyActivity())
+    document.addEventListener(evt, () => window.tapactAction.notifyActivity())
   );
 });
