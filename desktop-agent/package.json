@@ -8,6 +8,7 @@
   "scripts": {
     "start": "electron .",
     "icons": "node build-resources/generate-installer-header.cjs",
+    "predist": "node build-resources/clean-dist.cjs",
     "dist": "electron-builder --win nsis",
     "test": "jest --colors",
     "test:watch": "jest --watch"
