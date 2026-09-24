@@ -941,3 +941,24 @@ textarea:focus {
   :root { --border: var(--border-light); }
   .label-sub { color: var(--fg); }
 }
+
+/* ─── Display density (Settings ▸ מראה ושפה ▸ צפיפות תצוגה) ───
+   "Comfortable" (default) is the spacing this file already used everywhere.
+   "Compact" tightens gaps/padding on the list-heavy tabs (templates, tags,
+   custom rules, clipboard history, send/lead history) so more rows fit
+   without scrolling - the actual control sizes (switches, inputs, tap
+   targets) are untouched to keep it usable with a mouse. */
+[data-density="compact"] .tab-panel { gap: 8px; }
+[data-density="compact"] .panel { padding: 10px; gap: 8px; }
+[data-density="compact"] .list { gap: 6px; }
+[data-density="compact"] .card,
+[data-density="compact"] .tag-card,
+[data-density="compact"] .detector-item,
+[data-density="compact"] .history-item,
+[data-density="compact"] .history-row,
+[data-density="compact"] .shortcut-row { padding: 8px; }
+[data-density="compact"] .history-list { gap: 3px; }
+[data-density="compact"] .clip-history-list { gap: 2px; }
+[data-density="compact"] .clip-item { padding: 6px 8px; }
+[data-density="compact"] .switch-row { padding: 2px 8px; }
+[data-density="compact"] .page-title { padding-bottom: 8px; }

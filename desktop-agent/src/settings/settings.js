@@ -362,6 +362,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const currentTheme = settings.theme || 'dark';
   applyAppLanguage(currentLang);
   applyAppTheme(currentTheme);
+  // Display density (comfortable/compact) is a per-machine viewing
+  // preference, not app data - kept in localStorage (like a remembered
+  // window position) instead of round-tripping through settings:save-settings.
+  applyAppDensity(readStoredDensity());
 
   defaultShortcuts = data.defaultShortcuts || defaultShortcuts;
   shortcuts = { ...defaultShortcuts, ...(settings.shortcuts || {}) };
@@ -433,6 +437,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', () => {
       applyAppTheme(btn.dataset.val);
       saveSetting('theme', btn.dataset.val);
+    });
+  });
+  document.querySelectorAll('#densitySeg .seg-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      applyAppDensity(btn.dataset.val);
+      writeStoredDensity(btn.dataset.val);
     });
   });
   document.getElementById('footerLang')?.addEventListener('click', () => {
@@ -887,6 +897,26 @@ function applyAppTheme(theme) {
 
 function saveSetting(key, value) {
   window.tapactSettings.saveSettings({ [key]: value });
+}
+
+const DENSITY_STORAGE_KEY = 'tapact.settings.density';
+
+function readStoredDensity() {
+  try {
+    const v = window.localStorage.getItem(DENSITY_STORAGE_KEY);
+    return v === 'compact' ? 'compact' : 'comfortable';
+  } catch {
+    return 'comfortable'; // localStorage can throw (e.g. disabled) - fall back quietly
+  }
+}
+
+function writeStoredDensity(value) {
+  try { window.localStorage.setItem(DENSITY_STORAGE_KEY, value); } catch { /* best-effort */ }
+}
+
+function applyAppDensity(density) {
+  document.documentElement.setAttribute('data-density', density === 'compact' ? 'compact' : 'comfortable');
+  document.querySelectorAll('#densitySeg .seg-btn').forEach((b) => b.classList.toggle('active', b.dataset.val === density));
 }
 
 function onSaveDetectors() {
