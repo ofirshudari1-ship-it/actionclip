@@ -63,7 +63,7 @@ const STRINGS = {
     'settings.quietHours.end': 'עד שעה',
     // Default actions
     'settings.actions.title': 'פעולת ברירת מחדל',
-    'settings.actions.sub': 'לגלאים עם יותר מפעולה אחת — בוחרים מה יהיה הכפתור הראשי.',
+    'settings.actions.sub': 'לאחר שנבחרה פעולה מועדפת למעלה, כאן קובעים אם היא תרוץ אוטומטית וכעבור כמה שניות.',
     'settings.autoRun': 'הרץ פעולת ברירת מחדל אוטומטית',
     'settings.autoRun.sub': 'בלי ללחוץ — החלונית עדיין נפתחת לרגע, Escape מבטל',
     'settings.autoRunDelay': 'השהיה לפני הרצה אוטומטית (שניות)',
@@ -127,6 +127,7 @@ const STRINGS = {
     'custom-rules.subtitle': 'הגדר תבנית משלך: ביטוי רגולרי שמזוהה בהעתקה ← כתובת URL שנפתחת.',
     'custom-rules.hint.title': 'איך עובד:',
     'custom-rules.hint.body': 'בשדה כתובת ה-URL השתמשו בטוקן {value} — הוא יוחלף בערך שזוהה (למשל מספר הזמנה פנימי). ה-URL חייב להתחיל ב-http:// או https://. כלל לא תקין (ביטוי רגולרי שגוי, או URL לא מאובטח) פשוט לא יופעל.',
+    'custom-rules.order.hint': 'הסדר קובע איזה כלל מופעל קודם - כלל שגוררים למעלה נבדק ראשון.',
     'custom-rules.add': '+ כלל חדש',
     // Tags page
     'tags.title': 'תגיות אוטומטיות',
@@ -209,7 +210,10 @@ const STRINGS = {
     'templates.hint.body': 'כשמספר טלפון מועתק, TapAct פותח חלונית עם התבנית שנבחרה. {שם} מוחלף בשם שמקלידים שם.',
     'templates.default.label': 'תבנית ברירת מחדל:',
     // Detectors
-    'detectors.subtitle2': 'מה TapAct מחפש בכל העתקה.',
+    'detectors.subtitle2': 'מה TapAct מחפש בכל העתקה, ואיזו פעולה תיפתח עבור כל סוג.',
+    'detectors.group.contact': 'יצירת קשר',
+    'detectors.group.logistics': 'ניווט ומשלוחים',
+    'detectors.group.content': 'קישורים ותוכן',
     'detectors.phone.label': 'מספר טלפון ישראלי',
     'detectors.phone.desc': 'מזהה מספר → פותח חלונית לכידת ליד עם שליחה ל-WhatsApp וערוצים נוספים',
     'detectors.tracking.label': 'מספר מעקב משלוח',
@@ -346,7 +350,7 @@ const STRINGS = {
     'settings.quietHours.end': 'To',
     // Default actions
     'settings.actions.title': 'Default Action',
-    'settings.actions.sub': 'For detectors with multiple actions — choose what the primary button does.',
+    'settings.actions.sub': 'Once a preferred action is set above, this is where you decide whether it runs automatically and after how many seconds.',
     'settings.autoRun': 'Auto-run default action',
     'settings.autoRun.sub': 'No click needed — popup still appears briefly, press Escape to cancel',
     'settings.autoRunDelay': 'Auto-run delay (seconds)',
@@ -410,6 +414,7 @@ const STRINGS = {
     'custom-rules.subtitle': "Define your own pattern: a regex matched against what you copy → a URL that opens.",
     'custom-rules.hint.title': 'How it works:',
     'custom-rules.hint.body': "In the URL field, use the {value} token — it's replaced with the matched value (e.g. an internal order number). The URL must start with http:// or https://. An invalid rule (bad regex, or an unsafe URL) is simply never triggered.",
+    'custom-rules.order.hint': "Order decides which rule fires first - a rule you drag higher is checked before the ones below it.",
     'custom-rules.add': '+ New Rule',
     // Tags page
     'tags.title': 'Auto Tags',
@@ -492,7 +497,10 @@ const STRINGS = {
     'templates.hint.body': 'When a phone number is copied, TapAct opens a popup with the selected template. {שם} is replaced by the name you type.',
     'templates.default.label': 'Default template:',
     // Detectors
-    'detectors.subtitle2': 'What TapAct looks for in every copy.',
+    'detectors.subtitle2': 'What TapAct looks for in every copy, and which action it triggers for each type.',
+    'detectors.group.contact': 'Contact',
+    'detectors.group.logistics': 'Navigation & shipping',
+    'detectors.group.content': 'Links & content',
     'detectors.phone.label': 'Israeli phone number',
     'detectors.phone.desc': 'Detects number → opens a lead capture popup with WhatsApp and more',
     'detectors.tracking.label': 'Tracking number',

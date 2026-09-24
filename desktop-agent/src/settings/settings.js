@@ -126,15 +126,76 @@ async function onSaveTagRules() {
 
 function renderCustomRules() {
   s.customRulesList.replaceChildren();
-  for (const rule of customRules) s.customRulesList.appendChild(buildCustomRuleCard(rule));
+  customRules.forEach((rule, index) => {
+    s.customRulesList.appendChild(buildCustomRuleCard(rule, index));
+  });
 }
 
-function buildCustomRuleCard(rule) {
+// Custom rules are checked in array order and the FIRST match wins (see
+// src/lib/detectors/index.js -> findCustomAction) - unlike the built-in
+// detector toggles above (fixed code order, not user-configurable) or the
+// message-template list (order is purely cosmetic there), list position
+// here has real functional meaning. That's why this list gets drag-to-
+// reorder and the others don't - see UPGRADE-REPORT.md for the reasoning.
+function moveCustomRule(rule, delta) {
+  const from = customRules.indexOf(rule);
+  if (from === -1) return;
+  const to = from + delta;
+  if (to < 0 || to >= customRules.length) return;
+  customRules.splice(from, 1);
+  customRules.splice(to, 0, rule);
+  renderCustomRules();
+}
+
+function buildCustomRuleCard(rule, index) {
   const card = document.createElement('div');
   card.className = 'tag-card';
+  card.draggable = true;
+  card.addEventListener('dragstart', (e) => {
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  });
+  card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  card.addEventListener('dragover', (e) => e.preventDefault());
+  card.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const fromIndex = Number(e.dataTransfer.getData('text/plain'));
+    if (Number.isNaN(fromIndex) || fromIndex === index) return;
+    const [moved] = customRules.splice(fromIndex, 1);
+    customRules.splice(index, 0, moved);
+    renderCustomRules();
+  });
 
   const head = document.createElement('div');
   head.className = 'tag-card-head';
+
+  // Drag handle (mouse) + up/down buttons (keyboard & screen-reader - native
+  // HTML5 drag-and-drop isn't operable without a mouse, so reordering needs
+  // a non-drag path too, not just a visual handle).
+  const dragHandle = document.createElement('span');
+  dragHandle.className = 'drag-handle';
+  dragHandle.textContent = '⠿';
+  dragHandle.setAttribute('aria-hidden', 'true');
+  dragHandle.title = 'גרור לשינוי סדר';
+
+  const moveUpBtn = document.createElement('button');
+  moveUpBtn.type = 'button';
+  moveUpBtn.className = 'btn secondary xs reorder-btn';
+  moveUpBtn.textContent = '▲';
+  moveUpBtn.setAttribute('aria-label', 'הזז למעלה');
+  moveUpBtn.title = 'הזז למעלה';
+  moveUpBtn.disabled = index === 0;
+  moveUpBtn.addEventListener('click', () => moveCustomRule(rule, -1));
+
+  const moveDownBtn = document.createElement('button');
+  moveDownBtn.type = 'button';
+  moveDownBtn.className = 'btn secondary xs reorder-btn';
+  moveDownBtn.textContent = '▼';
+  moveDownBtn.setAttribute('aria-label', 'הזז למטה');
+  moveDownBtn.title = 'הזז למטה';
+  moveDownBtn.disabled = index === customRules.length - 1;
+  moveDownBtn.addEventListener('click', () => moveCustomRule(rule, 1));
 
   const labelInput = document.createElement('input');
   labelInput.type = 'text';
@@ -163,6 +224,9 @@ function buildCustomRuleCard(rule) {
     renderCustomRules();
   });
 
+  head.appendChild(dragHandle);
+  head.appendChild(moveUpBtn);
+  head.appendChild(moveDownBtn);
   head.appendChild(labelInput);
   head.appendChild(enabledSwitch);
   head.appendChild(removeBtn);
@@ -766,15 +830,41 @@ function buildClipRow(item) {
   return row;
 }
 
+const MAX_FAVORITE_TEMPLATES = 3; // TapAct has no floating quick-access widget like the competitor's - favoriting a template is the closest equivalent ("surface my most-used ones"), capped small on purpose so it stays a quick scan, not a second full list
+
+function orderedTemplatesForDisplay() {
+  // Favorited templates float to the top (stable otherwise) - the actual
+  // saved array order is untouched, this only affects what's rendered.
+  return [...templates].sort((a, b) => Number(b.favorite === true) - Number(a.favorite === true));
+}
+
 function render() {
   s.list.replaceChildren();
-  for (const t of templates) s.list.appendChild(buildCard(t));
+  for (const t of orderedTemplatesForDisplay()) s.list.appendChild(buildCard(t));
   renderDefaultSelect();
 }
 
 function buildCard(template) {
   const card = document.createElement('div');
   card.className = 'card';
+  if (template.favorite) card.classList.add('favorited');
+
+  const favBtn = document.createElement('button');
+  favBtn.type = 'button';
+  favBtn.className = 'fav-star-btn';
+  const isFav = template.favorite === true;
+  favBtn.textContent = isFav ? '★' : '☆';
+  favBtn.classList.toggle('active', isFav);
+  favBtn.setAttribute('aria-label', isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים');
+  favBtn.title = isFav ? 'הסר מהמועדפים' : 'הוסף למועדפים';
+  favBtn.addEventListener('click', () => {
+    if (!template.favorite) {
+      const favCount = templates.filter((t) => t.favorite).length;
+      if (favCount >= MAX_FAVORITE_TEMPLATES) return; // cap so the "top of list" stays meaningful
+    }
+    template.favorite = !template.favorite;
+    render();
+  });
 
   const labelInput = document.createElement('input');
   labelInput.type = 'text';
@@ -801,6 +891,7 @@ function buildCard(template) {
 
   const row = document.createElement('div');
   row.className = 'card-head';
+  row.appendChild(favBtn);
   row.appendChild(labelInput);
   row.appendChild(removeBtn);
 
@@ -828,7 +919,7 @@ function renderDefaultSelect() {
 
 function onSaveTemplates() {
   const cleaned = templates
-    .map(t => ({ id: t.id, label: t.label.trim() || 'ללא שם', text: t.text }))
+    .map(t => ({ id: t.id, label: t.label.trim() || 'ללא שם', text: t.text, favorite: t.favorite === true }))
     .filter(t => t.text.trim().length > 0 || t.label.trim().length > 0);
   window.tapactSettings.saveTemplates(cleaned, defaultId);
   flashSaved();
@@ -920,6 +1011,11 @@ function applyAppDensity(density) {
 }
 
 function onSaveDetectors() {
+  // Each detector's action-preference <select> now lives inline in this same
+  // tab (moved from the separate "פעולת ברירת מחדל" panel in General
+  // settings - see settings.html), so one Save here persists both the
+  // on/off toggle and the chosen action per type in a single step, instead
+  // of needing a second visit to another tab to finish the job.
   window.tapactSettings.saveSettings({
     detectors: {
       phone: s.detectPhoneCheck.checked,
@@ -928,6 +1024,12 @@ function onSaveDetectors() {
       url: s.detectUrlCheck.checked,
       email: s.detectEmailCheck.checked,
       datetime: s.detectDatetimeCheck.checked
+    },
+    actionPreferences: {
+      phone: s.prefPhoneSelect.value,
+      address: s.prefAddressSelect.value,
+      tracking: s.prefTrackingSelect.value,
+      email: s.prefEmailSelect.value
     }
   });
   s.savedDetectorsMsg.classList.remove('hidden');

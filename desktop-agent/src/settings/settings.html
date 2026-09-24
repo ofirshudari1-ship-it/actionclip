@@ -102,25 +102,62 @@
           <span class="page-icon">🔍</span>
           <div>
             <h2 data-i18n="detectors.title">סוגי זיהוי</h2>
-            <p data-i18n="detectors.subtitle2">מה TapAct מחפש בכל העתקה.</p>
+            <p data-i18n="detectors.subtitle2">מה TapAct מחפש בכל העתקה, ואיזו פעולה תיפתח עבור כל סוג.</p>
           </div>
         </div>
+
+        <!-- Grouped by what the detector is FOR (not a flat list of 6 toggles):
+             contact/communication, navigation/shipping, links/content. Each
+             group is its own panel so the visual separation is real, not just
+             a divider between rows - and each detector row now carries its
+             action-preference dropdown inline (moved here from the old
+             separate "פעולת ברירת מחדל" panel in General settings), so
+             enabling a type and choosing what it does live in one place. -->
         <div class="panel">
+          <div class="panel-title" data-i18n="detectors.group.contact">יצירת קשר</div>
           <label class="detector-item">
             <span class="det-icon">📞</span>
             <div class="det-info">
               <div class="det-label" data-i18n="detectors.phone.label">מספר טלפון ישראלי</div>
               <div class="det-desc" data-i18n="detectors.phone.desc">מזהה מספר → פותח חלונית לכידת ליד עם שליחה ל-WhatsApp וערוצים נוספים</div>
             </div>
+            <select class="det-pref" id="prefPhoneSelect">
+              <option value="" data-i18n="settings.pref.phone.popup">פתח חלון לכידת ליד (ברירת מחדל)</option>
+              <option value="whatsapp" data-i18n="settings.pref.phone.whatsapp">פתח WhatsApp ישירות</option>
+              <option value="call" data-i18n="settings.pref.phone.call">חייג ישירות (Click to Call)</option>
+              <option value="none" data-i18n="settings.pref.phone.none">לא לבצע כלום</option>
+            </select>
             <span class="switch"><input type="checkbox" id="detectPhoneCheck"><span class="slider"></span></span>
           </label>
           <div class="divider"></div>
+          <label class="detector-item">
+            <span class="det-icon">✉️</span>
+            <div class="det-info">
+              <div class="det-label" data-i18n="detectors.email.label">כתובת אימייל</div>
+              <div class="det-desc" data-i18n="detectors.email.desc">אימייל בודד → פתיחת הרכבת הודעה (mailto / Gmail)</div>
+            </div>
+            <select class="det-pref" id="prefEmailSelect">
+              <option value="" data-i18n="settings.pref.email.default">מייל חדש (ברירת מחדל)</option>
+              <option value="mailto" data-i18n="settings.pref.email.mailto">אפליקציית מייל מקומית</option>
+              <option value="gmail" data-i18n="settings.pref.email.gmail">Gmail בדפדפן</option>
+            </select>
+            <span class="switch"><input type="checkbox" id="detectEmailCheck"><span class="slider"></span></span>
+          </label>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title" data-i18n="detectors.group.logistics">ניווט ומשלוחים</div>
           <label class="detector-item">
             <span class="det-icon">📦</span>
             <div class="det-info">
               <div class="det-label" data-i18n="detectors.tracking.label">מספר מעקב משלוח</div>
               <div class="det-desc" data-i18n="detectors.tracking.desc">דואר ישראל / UPS / FedEx / DHL → מעקב אחר החבילה</div>
             </div>
+            <select class="det-pref" id="prefTrackingSelect">
+              <option value="" data-i18n="settings.pref.tracking.default">חברה המשלחת (ברירת מחדל)</option>
+              <option value="carrier" data-i18n="settings.pref.tracking.carrier">אתר החברה המשלחת</option>
+              <option value="17track" data-i18n="settings.pref.tracking.17track">17track (כללי)</option>
+            </select>
             <span class="switch"><input type="checkbox" id="detectTrackingCheck"><span class="slider"></span></span>
           </label>
           <div class="divider"></div>
@@ -130,9 +167,17 @@
               <div class="det-label" data-i18n="detectors.address.label">כתובת</div>
               <div class="det-desc" data-i18n="detectors.address.desc">כתובת ישראלית → ניווט ב-Google Maps / Waze</div>
             </div>
+            <select class="det-pref" id="prefAddressSelect">
+              <option value="" data-i18n="settings.pref.address.default">Google Maps (ברירת מחדל)</option>
+              <option value="maps">Google Maps</option>
+              <option value="waze">Waze</option>
+            </select>
             <span class="switch"><input type="checkbox" id="detectAddressCheck"><span class="slider"></span></span>
           </label>
-          <div class="divider"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title" data-i18n="detectors.group.content">קישורים ותוכן</div>
           <label class="detector-item">
             <span class="det-icon">🔗</span>
             <div class="det-info">
@@ -143,15 +188,6 @@
           </label>
           <div class="divider"></div>
           <label class="detector-item">
-            <span class="det-icon">✉️</span>
-            <div class="det-info">
-              <div class="det-label" data-i18n="detectors.email.label">כתובת אימייל</div>
-              <div class="det-desc" data-i18n="detectors.email.desc">אימייל בודד → פתיחת הרכבת הודעה (mailto / Gmail)</div>
-            </div>
-            <span class="switch"><input type="checkbox" id="detectEmailCheck"><span class="slider"></span></span>
-          </label>
-          <div class="divider"></div>
-          <label class="detector-item">
             <span class="det-icon">📅</span>
             <div class="det-info">
               <div class="det-label" data-i18n="detectors.datetime.label">תאריך / שעה</div>
@@ -159,10 +195,11 @@
             </div>
             <span class="switch"><input type="checkbox" id="detectDatetimeCheck"><span class="slider"></span></span>
           </label>
-          <div class="actions">
-            <button id="saveDetectorsBtn" class="btn primary small" data-i18n="detectors.save">שמור</button>
-            <span id="savedDetectorsMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
-          </div>
+        </div>
+
+        <div class="actions">
+          <button id="saveDetectorsBtn" class="btn primary small" data-i18n="detectors.save">שמור</button>
+          <span id="savedDetectorsMsg" class="saved-msg hidden" data-i18n="settings.saved">נשמר ✓</span>
         </div>
       </section>
 
@@ -184,6 +221,7 @@
             (ביטוי רגולרי שגוי, או URL לא מאובטח) פשוט לא יופעל.
           </span>
         </div>
+        <div class="hint-box" data-i18n="custom-rules.order.hint">הסדר קובע איזה כלל מופעל קודם - כלל שגוררים למעלה נבדק ראשון.</div>
         <div id="customRulesList" class="list"></div>
         <div class="actions">
           <button id="addCustomRuleBtn" class="btn secondary small" data-i18n="custom-rules.add">+ כלל חדש</button>
@@ -340,43 +378,13 @@
 
         <div class="panel">
           <div class="panel-title" data-i18n="settings.actions.title">פעולת ברירת מחדל</div>
-          <p class="muted" data-i18n="settings.actions.sub">לגלאים עם יותר מפעולה אחת — בוחרים מה יהיה הכפתור הראשי.</p>
-          <div class="prefs-grid">
-            <div class="pref-item">
-              <label data-i18n="settings.pref.phone.label">📞 טלפון</label>
-              <select id="prefPhoneSelect">
-                <option value="" data-i18n="settings.pref.phone.popup">פתח חלון לכידת ליד (ברירת מחדל)</option>
-                <option value="whatsapp" data-i18n="settings.pref.phone.whatsapp">פתח WhatsApp ישירות</option>
-                <option value="call" data-i18n="settings.pref.phone.call">חייג ישירות (Click to Call)</option>
-                <option value="none" data-i18n="settings.pref.phone.none">לא לבצע כלום</option>
-              </select>
-            </div>
-            <div class="pref-item">
-              <label data-i18n="settings.pref.address.label">🗺️ כתובת</label>
-              <select id="prefAddressSelect">
-                <option value="" data-i18n="settings.pref.address.default">Google Maps (ברירת מחדל)</option>
-                <option value="maps">Google Maps</option>
-                <option value="waze">Waze</option>
-              </select>
-            </div>
-            <div class="pref-item">
-              <label data-i18n="settings.pref.tracking.label">📦 מספר מעקב</label>
-              <select id="prefTrackingSelect">
-                <option value="" data-i18n="settings.pref.tracking.default">חברה המשלחת (ברירת מחדל)</option>
-                <option value="carrier" data-i18n="settings.pref.tracking.carrier">אתר החברה המשלחת</option>
-                <option value="17track" data-i18n="settings.pref.tracking.17track">17track (כללי)</option>
-              </select>
-            </div>
-            <div class="pref-item">
-              <label data-i18n="settings.pref.email.label">✉️ אימייל</label>
-              <select id="prefEmailSelect">
-                <option value="" data-i18n="settings.pref.email.default">מייל חדש (ברירת מחדל)</option>
-                <option value="mailto" data-i18n="settings.pref.email.mailto">אפליקציית מייל מקומית</option>
-                <option value="gmail" data-i18n="settings.pref.email.gmail">Gmail בדפדפן</option>
-              </select>
-            </div>
-          </div>
-          <div class="divider"></div>
+          <!-- The per-type "preferred action" dropdowns used to live here as
+               a flat 3-column grid, disconnected from each detector's own
+               on/off toggle in a different tab. They now live inline next to
+               each toggle in Settings ▸ סוגי זיהוי instead - this panel is
+               left with only the auto-run behavior, which is genuinely
+               generic (applies whatever the chosen action is, for any type). -->
+          <p class="muted" data-i18n="settings.actions.sub">לאחר שנבחרה פעולה מועדפת למעלה, כאן קובעים אם היא תרוץ אוטומטית וכעבור כמה שניות.</p>
           <label class="switch-row">
             <div class="label-text">
               <span data-i18n="settings.autoRun">הרץ פעולת ברירת מחדל אוטומטית</span>
