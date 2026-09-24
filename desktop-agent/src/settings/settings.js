@@ -284,6 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.saveTemplatesBtn = document.getElementById('saveTemplatesBtn');
   s.resetBtn = document.getElementById('resetBtn');
   s.savedMsg = document.getElementById('savedMsg');
+  s.favCapMsg = document.getElementById('favCapMsg');
   s.enabledCheck = document.getElementById('enabledCheck');
   s.autoLaunchCheck = document.getElementById('autoLaunchCheck');
   s.startMinimizedCheck = document.getElementById('startMinimizedCheck');
@@ -860,7 +861,7 @@ function buildCard(template) {
   favBtn.addEventListener('click', () => {
     if (!template.favorite) {
       const favCount = templates.filter((t) => t.favorite).length;
-      if (favCount >= MAX_FAVORITE_TEMPLATES) return; // cap so the "top of list" stays meaningful
+      if (favCount >= MAX_FAVORITE_TEMPLATES) { flashMsg(s.favCapMsg); return; } // cap so the "top of list" stays meaningful
     }
     template.favorite = !template.favorite;
     render();

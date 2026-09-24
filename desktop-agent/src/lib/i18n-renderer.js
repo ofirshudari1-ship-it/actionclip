@@ -117,6 +117,7 @@ const STRINGS = {
     'templates.subtitle': 'תבנית ברירת מחדל וסגנונות חלופיים לשימוש בחלונית.',
     'templates.add': '+ תבנית חדשה',
     'templates.save': 'שמור תבניות',
+    'templates.fav.capReached': '⭐ אפשר עד 3 מועדפות - הסירו אחת כדי להוסיף חדשה',
     'templates.reset': 'אפס לברירת מחדל',
     // Detectors page
     'detectors.title': 'סוגי זיהוי',
@@ -404,6 +405,7 @@ const STRINGS = {
     'templates.subtitle': 'Default template and alternatives for use in the popup.',
     'templates.add': '+ New Template',
     'templates.save': 'Save Templates',
+    'templates.fav.capReached': '⭐ Up to 3 favorites - remove one to add another',
     'templates.reset': 'Reset to Defaults',
     // Detectors page
     'detectors.title': 'Detection Types',
