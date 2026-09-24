@@ -394,6 +394,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.aboutBuildDate = document.getElementById('aboutBuildDate');
   s.openChangelogBtn = document.getElementById('openChangelogBtn');
   s.openSiteBtn = document.getElementById('openSiteBtn');
+  s.updateStatusText = document.getElementById('updateStatusText');
+  s.checkUpdatesBtn = document.getElementById('checkUpdatesBtn');
+  s.updateLastChecked = document.getElementById('updateLastChecked');
   s.shortcutManualInput = document.getElementById('shortcutManualInput');
   s.shortcutHistoryInput = document.getElementById('shortcutHistoryInput');
   s.shortcutFallbackInput = document.getElementById('shortcutFallbackInput');
@@ -438,6 +441,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (s.openSiteBtn) s.openSiteBtn.addEventListener('click', () => {
     window.tapactSettings.openExternal && window.tapactSettings.openExternal('site');
   });
+  initUpdateSection();
 
   s.enabledCheck.checked = settings.enabled;
   if (window.tapactSettings.onMonitoringChanged) {
@@ -681,6 +685,45 @@ let clipSearchTerm = '';
 function clipT(key) {
   const lang = (settings && settings.language) || 'en';
   return window.i18n ? window.i18n.t(lang, key) : key;
+}
+
+// Real update status (About tab) - reflects the actual electron-updater
+// instance in main.js via update:get-status/update:check-now/
+// update:status-changed (see preload.js), not a mock. renderUpdateStatus
+// is also the live push handler, so a check started from another window
+// (or from the silent startup check) still updates this one if it's open.
+function renderUpdateStatus(status) {
+  if (!s.updateStatusText) return;
+  const st = status || { state: 'idle' };
+  let text;
+  switch (st.state) {
+    case 'checking': text = clipT('update.status.checking'); break;
+    case 'up-to-date': text = clipT('update.status.upToDate'); break;
+    case 'downloading': text = clipT('update.status.downloading').replace('{percent}', String(st.progress || 0)); break;
+    case 'ready': text = clipT('update.status.ready'); break;
+    case 'error': text = clipT('update.status.error'); break;
+    default: text = st.lastCheckedAt ? clipT('update.status.upToDate') : clipT('update.status.neverChecked');
+  }
+  s.updateStatusText.textContent = text;
+  if (s.updateLastChecked) {
+    s.updateLastChecked.textContent = st.lastCheckedAt ? clipTimeAgoLabel(st.lastCheckedAt) : clipT('update.status.neverChecked');
+  }
+  if (s.checkUpdatesBtn) s.checkUpdatesBtn.disabled = st.state === 'checking' || st.state === 'downloading';
+}
+
+async function initUpdateSection() {
+  if (!window.tapactSettings.getUpdateStatus) return; // preload not updated yet (dev skew guard)
+  const initial = await window.tapactSettings.getUpdateStatus();
+  renderUpdateStatus(initial);
+  window.tapactSettings.onUpdateStatusChanged(renderUpdateStatus);
+  if (s.checkUpdatesBtn) {
+    s.checkUpdatesBtn.addEventListener('click', async () => {
+      renderUpdateStatus({ state: 'checking' });
+      await window.tapactSettings.checkForUpdatesNow();
+      // Real result arrives via onUpdateStatusChanged above - this call just
+      // triggers the check, it doesn't itself resolve with the outcome.
+    });
+  }
 }
 
 function initClipHistoryPanel() {

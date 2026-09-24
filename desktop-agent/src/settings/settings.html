@@ -741,6 +741,17 @@
               <td style="padding:6px 0;" id="aboutBuildDate">—</td>
             </tr>
           </table>
+          <div class="panel" style="width:100%;max-width:340px;text-align:start;">
+            <div class="panel-title" data-i18n="update.title">עדכונים</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+              <span id="updateStatusText" role="status" aria-live="polite" data-i18n="update.status.neverChecked">טרם נבדק</span>
+              <button type="button" class="btn secondary small" id="checkUpdatesBtn" data-i18n="update.btn.checkNow">בדוק עדכונים עכשיו</button>
+            </div>
+            <div style="font-size:12px;color:var(--muted);">
+              <span data-i18n="update.lastChecked.label">נבדק לאחרונה:</span>
+              <span id="updateLastChecked"></span>
+            </div>
+          </div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
             <button class="btn secondary small" id="openChangelogBtn" data-i18n="about.btn.changelog">יומן שינויים (CHANGELOG)</button>
             <button class="btn secondary small" id="openSiteBtn" data-i18n="about.btn.site">אתר TapAct</button>

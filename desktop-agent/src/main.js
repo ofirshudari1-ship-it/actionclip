@@ -1130,6 +1130,19 @@ ipcMain.on('welcome:skip', () => {
 // --- IPC: settings window ---
 
 ipcMain.handle('settings:get', () => store.getSettings());
+
+// --- IPC: update check (see initAutoUpdater/pushUpdateStatus above) ---
+ipcMain.handle('update:get-status', () => store.getUpdateCheckStatus());
+ipcMain.handle('update:check-now', () => {
+  if (!app.isPackaged) return { started: false, reason: 'dev-build' };
+  try {
+    autoUpdater.checkForUpdates();
+    return { started: true };
+  } catch (err) {
+    pushUpdateStatus({ state: 'error', error: err?.message || String(err), lastCheckedAt: Date.now() });
+    return { started: false, reason: err?.message || String(err) };
+  }
+});
 // Used by the welcome window's language/theme toggles. Goes through the same
 // allowlist + type validation as 'settings:save-settings' (previously it
 // wrote any key/value the renderer sent straight into the store).
@@ -1353,10 +1366,43 @@ function tryRegister(accelerator, handler) {
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
 
+// Pushes the real autoUpdater state to Settings (if it's open) and persists
+// it so "last checked" survives a restart - see store.js's
+// getUpdateCheckStatus/setUpdateCheckStatus. Settings pulls the current
+// value on open via the 'update:get-status' handler below, then gets live
+// pushes while it stays open.
+function pushUpdateStatus(status) {
+  store.setUpdateCheckStatus(status);
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.webContents.send('update:status-changed', store.getUpdateCheckStatus());
+  }
+}
+
 function initAutoUpdater() {
   if (!app.isPackaged) return; // no packaged app.asar / no update feed in dev
 
+  autoUpdater.on('checking-for-update', () => {
+    pushUpdateStatus({ state: 'checking', error: null });
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    pushUpdateStatus({ state: 'downloading', version: info?.version || null, progress: 0, error: null });
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    pushUpdateStatus({ state: 'up-to-date', version: null, lastCheckedAt: Date.now(), error: null });
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    pushUpdateStatus({ state: 'downloading', progress: Math.round(progress?.percent || 0) });
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    pushUpdateStatus({ state: 'ready', version: info?.version || null, lastCheckedAt: Date.now(), error: null });
+  });
+
   autoUpdater.on('error', (err) => {
+    pushUpdateStatus({ state: 'error', error: err?.message || String(err), lastCheckedAt: Date.now() });
     log(LOG_LEVELS.ERROR, 'autoUpdater error', { message: err?.message || String(err) });
   });
 

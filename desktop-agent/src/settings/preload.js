@@ -44,5 +44,16 @@ contextBridge.exposeInMainWorld('tapactSettings', {
   onClipHistoryItemsChanged: (callback) => {
     ipcRenderer.on('history-panel:items-changed', callback);
     return () => ipcRenderer.removeListener('history-panel:items-changed', callback);
+  },
+  // Real electron-updater status - see main.js's pushUpdateStatus/
+  // initAutoUpdater. checkNow() triggers the same autoUpdater instance that
+  // already runs silently on startup; getStatus() reads the last known
+  // state (persisted, so it survives closing and reopening Settings).
+  getUpdateStatus: () => ipcRenderer.invoke('update:get-status'),
+  checkForUpdatesNow: () => ipcRenderer.invoke('update:check-now'),
+  onUpdateStatusChanged: (callback) => {
+    const listener = (_e, status) => callback(status);
+    ipcRenderer.on('update:status-changed', listener);
+    return () => ipcRenderer.removeListener('update:status-changed', listener);
   }
 });

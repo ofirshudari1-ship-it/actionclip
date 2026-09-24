@@ -347,6 +347,18 @@ function markWelcomeSeen() {
   saveSettings({ welcomeSeen: true });
 }
 
+// Update-check status shown in Settings - written only from main.js's own
+// autoUpdater event handlers (never from a renderer-originated patch, so
+// this bypasses settings-guard's allowlist on purpose, same as
+// markWelcomeSeen above).
+function getUpdateCheckStatus() {
+  return store.get('updateCheckStatus', { state: 'idle', version: null, lastCheckedAt: null, error: null });
+}
+
+function setUpdateCheckStatus(status) {
+  store.set('updateCheckStatus', { ...getUpdateCheckStatus(), ...status });
+}
+
 // --- Lead capture settings & history ---
 
 function getLeadSettings() {
@@ -422,5 +434,7 @@ module.exports = {
   addLeadHistoryEntry,
   clearLeadHistory,
   findRecentLeadSend,
-  DEFAULT_LEAD_SETTINGS
+  DEFAULT_LEAD_SETTINGS,
+  getUpdateCheckStatus,
+  setUpdateCheckStatus
 };
