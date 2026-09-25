@@ -2,6 +2,7 @@ const { app, Tray, Menu, BrowserWindow, clipboard, shell, screen, ipcMain, globa
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 // Explicit app identity (v3.0.0 rebrand from ActionClip -> TapAct): Electron
 // derives app.getPath('userData') and the taskbar/notification identity
@@ -52,6 +53,8 @@ const store = require('./lib/store');
 const { postJson, cleanupLeadWithAi, buildShareText, buildMailtoUrl } = require('./lib/lead-delivery');
 const { shouldHideToTray, shouldShowTrayHideHint, autoLaunchNeedsReconcile, resolveTrayClickTarget, computeAnchoredPopupPosition, shouldPrimeClipboardOnResume } = require('./lib/window-behavior');
 const { sanitizeSettingsPatch } = require('./lib/settings-guard');
+const { buildRedactedSettingsSnapshot, buildSystemInfoText } = require('./lib/diagnostics');
+const { createZip } = require('./lib/zip-writer');
 const { version: APP_VERSION } = require('../package.json');
 const { buildDate: APP_BUILD_DATE } = (() => { try { return require('../../version.json'); } catch { return {}; } })();
 
@@ -1273,6 +1276,80 @@ ipcMain.handle('settings:export-lead-history-csv', async () => {
   const csv = '﻿' + buildLeadHistoryCsv(store.getLeadHistory());
   fs.writeFileSync(filePath, csv, 'utf8');
   return { canceled: false, filePath };
+});
+
+// Bundles a single .zip for support/self-diagnosis (Settings ▸ About ▸
+// "ייצוא אבחון"): the log file, version.json, a redacted settings snapshot
+// (see lib/diagnostics.js for exactly what's stripped - no clipboard
+// content, no message templates, no webhook/API secrets, no phone/email),
+// and a small system-info.txt. Built entirely in memory with the
+// dependency-free zip-writer (electron-builder/archiver/yazl are
+// devDependencies only, not present in the packaged app at runtime) and
+// written out in one go, so there's never a partially-written temp
+// directory to clean up.
+ipcMain.handle('settings:export-diagnostics', async () => {
+  const win = settingsWindow || BrowserWindow.getFocusedWindow();
+  const today = new Date().toISOString().slice(0, 10);
+  const { canceled, filePath } = await dialog.showSaveDialog(win, {
+    title: 'ייצוא אבחון',
+    defaultPath: `TapAct-Diagnostics-${APP_VERSION}-${today}.zip`,
+    filters: [{ name: 'ZIP', extensions: ['zip'] }]
+  });
+  if (canceled || !filePath) return { canceled: true };
+
+  try {
+    const files = [];
+
+    // 1) Log file - best-effort, may not exist yet on a very fresh install.
+    try {
+      const logsDir = path.join(app.getPath('userData'), '..', 'TapAct', 'logs');
+      const logFile = path.join(logsDir, 'tapact.log');
+      if (fs.existsSync(logFile)) {
+        files.push({ name: 'tapact.log', content: fs.readFileSync(logFile) });
+      }
+    } catch (err) {
+      log(LOG_LEVELS.WARN, 'TapAct: diagnostics export could not read the log file.', { message: err?.message });
+    }
+
+    // 2) version.json as shipped.
+    files.push({ name: 'version.json', content: JSON.stringify({ version: APP_VERSION, buildDate: APP_BUILD_DATE || '' }, null, 2) });
+
+    // 3) Redacted settings snapshot - structural/technical only, see
+    // lib/diagnostics.js's field lists for exactly what's excluded.
+    const snapshot = buildRedactedSettingsSnapshot({
+      settings: store.getSettings(),
+      leadSettings: store.getLeadSettings(),
+      templates: store.getTemplates(),
+      history: store.getHistory(),
+      clipboardHistory: store.getClipboardHistory(),
+      leadHistory: store.getLeadHistory(),
+      tagRules: store.getTagRules(),
+      customActionRules: store.getCustomActionRules()
+    });
+    files.push({ name: 'settings-redacted.json', content: JSON.stringify(snapshot, null, 2) });
+
+    // 4) system-info.txt
+    const sysInfoText = buildSystemInfoText({
+      osType: `${os.type()} ${os.release()}`.trim(),
+      osRelease: os.release(),
+      osArch: os.arch(),
+      electronVersion: process.versions.electron,
+      chromeVersion: process.versions.chrome,
+      nodeVersion: process.versions.node,
+      appVersion: APP_VERSION,
+      buildDate: APP_BUILD_DATE || '',
+      installPath: app.getAppPath()
+    });
+    files.push({ name: 'system-info.txt', content: sysInfoText });
+
+    const zipBuffer = createZip(files);
+    fs.writeFileSync(filePath, zipBuffer);
+    log(LOG_LEVELS.INFO, 'TapAct: diagnostics bundle exported.', { filePath });
+    return { canceled: false, filePath };
+  } catch (err) {
+    log(LOG_LEVELS.ERROR, 'TapAct: diagnostics export failed.', { message: err?.message });
+    return { canceled: false, error: err?.message || String(err) };
+  }
 });
 
 // Sets Windows' Startup-at-login entry to match Settings ▸ "הפעלה אוטומטית

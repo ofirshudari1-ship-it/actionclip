@@ -752,6 +752,12 @@
               <span id="updateLastChecked"></span>
             </div>
           </div>
+          <div class="panel" style="width:100%;max-width:340px;text-align:start;">
+            <div class="panel-title" data-i18n="diag.title">אבחון</div>
+            <p style="font-size:12px;color:var(--muted);margin:0 0 10px;" data-i18n="diag.desc">הקובץ כולל יומן פעילות, גרסה ופרטי מערכת בלבד - בלי תוכן שהעתקת, תבניות הודעה, מספרי טלפון או מפתחות API.</p>
+            <button type="button" class="btn secondary small" id="exportDiagnosticsBtn" data-i18n="diag.btn.export">ייצוא קובץ אבחון</button>
+            <p id="diagMsg" class="saved-msg hidden" role="status" aria-live="polite"></p>
+          </div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
             <button class="btn secondary small" id="openChangelogBtn" data-i18n="about.btn.changelog">יומן שינויים (CHANGELOG)</button>
             <button class="btn secondary small" id="openSiteBtn" data-i18n="about.btn.site">אתר TapAct</button>

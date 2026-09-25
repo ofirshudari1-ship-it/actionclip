@@ -60,6 +60,9 @@ ipcMain.handle('settings:get-lead-history', () => store.getLeadHistory());
 ipcMain.on('settings:clear-lead-history', () => store.clearLeadHistory());
 ipcMain.handle('lead:test-channel', () => ({ ok: false, error: 'harness' }));
 ipcMain.handle('settings:export-lead-history-csv', () => ({ canceled: true }));
+ipcMain.handle('settings:export-diagnostics', () => ({ canceled: true }));
+ipcMain.handle('update:get-status', () => ({ state: 'idle', lastCheckedAt: null }));
+ipcMain.handle('update:check-now', () => ({ state: 'idle' }));
 ipcMain.on('settings:open-external', () => {});
 ipcMain.handle('history-panel:get-data', (_e, { offset = 0, limit } = {}) => {
   const settings = store.getSettings();

@@ -397,6 +397,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.updateStatusText = document.getElementById('updateStatusText');
   s.checkUpdatesBtn = document.getElementById('checkUpdatesBtn');
   s.updateLastChecked = document.getElementById('updateLastChecked');
+  s.exportDiagnosticsBtn = document.getElementById('exportDiagnosticsBtn');
+  s.diagMsg = document.getElementById('diagMsg');
   s.shortcutManualInput = document.getElementById('shortcutManualInput');
   s.shortcutHistoryInput = document.getElementById('shortcutHistoryInput');
   s.shortcutFallbackInput = document.getElementById('shortcutFallbackInput');
@@ -442,6 +444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.tapactSettings.openExternal && window.tapactSettings.openExternal('site');
   });
   initUpdateSection();
+  if (s.exportDiagnosticsBtn) s.exportDiagnosticsBtn.addEventListener('click', onExportDiagnostics);
 
   s.enabledCheck.checked = settings.enabled;
   if (window.tapactSettings.onMonitoringChanged) {
@@ -1310,6 +1313,35 @@ function onSaveLeadSettings() {
 async function onClearLeadHistory() {
   window.tapactSettings.clearLeadHistory();
   await renderLeadHistory();
+}
+
+// Settings ▸ About ▸ "ייצוא קובץ אבחון" - triggers main.js's
+// 'settings:export-diagnostics' handler (dialog.showSaveDialog + zip write),
+// then shows the saved path (success) or a generic error (failure/thrown).
+async function onExportDiagnostics() {
+  if (!s.exportDiagnosticsBtn) return;
+  s.exportDiagnosticsBtn.disabled = true;
+  try {
+    const result = await window.tapactSettings.exportDiagnostics();
+    if (result && result.canceled) return;
+    if (result && result.error) {
+      showDiagMsg(clipT('diag.error'), true);
+      return;
+    }
+    showDiagMsg(clipT('diag.success').replace('{path}', result.filePath), false);
+  } catch (e) {
+    showDiagMsg(clipT('diag.error'), true);
+  } finally {
+    s.exportDiagnosticsBtn.disabled = false;
+  }
+}
+
+function showDiagMsg(text, isError) {
+  if (!s.diagMsg) return;
+  s.diagMsg.textContent = text;
+  s.diagMsg.className = 'saved-msg' + (isError ? ' error' : '');
+  s.diagMsg.classList.remove('hidden');
+  setTimeout(() => s.diagMsg.classList.add('hidden'), 4000);
 }
 
 async function onExportLeadCsv() {

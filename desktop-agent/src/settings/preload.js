@@ -22,6 +22,12 @@ contextBridge.exposeInMainWorld('tapactSettings', {
   clearLeadHistory: () => ipcRenderer.send('settings:clear-lead-history'),
   testLeadChannel: (payload) => ipcRenderer.invoke('lead:test-channel', payload),
   exportLeadHistoryCsv: () => ipcRenderer.invoke('settings:export-lead-history-csv'),
+  // Bundles log file + version.json + a redacted settings snapshot +
+  // system-info.txt into one .zip (About tab). See main.js's
+  // 'settings:export-diagnostics' handler / lib/diagnostics.js for exactly
+  // what's redacted (no clipboard content, no message templates, no
+  // webhook/API secrets, no phone/email addresses).
+  exportDiagnostics: () => ipcRenderer.invoke('settings:export-diagnostics'),
   openExternal: (target) => ipcRenderer.send('settings:open-external', target),
   // Monitoring paused/resumed from the tray menu while this window is open
   // (or hidden to tray) - keeps the General panel's switch truthful so its

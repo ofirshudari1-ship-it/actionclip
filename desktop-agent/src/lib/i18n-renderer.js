@@ -218,6 +218,11 @@ const STRINGS = {
     'update.status.neverChecked': 'טרם נבדק',
     'update.lastChecked.label': 'נבדק לאחרונה:',
     'update.btn.checkNow': 'בדוק עדכונים עכשיו',
+    'diag.title': 'אבחון',
+    'diag.desc': 'הקובץ כולל יומן פעילות, גרסה ופרטי מערכת בלבד - בלי תוכן שהעתקת, תבניות הודעה, מספרי טלפון או מפתחות API.',
+    'diag.btn.export': 'ייצוא קובץ אבחון',
+    'diag.success': 'קובץ האבחון נשמר ב: {path}',
+    'diag.error': 'לא ניתן היה ליצור את קובץ האבחון. נסו שוב.',
     // Templates section
     'templates.hint.title': 'איך עובד:',
     'templates.hint.body': 'כשמספר טלפון מועתק, TapAct פותח חלונית עם התבנית שנבחרה. {שם} מוחלף בשם שמקלידים שם.',
@@ -518,6 +523,11 @@ const STRINGS = {
     'update.status.neverChecked': 'Never checked',
     'update.lastChecked.label': 'Last checked:',
     'update.btn.checkNow': 'Check for Updates Now',
+    'diag.title': 'Diagnostics',
+    'diag.desc': 'The file includes only the activity log, version and system info - no clipboard content, message templates, phone numbers, or API keys.',
+    'diag.btn.export': 'Export Diagnostics',
+    'diag.success': 'Diagnostics file saved to: {path}',
+    'diag.error': "Couldn't create the diagnostics file. Please try again.",
     // Templates section
     'templates.hint.title': 'How it works:',
     'templates.hint.body': 'When a phone number is copied, TapAct opens a popup with the selected template. {שם} is replaced by the name you type.',
