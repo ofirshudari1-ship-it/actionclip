@@ -295,7 +295,10 @@
             <span class="switch"><input type="checkbox" id="startPausedCheck"><span class="slider"></span></span>
           </label>
           <div class="field-row">
-            <label class="field-label" for="trayClickSelect" data-i18n="settings.trayClick">לחיצה בודדת על אייקון המגש</label>
+            <div class="field-label-col">
+              <label class="field-label" for="trayClickSelect" data-i18n="settings.trayClick">לחיצה בודדת על אייקון המגש</label>
+              <span class="field-hint" data-i18n="settings.trayClick.hint">קליק ימני תמיד פותח את התפריט המלא, כולל יציאה.</span>
+            </div>
             <select id="trayClickSelect">
               <option value="history" data-i18n="settings.trayClick.history">פתח היסטוריית העתקות</option>
               <option value="settings" data-i18n="settings.trayClick.settings">פתח הגדרות</option>
@@ -304,19 +307,31 @@
           </div>
           <div class="divider"></div>
           <div class="field-row">
-            <label class="field-label" for="pollInput" data-i18n="settings.poll">מרווח סריקה (מ״ש)</label>
+            <div class="field-label-col">
+              <label class="field-label" for="pollInput" data-i18n="settings.poll">מרווח סריקה (מ״ש)</label>
+              <span class="field-hint" data-i18n="settings.poll.hint">כל כמה זמן TapAct בודק מה הועתק - ערך נמוך תופס העתקות מהר יותר, אבל צורך יותר משאבי מחשב.</span>
+            </div>
             <input type="number" id="pollInput" min="200" max="5000" step="100">
           </div>
           <div class="field-row">
-            <label class="field-label" for="dedupeInput" data-i18n="settings.dedupe">חסימת קפיצות חוזרות לאותו טקסט (שניות)</label>
+            <div class="field-label-col">
+              <label class="field-label" for="dedupeInput" data-i18n="settings.dedupe">חסימת קפיצות חוזרות לאותו טקסט (שניות)</label>
+              <span class="field-hint" data-i18n="settings.dedupe.hint">מונע פתיחת חלונית שוב על אותה העתקה בדיוק, בטווח הזמן הזה.</span>
+            </div>
             <input type="number" id="dedupeInput" min="0" max="600" step="5">
           </div>
           <div class="field-row">
-            <label class="field-label" for="autoCloseInput" data-i18n="settings.autoClose">סגירה אוטומטית של החלונית (שניות, 0 = ללא)</label>
+            <div class="field-label-col">
+              <label class="field-label" for="autoCloseInput" data-i18n="settings.autoClose">סגירה אוטומטית של החלונית (שניות, 0 = ללא)</label>
+              <span class="field-hint" data-i18n="settings.autoClose.hint">כמה שניות עד שהחלונית נסגרת מעצמה אם לא לוחצים כלום.</span>
+            </div>
             <input type="number" id="autoCloseInput" min="0" max="120" step="5">
           </div>
           <div class="field-row">
-            <label class="field-label" for="sendDedupeInput" data-i18n="settings.sendDedupe">התרעת כפילות שליחה (דקות)</label>
+            <div class="field-label-col">
+              <label class="field-label" for="sendDedupeInput" data-i18n="settings.sendDedupe">התרעת כפילות שליחה (דקות)</label>
+              <span class="field-hint" data-i18n="settings.sendDedupe.hint">מתריע לפני שליחת הודעה לאותו איש קשר פעמיים בטווח הזמן הזה.</span>
+            </div>
             <input type="number" id="sendDedupeInput" min="0" max="1440" step="5">
           </div>
           <div class="actions">
@@ -348,6 +363,7 @@
                 <button type="button" class="seg-btn" data-val="comfortable" data-i18n="settings.density.comfortable">נוח</button>
                 <button type="button" class="seg-btn" data-val="compact" data-i18n="settings.density.compact">קומפקטי</button>
               </div>
+              <span class="pref-sub" data-i18n="settings.density.sub">קומפקטי מקטין את הריווח בין השורות כדי להציג יותר תוכן על המסך</span>
             </div>
           </div>
         </div>
@@ -689,7 +705,10 @@
         <div class="panel">
           <div class="panel-title" data-i18n="leads.more.title">הגדרות נוספות</div>
           <div class="field-row">
-            <label class="field-label" for="leadDupWindow" data-i18n="leads.dup.window.label">חלון כפילות לידים (שעות)</label>
+            <div class="field-label-col">
+              <label class="field-label" for="leadDupWindow" data-i18n="leads.dup.window.label">חלון כפילות לידים (שעות)</label>
+              <span class="field-hint" data-i18n="leads.dup.window.hint">מונע שליחת אותו ליד פעמיים בטווח הזמן הזה.</span>
+            </div>
             <input type="number" id="leadDupWindow" min="0" max="72" step="1" value="6">
           </div>
           <div class="field-row">

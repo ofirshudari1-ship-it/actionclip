@@ -461,6 +461,11 @@ code {
 }
 .field-row .field-label { flex: 1; color: var(--fg); }
 .field-row .field-hint { font-size: 11px; color: var(--muted); }
+/* Label + one-line explanation stacked above a field-row's input, matching
+   the switch-row label-text/label-sub pattern - used where the field's own
+   name (poll interval, dedupe window...) isn't self-explanatory. */
+.field-row .field-label-col { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.field-row .field-label-col .field-label { flex: none; }
 
 input[type="number"],
 input[type="text"],
@@ -773,6 +778,7 @@ input:focus, select:focus {
 }
 .pref-item label { font-size: 12px; color: var(--muted); }
 .pref-item select { width: 100%; }
+.pref-item .pref-sub { font-size: 11px; color: var(--muted); }
 
 /* ─── Password input ─── */
 input[type="password"] {

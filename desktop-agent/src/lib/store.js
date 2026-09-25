@@ -1,4 +1,24 @@
 const Store = require('electron-store');
+const { app } = require('electron');
+
+// Resolves the language TapAct starts with on a brand-new install, so the
+// welcome wizard doesn't need to ask again. There is no channel for the
+// NSIS installer's language-selector choice (package.json's
+// `build.nsis.displayLanguageSelector`) to reach the running app - it only
+// drives the installer UI's own text (see build-resources/installer.nsh)
+// and writes nothing to the registry or disk the app could read. The one
+// real, verifiable signal at first launch is Electron's own
+// `app.getLocale()`, which reflects the OS/Windows display language - so
+// that's the fallback this app actually uses. Wrapped in try/catch because
+// `app` can be undefined very early in some test/CLI contexts.
+function resolveDefaultLanguage() {
+  try {
+    const locale = (app && typeof app.getLocale === 'function' && app.getLocale()) || '';
+    return locale.toLowerCase().startsWith('he') ? 'he' : 'en';
+  } catch (e) {
+    return 'en';
+  }
+}
 
 const DEFAULT_TEMPLATES = [
   {
@@ -123,8 +143,11 @@ const DEFAULT_SETTINGS = {
   // TapAct to just go ahead once something matches.
   autoRunAction: false,
   autoRunDelaySeconds: 4,
-  // Appearance & language
-  language: 'en',       // 'he' | 'en'
+  // Appearance & language. Defaults to the OS display language on a fresh
+  // install (see resolveDefaultLanguage above) - once anything is saved to
+  // disk this default is never consulted again, so it can't override a
+  // language the user picked afterward in Settings.
+  language: resolveDefaultLanguage(),       // 'he' | 'en'
   theme: 'dark',        // 'dark' | 'light'
   // Startup & window behavior
   startMinimized: false,  // launch straight to tray, skip popup window

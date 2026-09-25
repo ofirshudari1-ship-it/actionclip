@@ -7,7 +7,7 @@ const net = {
 
 module.exports = {
   net,
-  app: { getPath: jest.fn(() => '/tmp') },
+  app: { getPath: jest.fn(() => '/tmp'), getLocale: jest.fn(() => 'en-US') },
   ipcMain: { handle: jest.fn(), on: jest.fn() },
   ipcRenderer: { invoke: jest.fn(), send: jest.fn() },
   contextBridge: { exposeInMainWorld: jest.fn() },
