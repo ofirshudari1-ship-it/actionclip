@@ -168,7 +168,18 @@ const DEFAULT_SETTINGS = {
   // silently watching the clipboard by default. Toggling "ניטור לוח פעיל"
   // back on from the tray/Settings after launch works as normal; this only
   // affects the state at startup.
-  startPaused: false
+  startPaused: false,
+  // Whether a downloaded update installs itself automatically the next time
+  // TapAct quits (drives autoUpdater.autoInstallOnAppQuit in main.js - see
+  // initAutoUpdater). Defaults to true: before this setting existed the app
+  // already did this unconditionally and hardcoded, so ON preserves exactly
+  // what every existing install already experiences today - flipping the
+  // default to off here would silently change already-shipped behavior for
+  // current users the first time they update into the build that adds this
+  // toggle. Anyone who'd rather install manually can turn it off in Settings
+  // ▸ About ▸ Updates; "Check for Updates Now" and downloading always still
+  // work regardless of this flag.
+  autoInstallUpdates: true
 };
 
 const store = new Store({

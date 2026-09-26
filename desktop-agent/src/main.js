@@ -1155,6 +1155,14 @@ ipcMain.handle('settings:save-one', (_e, payload) => {
   const safe = sanitizeSettingsPatch({ [key]: value });
   if (!Object.keys(safe).length) return false;
   store.saveSettings(safe);
+  // Auto-install-on-quit is a live electron-updater flag (see the
+  // autoUpdater.autoInstallOnAppQuit assignment above initAutoUpdater), not
+  // just a stored value read back on next launch - flip it immediately so a
+  // download already in flight (or already sitting ready) respects the new
+  // choice without needing a restart.
+  if (Object.prototype.hasOwnProperty.call(safe, 'autoInstallUpdates')) {
+    autoUpdater.autoInstallOnAppQuit = safe.autoInstallUpdates;
+  }
   return true;
 });
 
@@ -1441,7 +1449,13 @@ function tryRegister(accelerator, handler) {
 // check (offline, GitHub unreachable, etc.) is logged and otherwise
 // ignored, matching this app's existing tray-app failure posture.
 autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
+// Whether a downloaded update installs itself automatically the next time
+// TapAct quits, vs. just sitting there ready until the user restarts by
+// hand. Reads the persisted Settings ▸ About ▸ Updates toggle (default true
+// - see store.js's DEFAULT_SETTINGS.autoInstallUpdates for why) instead of
+// the previous hardcoded `true`; kept in sync whenever that toggle is saved
+// (see the 'settings:save-one' handler below).
+autoUpdater.autoInstallOnAppQuit = store.getSettings().autoInstallUpdates !== false;
 
 // Pushes the real autoUpdater state to Settings (if it's open) and persists
 // it so "last checked" survives a restart - see store.js's
@@ -1490,7 +1504,15 @@ function initAutoUpdater() {
         type: 'info',
         title: 'TapAct Update Ready',
         message: `TapAct ${info.version} has been downloaded.`,
-        detail: 'Restart now to install the update, or it will install automatically the next time you quit TapAct.',
+        // Honest about the installer possibly needing a Windows permission
+        // prompt: TapAct's own .exe is already set to run elevated
+        // (requireAdministrator - see package.json's build.win config), so
+        // in the normal case the update installer inherits that elevation
+        // and installs without asking again - but electron-updater falls
+        // back to an explicit elevation request (its own UAC prompt) if the
+        // direct install attempt hits a permissions error, so this doesn't
+        // promise zero prompts.
+        detail: 'Restart now to install the update, or it will install automatically the next time you quit TapAct. You may see a Windows permission prompt during install.',
         buttons: ['Restart Now', 'Later'],
         defaultId: 0,
         cancelId: 1,

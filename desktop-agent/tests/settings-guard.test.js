@@ -13,6 +13,11 @@ describe('sanitizeSettingsPatch', () => {
     expect(sanitizeSettingsPatch({ enabled: 'yes', startPaused: 1 })).toEqual({});
   });
 
+  test('accepts the autoInstallUpdates toggle as a boolean', () => {
+    expect(sanitizeSettingsPatch({ autoInstallUpdates: false })).toEqual({ autoInstallUpdates: false });
+    expect(sanitizeSettingsPatch({ autoInstallUpdates: 'yes' })).toEqual({});
+  });
+
   test('accepts only known enum values for language / theme / trayClickAction', () => {
     expect(sanitizeSettingsPatch({ language: 'he', theme: 'light', trayClickAction: 'none' }))
       .toEqual({ language: 'he', theme: 'light', trayClickAction: 'none' });
@@ -42,7 +47,7 @@ describe('sanitizeSettingsPatch', () => {
       'soundOnDetect', 'startPaused', 'trayClickAction', 'pollMs', 'dedupeSeconds',
       'autoCloseSeconds', 'sendDedupeMinutes', 'quietHours', 'detectors', 'historyEnabled',
       'historyStorageLimit', 'historyPreviewLimit', 'actionPreferences', 'autoRunAction',
-      'autoRunDelaySeconds', 'language', 'theme']) {
+      'autoRunDelaySeconds', 'language', 'theme', 'autoInstallUpdates']) {
       expect(SETTINGS_ALLOWLIST.has(key)).toBe(true);
     }
   });

@@ -61,5 +61,11 @@ contextBridge.exposeInMainWorld('tapactSettings', {
     const listener = (_e, status) => callback(status);
     ipcRenderer.on('update:status-changed', listener);
     return () => ipcRenderer.removeListener('update:status-changed', listener);
-  }
+  },
+  // "Automatically install updates in the background" toggle (Updates
+  // panel, next to Check for Updates Now). Saves and takes effect
+  // immediately - same 'settings:save-one' channel the welcome window uses
+  // for its own single-toggle saves (see main.js's handler + lib/
+  // settings-guard.js's allowlist), not tied to any tab's bulk Save button.
+  setAutoInstallUpdates: (value) => ipcRenderer.invoke('settings:save-one', { key: 'autoInstallUpdates', value })
 });

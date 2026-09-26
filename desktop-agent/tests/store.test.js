@@ -78,6 +78,19 @@ describe('getSettings / saveSettings', () => {
     expect(s.closeToTray).toBe(true); // untouched
   });
 
+  test('autoInstallUpdates defaults to true (preserves pre-toggle hardcoded behavior)', () => {
+    const store = freshStore();
+    expect(store.getSettings().autoInstallUpdates).toBe(true);
+  });
+
+  test('autoInstallUpdates can be turned off and persists without wiping other keys', () => {
+    const store = freshStore();
+    store.saveSettings({ autoInstallUpdates: false });
+    const s = store.getSettings();
+    expect(s.autoInstallUpdates).toBe(false);
+    expect(s.closeToTray).toBe(true); // untouched
+  });
+
   test('trayHideHintSeen flips and stays true once saved', () => {
     const store = freshStore();
     store.saveSettings({ trayHideHintSeen: true });

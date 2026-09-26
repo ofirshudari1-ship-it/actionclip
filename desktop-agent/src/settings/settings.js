@@ -397,6 +397,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   s.updateStatusText = document.getElementById('updateStatusText');
   s.checkUpdatesBtn = document.getElementById('checkUpdatesBtn');
   s.updateLastChecked = document.getElementById('updateLastChecked');
+  s.autoInstallUpdatesCheck = document.getElementById('autoInstallUpdatesCheck');
   s.exportDiagnosticsBtn = document.getElementById('exportDiagnosticsBtn');
   s.diagMsg = document.getElementById('diagMsg');
   s.shortcutManualInput = document.getElementById('shortcutManualInput');
@@ -486,6 +487,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (s.soundOnDetectCheck) s.soundOnDetectCheck.checked = settings.soundOnDetect === true;
   if (s.startPausedCheck) s.startPausedCheck.checked = settings.startPaused === true;
   if (s.trayClickSelect) s.trayClickSelect.value = settings.trayClickAction || 'history';
+  if (s.autoInstallUpdatesCheck) s.autoInstallUpdatesCheck.checked = settings.autoInstallUpdates !== false;
 
   const quietHours = settings.quietHours || {};
   if (s.quietHoursEnabledCheck) s.quietHoursEnabledCheck.checked = quietHours.enabled === true;
@@ -715,6 +717,18 @@ function renderUpdateStatus(status) {
 }
 
 async function initUpdateSection() {
+  // Saves immediately on toggle (like checkUpdatesBtn below) rather than
+  // waiting for a tab's bulk Save button - this checkbox lives in the About
+  // tab's Updates panel, not inside a form. Its checked state was already
+  // set from the loaded settings in render() above; this only wires the
+  // change handler. Guarded separately from the getUpdateStatus check below
+  // since it doesn't depend on the live update-status feed.
+  if (s.autoInstallUpdatesCheck && window.tapactSettings.setAutoInstallUpdates) {
+    s.autoInstallUpdatesCheck.addEventListener('change', () => {
+      window.tapactSettings.setAutoInstallUpdates(s.autoInstallUpdatesCheck.checked);
+    });
+  }
+
   if (!window.tapactSettings.getUpdateStatus) return; // preload not updated yet (dev skew guard)
   const initial = await window.tapactSettings.getUpdateStatus();
   renderUpdateStatus(initial);
