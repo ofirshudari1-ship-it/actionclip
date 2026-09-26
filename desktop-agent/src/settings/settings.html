@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
-<title>TapAct - הגדרות</title>
+<title>TapAct - Settings</title>
 <link rel="stylesheet" href="settings.css">
 <script src="../lib/i18n-renderer.js"></script>
 </head>
@@ -680,10 +680,10 @@
         <div class="panel">
           <div class="panel-title" data-i18n="leads.template.title">תבנית הודעה (אופציונלי)</div>
           <p class="muted" style="font-size:12px;margin:0 0 8px">
-            טוקנים: <code>{{name}}</code> <code>{{phone}}</code> <code>{{role}}</code> <code>{{source}}</code><br>
+            <span data-i18n="leads.template.tokens">טוקנים:</span> <code>{{name}}</code> <code>{{phone}}</code> <code>{{role}}</code> <code>{{source}}</code><br>
             <span data-i18n="leads.template.desc">ריק = תבנית ברירת מחדל עברית</span>
           </p>
-          <textarea id="leadMessageTemplate" rows="4" placeholder="ליד חדש&#10;שם: {{name}}&#10;טלפון: {{phone}}&#10;תפקיד: {{role}}&#10;מקור: {{source}}"></textarea>
+          <textarea id="leadMessageTemplate" rows="4" data-i18n-placeholder="leads.template.placeholder" placeholder="ליד חדש&#10;שם: {{name}}&#10;טלפון: {{phone}}&#10;תפקיד: {{role}}&#10;מקור: {{source}}"></textarea>
         </div>
 
         <div class="panel">
@@ -713,7 +713,7 @@
           </div>
           <div class="field-row">
             <label class="field-label" for="leadCustomSources" data-i18n="leads.custom.sources.label">מקורות מותאמים (מופרדים בפסיקים)</label>
-            <input type="text" id="leadCustomSources" placeholder="TikTok, YouTube, כנס">
+            <input type="text" id="leadCustomSources" data-i18n-placeholder="leads.custom.sources.placeholder" placeholder="TikTok, YouTube, כנס">
           </div>
         </div>
 
@@ -788,7 +788,7 @@
             <button class="btn secondary small" id="openChangelogBtn" data-i18n="about.btn.changelog">יומן שינויים (CHANGELOG)</button>
             <button class="btn secondary small" id="openSiteBtn" data-i18n="about.btn.site">אתר TapAct</button>
           </div>
-          <div style="font-size:12px;color:var(--muted);margin-top:8px;">© <bdi>2024–2026</bdi> TapAct. All rights reserved.</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:8px;" data-i18n="about.copyright">© 2024–2026 TapAct. All rights reserved.</div>
         </div>
       </section>
 

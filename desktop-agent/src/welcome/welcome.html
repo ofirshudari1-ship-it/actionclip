@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
-<title>ברוכים הבאים ל-TapAct</title>
+<title>Welcome to TapAct</title>
 <link rel="stylesheet" href="welcome.css">
 <script src="../lib/i18n-renderer.js"></script>
 </head>
@@ -19,7 +19,7 @@
       </div>
       <div class="header-tools">
         <button id="langToggleBtn" class="hdr-pill" title="שנה שפה / Change language">🌐 EN</button>
-        <button id="themeToggleBtn" class="hdr-pill" title="ערכת נושא">🌙</button>
+        <button id="themeToggleBtn" class="hdr-pill" data-i18n-title="welcome.theme.title" title="Theme">🌙</button>
       </div>
     </div>
 
@@ -98,7 +98,10 @@
           if (s) {
             const lang = s.language || 'en';
             const theme = s.theme || 'dark';
-            if (typeof window.i18n !== 'undefined') window.i18n.applyI18n(lang);
+            if (typeof window.i18n !== 'undefined') {
+              window.i18n.applyI18n(lang);
+              document.title = window.i18n.t(lang, 'welcome.doc.title');
+            }
             document.documentElement.setAttribute('data-theme', theme);
             updateLangBtn(lang);
             updateThemeBtn(theme);
@@ -113,7 +116,10 @@
       langBtn && langBtn.addEventListener('click', () => {
         const cur = document.documentElement.lang || 'en';
         const next = cur === 'he' ? 'en' : 'he';
-        if (typeof window.i18n !== 'undefined') window.i18n.applyI18n(next);
+        if (typeof window.i18n !== 'undefined') {
+          window.i18n.applyI18n(next);
+          document.title = window.i18n.t(next, 'welcome.doc.title');
+        }
         updateLangBtn(next);
         if (window.tapactWelcome && window.tapactWelcome.saveSetting) {
           window.tapactWelcome.saveSetting('language', next);

@@ -36,9 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
     backBtn.disabled = current === 0;
     const isLast = current === steps.length - 1;
     const lang = document.documentElement.lang || 'en';
-    nextBtn.textContent = isLast
-      ? (lang === 'en' ? '✓ Done' : 'סיום ✓')
-      : (lang === 'en' ? 'Next →' : 'הבא →');
+    const t = (key) => (window.i18n ? window.i18n.t(lang, key) : key);
+    nextBtn.textContent = isLast ? t('welcome.btn.done') : t('welcome.btn.next');
     if (progressFill) {
       progressFill.style.width = ((current + 1) / steps.length * 100) + '%';
     }

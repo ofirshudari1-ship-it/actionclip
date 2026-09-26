@@ -4,9 +4,11 @@
 // inside it is not "I want to open a link" intent, so we stay quiet there
 // and let the user click the link where they read it instead.
 
+const { t } = require('../i18n-renderer');
+
 const URL_RE = /^(https?:\/\/[^\s]+|www\.[^\s]+\.[a-z]{2,}(?:\/[^\s]*)?)$/i;
 
-function findUrl(text) {
+function findUrl(text, lang) {
   if (typeof text !== 'string' || !text) return null;
   const trimmed = text.trim();
   if (trimmed.includes('\n') || trimmed.includes(' ')) return null;
@@ -24,9 +26,9 @@ function findUrl(text) {
     type: 'url',
     raw: trimmed,
     display: hostname,
-    title: 'קישור זוהה',
+    title: t(lang, 'detect.url.title'),
     actions: [
-      { label: `פתח את ${hostname} 🔗`, url: href }
+      { label: t(lang, 'detect.url.action.open').replace('{host}', hostname), url: href }
     ]
   };
 }

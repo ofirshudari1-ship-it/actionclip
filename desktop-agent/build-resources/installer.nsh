@@ -72,6 +72,38 @@
     ; Default checkbox values
     StrCpy $AddDesktopShortcut "1"
     StrCpy $AddStartupLaunch "0"
+
+    ; ── Hand the installer's language choice to the app ────────
+    ; By the time customInit runs, MUI_LANGDLL_DISPLAY (electron-builder's
+    ; own installer.nsi, called from .onInit before customInit) has already
+    ; set $LANGUAGE from the language selector - 1033 English, 1037 Hebrew
+    ; (same IDs as the LangString entries above). There is no NSIS-to-app
+    ; channel other than the filesystem, and the app's own settings store
+    ; (electron-store, see src/lib/store.js) lives at
+    ; $APPDATA\TapAct\tapact.json (app.setName('TapAct') in main.js), so we
+    ; drop a tiny marker file next to it instead of trying to hand-assemble
+    ; that JSON's exact shape from NSIS. src/main.js consumes it once on
+    ; first launch, then deletes it; app.getLocale() remains the fallback
+    ; if the marker is ever missing.
+    ;
+    ; Only on a genuinely fresh install: if tapact.json already exists, a
+    ; real user preference may already be saved there, and store.js's own
+    ; merge logic (saved settings always win over defaults) would ignore
+    ; this marker anyway - but we skip writing it at all so an update/
+    ; reinstall never even risks it, and so a Repair/re-run of the same
+    ; installer doesn't stomp a language the user later picked in Settings.
+    ${IfNot} ${FileExists} "$APPDATA\TapAct\tapact.json"
+      CreateDirectory "$APPDATA\TapAct"
+      ${If} $LANGUAGE == 1037
+        FileOpen $9 "$APPDATA\TapAct\first-run-language.txt" w
+        FileWrite $9 "he"
+        FileClose $9
+      ${Else}
+        FileOpen $9 "$APPDATA\TapAct\first-run-language.txt" w
+        FileWrite $9 "en"
+        FileClose $9
+      ${EndIf}
+    ${EndIf}
   !macroend
 
   ; ── Shared cross-product brand-color button styling ──────────

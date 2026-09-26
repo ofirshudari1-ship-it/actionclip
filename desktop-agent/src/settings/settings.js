@@ -133,14 +133,14 @@ function buildTagRuleCard(rule) {
 
   const labelInput = document.createElement('input');
   labelInput.type = 'text';
-  labelInput.placeholder = 'שם התגית';
+  labelInput.placeholder = clipT('tags.placeholder.label');
   labelInput.value = rule.label;
   labelInput.style.flex = '1';
   labelInput.addEventListener('input', () => { rule.label = labelInput.value; });
 
   const removeBtn = document.createElement('button');
   removeBtn.className = 'btn danger xs';
-  removeBtn.textContent = '✕ מחק';
+  removeBtn.textContent = clipT('rule.remove');
   removeBtn.setAttribute('aria-label', a11yT('remove', rule.label));
   removeBtn.addEventListener('click', () => {
     tagRules = tagRules.filter((r) => r !== rule);
@@ -153,7 +153,7 @@ function buildTagRuleCard(rule) {
 
   const keywordsInput = document.createElement('input');
   keywordsInput.type = 'text';
-  keywordsInput.placeholder = 'מילות מפתח, מופרדות בפסיק (למשל: פרויקט, project)';
+  keywordsInput.placeholder = clipT('tags.placeholder.keywords');
   keywordsInput.value = (rule.keywords || []).join(', ');
   keywordsInput.style.width = '100%';
   keywordsInput.addEventListener('input', () => {
@@ -259,7 +259,7 @@ function buildCustomRuleCard(rule, index) {
 
   const labelInput = document.createElement('input');
   labelInput.type = 'text';
-  labelInput.placeholder = 'שם הכלל (למשל: מספר הזמנה פנימי)';
+  labelInput.placeholder = clipT('customRules.placeholder.label');
   labelInput.value = rule.label || '';
   labelInput.style.flex = '1';
   labelInput.addEventListener('input', () => { rule.label = labelInput.value; });
@@ -279,7 +279,7 @@ function buildCustomRuleCard(rule, index) {
 
   const removeBtn = document.createElement('button');
   removeBtn.className = 'btn danger xs';
-  removeBtn.textContent = '✕ מחק';
+  removeBtn.textContent = clipT('rule.remove');
   removeBtn.setAttribute('aria-label', a11yT('remove', rule.label));
   removeBtn.addEventListener('click', () => {
     customRules = customRules.filter((r) => r !== rule);
@@ -297,7 +297,7 @@ function buildCustomRuleCard(rule, index) {
   const patternInput = document.createElement('input');
   patternInput.type = 'text';
   patternInput.dir = 'ltr';
-  patternInput.placeholder = 'ביטוי רגולרי, למשל: ORD-(\\d{6})';
+  patternInput.placeholder = clipT('customRules.placeholder.pattern');
   patternInput.value = rule.pattern || '';
   patternInput.style.width = '100%';
   patternInput.addEventListener('input', () => { rule.pattern = patternInput.value; });
@@ -312,7 +312,7 @@ function buildCustomRuleCard(rule, index) {
 
   const actionLabelInput = document.createElement('input');
   actionLabelInput.type = 'text';
-  actionLabelInput.placeholder = 'טקסט לכפתור (אופציונלי)';
+  actionLabelInput.placeholder = clipT('customRules.placeholder.actionLabel');
   actionLabelInput.value = rule.actionLabel || '';
   actionLabelInput.style.width = '100%';
   actionLabelInput.addEventListener('input', () => { rule.actionLabel = actionLabelInput.value; });
@@ -334,10 +334,10 @@ async function onSaveCustomRules() {
 
 function timeAgoLabel(timestamp) {
   const mins = Math.max(1, Math.round((Date.now() - timestamp) / 60000));
-  if (mins < 60) return `לפני ${mins} דק'`;
+  if (mins < 60) return clipT('clip.time.min').replace('{n}', mins);
   const hours = Math.round(mins / 60);
-  if (hours < 24) return `לפני ${hours} שע'`;
-  return `לפני ${Math.round(hours / 24)} ימים`;
+  if (hours < 24) return clipT('clip.time.hour').replace('{n}', hours);
+  return clipT('clip.time.day').replace('{n}', Math.round(hours / 24));
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await renderHistory();
 
   s.addBtn.addEventListener('click', () => {
-    templates.push({ id: `custom-${Date.now()}`, label: 'תבנית חדשה', text: '' });
+    templates.push({ id: `custom-${Date.now()}`, label: clipT('templates.new.label'), text: '' });
     render();
   });
   s.saveTemplatesBtn.addEventListener('click', onSaveTemplates);
@@ -1014,7 +1014,7 @@ function buildCard(template) {
 
   const removeBtn = document.createElement('button');
   removeBtn.className = 'btn danger small';
-  removeBtn.textContent = 'מחק';
+  removeBtn.textContent = clipT('templates.remove');
   removeBtn.setAttribute('aria-label', a11yT('remove', template.label));
   removeBtn.addEventListener('click', () => {
     templates = templates.filter(t => t.id !== template.id);
@@ -1061,14 +1061,14 @@ function renderDefaultSelect() {
 
 function onSaveTemplates() {
   const cleaned = templates
-    .map(t => ({ id: t.id, label: t.label.trim() || 'ללא שם', text: t.text, favorite: t.favorite === true }))
+    .map(t => ({ id: t.id, label: t.label.trim() || clipT('templates.unnamed'), text: t.text, favorite: t.favorite === true }))
     .filter(t => t.text.trim().length > 0 || t.label.trim().length > 0);
   window.tapactSettings.saveTemplates(cleaned, defaultId);
   flashSaved();
 }
 
 async function onReset() {
-  if (!confirm('לאפס את כל התבניות לברירת המחדל? שינויים שלא נשמרו יאבדו.')) return;
+  if (!confirm(clipT('templates.resetConfirm'))) return;
   window.tapactSettings.resetTemplates();
   const data = await window.tapactSettings.getData();
   templates = data.templates.map(t => ({ ...t }));
@@ -1109,6 +1109,12 @@ function onSaveQuietHours() {
 function applyAppLanguage(lang) {
   if (typeof window.i18n === 'undefined') return;
   window.i18n.applyI18n(lang);
+  // The window's title bar/taskbar text: main.js's openSettingsWindow() sets
+  // an initial BrowserWindow `title`, but Electron overwrites it with this
+  // page's own <title> once settings.html finishes loading - so without
+  // this, the title bar stayed hardcoded Hebrew ("TapAct - הגדרות")
+  // regardless of language, same leak class as the tray menu.
+  document.title = window.i18n.t(lang, 'settings.windowTitle');
   // Update segmented controls
   document.querySelectorAll('#languageSeg .seg-btn').forEach((b) => { b.classList.toggle('active', b.dataset.val === lang); b.setAttribute('aria-pressed', String(b.dataset.val === lang)); });
   // Update header pill text
@@ -1195,11 +1201,11 @@ function onSaveClipHistorySettings() {
 
 function onClearClipHistory() {
   window.tapactSettings.clearClipboardHistory();
-  s.savedClipHistoryMsg.textContent = 'נוקה ✓';
+  s.savedClipHistoryMsg.textContent = clipT('clip.cleared');
   s.savedClipHistoryMsg.classList.remove('hidden');
   setTimeout(() => {
     s.savedClipHistoryMsg.classList.add('hidden');
-    s.savedClipHistoryMsg.textContent = 'נשמר ✓';
+    s.savedClipHistoryMsg.textContent = clipT('settings.saved');
   }, 1800);
 }
 
@@ -1257,7 +1263,7 @@ async function onClearHistory() {
 async function onExportCsv() {
   const result = await window.tapactSettings.exportHistoryCsv();
   if (result.canceled) return;
-  s.exportMsg.textContent = `יוצא בהצלחה: ${result.filePath}`;
+  s.exportMsg.textContent = clipT('export.success').replace('{path}', result.filePath);
   s.exportMsg.classList.remove('hidden');
   setTimeout(() => s.exportMsg.classList.add('hidden'), 4000);
 }
@@ -1363,13 +1369,13 @@ async function onExportLeadCsv() {
   try {
     const result = await window.tapactSettings.exportLeadHistoryCsv();
     if (!result.canceled) {
-      s.exportLeadMsg.textContent = 'הקובץ נשמר ✓';
+      s.exportLeadMsg.textContent = clipT('export.saved');
       s.exportLeadMsg.className = 'saved-msg';
       s.exportLeadMsg.classList.remove('hidden');
       setTimeout(() => s.exportLeadMsg.classList.add('hidden'), 2500);
     }
   } catch (e) {
-    s.exportLeadMsg.textContent = 'שגיאה בייצוא';
+    s.exportLeadMsg.textContent = clipT('leads.export.error');
     s.exportLeadMsg.className = 'saved-msg error';
     s.exportLeadMsg.classList.remove('hidden');
     setTimeout(() => s.exportLeadMsg.classList.add('hidden'), 2500);
@@ -1382,22 +1388,22 @@ async function onTestChannel(channel) {
   const btn = channel === 'webhook' ? s.testWebhookBtn : s.testSlackBtn;
   const msgEl = channel === 'webhook' ? s.testWebhookMsg : s.testSlackMsg;
   btn.disabled = true;
-  btn.textContent = '⏳ בודק...';
+  btn.textContent = clipT('leads.test.checking');
   try {
     const url = channel === 'webhook' ? s.leadWebhookUrl.value.trim() : s.leadSlackWebhookUrl.value.trim();
-    if (!url) { showTestResult(btn, msgEl, false, 'נדרש URL'); return; }
+    if (!url) { showTestResult(btn, msgEl, false, clipT('leads.test.urlRequired')); return; }
     const result = await window.tapactSettings.testLeadChannel({ channel, url,
       headerName: channel === 'webhook' ? s.leadWebhookHeaderName.value.trim() : '',
       headerValue: channel === 'webhook' ? s.leadWebhookHeaderValue.value.trim() : '' });
-    showTestResult(btn, msgEl, result.ok, result.ok ? 'חיבור תקין ✓' : (result.error || 'שגיאה'));
+    showTestResult(btn, msgEl, result.ok, result.ok ? clipT('leads.test.ok') : (result.error || clipT('leads.test.error')));
   } catch (e) {
-    showTestResult(btn, msgEl, false, 'שגיאה');
+    showTestResult(btn, msgEl, false, clipT('leads.test.error'));
   }
 }
 
 function showTestResult(btn, msgEl, ok, text) {
   btn.disabled = false;
-  btn.textContent = '🔗 בדוק חיבור';
+  btn.textContent = clipT('leads.test.connection');
   msgEl.textContent = text;
   msgEl.className = 'saved-msg ' + (ok ? '' : 'error');
   msgEl.classList.remove('hidden');

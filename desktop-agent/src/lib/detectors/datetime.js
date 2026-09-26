@@ -2,6 +2,8 @@
 // date or date+time (not a sentence that happens to mention a date).
 // The action opens Google Calendar's new-event page with the date pre-filled.
 
+const { t } = require('../i18n-renderer');
+
 const HE_MONTHS = {
   'ינואר': 1, 'פברואר': 2, 'מרץ': 3, 'אפריל': 4,
   'מאי': 5, 'יוני': 6, 'יולי': 7, 'אוגוסט': 8,
@@ -99,7 +101,7 @@ function parseDate(text) {
   return null;
 }
 
-function findDateTime(text) {
+function findDateTime(text, lang) {
   if (typeof text !== 'string' || !text) return null;
   const trimmed = text.trim();
 
@@ -123,11 +125,11 @@ function findDateTime(text) {
     type: 'datetime',
     raw: trimmed,
     display: dateStr + timeStr,
-    title: 'תאריך זוהה',
+    title: t(lang, 'detect.datetime.title'),
     actions: [
       {
         id: 'gcal',
-        label: `שמור ביומן Google 📅`,
+        label: t(lang, 'detect.datetime.action.gcal'),
         url: gcalBase
       }
     ]

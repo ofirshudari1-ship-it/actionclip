@@ -1,18 +1,42 @@
 const Store = require('electron-store');
+const fs = require('fs');
+const path = require('path');
 const { app } = require('electron');
 
+// The installer's language selector (package.json's
+// `build.nsis.displayLanguageSelector`) writes the language the user picked
+// into a small marker file, $APPDATA\TapAct\first-run-language.txt (see
+// build-resources/installer.nsh's customInit) - only on a genuinely fresh
+// install, never over an existing tapact.json. This consumes that marker
+// once: reads it, deletes it (so it's never re-applied on a later run), and
+// returns 'he'/'en', or null if it isn't there (every launch after the
+// first, or an install that predates this mechanism). Wrapped in try/catch
+// because `app` can be undefined very early in some test/CLI contexts, and
+// the file may not exist or be readable.
+function consumeFirstRunLanguageMarker() {
+  try {
+    if (!app || typeof app.getPath !== 'function') return null;
+    const markerPath = path.join(app.getPath('userData'), 'first-run-language.txt');
+    if (!fs.existsSync(markerPath)) return null;
+    const raw = fs.readFileSync(markerPath, 'utf8').trim().toLowerCase();
+    fs.unlinkSync(markerPath);
+    return raw === 'he' ? 'he' : raw === 'en' ? 'en' : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 // Resolves the language TapAct starts with on a brand-new install, so the
-// welcome wizard doesn't need to ask again. There is no channel for the
-// NSIS installer's language-selector choice (package.json's
-// `build.nsis.displayLanguageSelector`) to reach the running app - it only
-// drives the installer UI's own text (see build-resources/installer.nsh)
-// and writes nothing to the registry or disk the app could read. The one
-// real, verifiable signal at first launch is Electron's own
-// `app.getLocale()`, which reflects the OS/Windows display language - so
-// that's the fallback this app actually uses. Wrapped in try/catch because
-// `app` can be undefined very early in some test/CLI contexts.
+// welcome wizard doesn't need to ask again. The installer's own explicit
+// choice (via the marker above) takes priority; if it's missing (e.g. an
+// install built before this existed, or the marker was somehow lost),
+// Electron's `app.getLocale()` - the OS/Windows display language - is the
+// last-resort fallback. Wrapped in try/catch because `app` can be undefined
+// very early in some test/CLI contexts.
 function resolveDefaultLanguage() {
   try {
+    const fromInstaller = consumeFirstRunLanguageMarker();
+    if (fromInstaller) return fromInstaller;
     const locale = (app && typeof app.getLocale === 'function' && app.getLocale()) || '';
     return locale.toLowerCase().startsWith('he') ? 'he' : 'en';
   } catch (e) {

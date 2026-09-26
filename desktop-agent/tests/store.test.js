@@ -1,5 +1,9 @@
 // store.test.js — tests for src/lib/store.js using the in-memory Store mock.
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
 // Reset module registry between tests so each test gets a fresh store.
 beforeEach(() => { jest.resetModules(); });
 
@@ -309,6 +313,63 @@ describe('clipboard history export / import', () => {
     expect(store.importClipboardHistoryData(null)).toEqual({ imported: 0 });
     expect(store.importClipboardHistoryData({})).toEqual({ imported: 0 });
     expect(store.importClipboardHistoryData({ items: [{ id: 'x' }] })).toEqual({ imported: 0 }); // no text
+  });
+});
+
+// ─── First-run language marker (installer -> app handoff) ────────────────────
+
+describe('first-run language marker', () => {
+  test('consumes a "he" marker as the default language and deletes the file', () => {
+    const electron = require('electron');
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tapact-lang-'));
+    electron.app.getPath.mockReturnValue(tmpDir);
+    const markerPath = path.join(tmpDir, 'first-run-language.txt');
+    fs.writeFileSync(markerPath, 'he');
+
+    const store = freshStore();
+    expect(store.getSettings().language).toBe('he');
+    expect(fs.existsSync(markerPath)).toBe(false);
+  });
+
+  test('consumes an "en" marker as the default language and deletes the file', () => {
+    const electron = require('electron');
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tapact-lang-'));
+    electron.app.getPath.mockReturnValue(tmpDir);
+    const markerPath = path.join(tmpDir, 'first-run-language.txt');
+    fs.writeFileSync(markerPath, 'en');
+
+    const store = freshStore();
+    expect(store.getSettings().language).toBe('en');
+    expect(fs.existsSync(markerPath)).toBe(false);
+  });
+
+  test('falls back to app.getLocale() when no marker file exists', () => {
+    const electron = require('electron');
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tapact-lang-'));
+    electron.app.getPath.mockReturnValue(tmpDir);
+    electron.app.getLocale.mockReturnValue('he-IL');
+
+    const store = freshStore();
+    expect(store.getSettings().language).toBe('he');
+  });
+
+  test('a saved settings.language always wins over the marker (never overrides an existing user preference)', () => {
+    const electron = require('electron');
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tapact-lang-'));
+    electron.app.getPath.mockReturnValue(tmpDir);
+
+    const store = freshStore();
+    store.saveSettings({ language: 'en' });
+
+    // Simulate a marker somehow left behind after the user already has a
+    // saved preference (should never happen from the installer itself,
+    // since it only writes when tapact.json doesn't exist yet) - getSettings'
+    // own merge (`{...DEFAULT_SETTINGS, ...saved}`) is the real safety net:
+    // a saved language always overrides the default regardless of the
+    // marker, since the default is only ever consulted once, at module load,
+    // before any real preference exists.
+    fs.writeFileSync(path.join(tmpDir, 'first-run-language.txt'), 'he');
+    expect(store.getSettings().language).toBe('en');
   });
 });
 

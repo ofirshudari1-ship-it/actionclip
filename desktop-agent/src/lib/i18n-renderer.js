@@ -193,6 +193,23 @@ const STRINGS = {
     'popup.source.whatsapp': 'WhatsApp נכנס',
     'popup.source.referral': 'הפניה',
     'popup.source.other': 'אחר',
+    // Popup dynamic status strings (popup.js - the WhatsApp lead popup's
+    // JS-built send/AI-assist status text bypassed i18n entirely; only the
+    // static markup above went through data-i18n).
+    'popup.dupWarning.text': 'כבר נשלח ליד למספר הזה {time}{who}.',
+    'popup.sending': '⏳ שולח...',
+    'popup.genericError': 'שגיאה',
+    'popup.allSent': '✓ נשלח בהצלחה לכל הערוצים!',
+    'popup.someFailed': 'חלק מהערוצים נכשלו:',
+    'popup.aiAnalyzing': '⏳ מנתח...',
+    'popup.aiSending': 'שולח ל-AI...',
+    'popup.aiImproved': '✓ AI שיפר את הנתונים',
+    'popup.aiError': 'שגיאת AI',
+    'popup.name.placeholder': 'ישראל ישראלי',
+    'popup.role.placeholder': 'מנהל מכירות',
+    'leads.template.tokens': 'טוקנים:',
+    'leads.template.placeholder': 'ליד חדש\nשם: {{name}}\nטלפון: {{phone}}\nתפקיד: {{role}}\nמקור: {{source}}',
+    'leads.custom.sources.placeholder': 'TikTok, YouTube, כנס',
     // Welcome screen
     'welcome.step0.title': 'ברוכים הבאים ל-TapAct',
     'welcome.step0.body': 'תוכנת רקע קטנה שרצה במגש המערכת. ברגע שאתה מעתיק משהו שהיא מזהה, קופצת חלונית ליד הסמן עם כפתור לפעולה הנכונה — בלי לעבור בין אפליקציות.',
@@ -218,6 +235,9 @@ const STRINGS = {
     'welcome.btn.skip': 'דלג',
     'welcome.btn.back': '← הקודם',
     'welcome.btn.next': 'הבא →',
+    'welcome.btn.done': 'סיום ✓',
+    'welcome.doc.title': 'ברוכים הבאים ל-TapAct',
+    'welcome.theme.title': 'ערכת נושא',
     // Nav — About
     'nav.group.about': 'אודות',
     'nav.about': 'אודות',
@@ -228,6 +248,7 @@ const STRINGS = {
     'about.buildDate': 'תאריך בנייה',
     'about.btn.changelog': 'יומן שינויים',
     'about.btn.site': 'אתר TapAct',
+    'about.copyright': '© 2024-2026 TapAct. כל הזכויות שמורות.',
     'update.title': 'עדכונים',
     'update.status.checking': 'בודק עדכונים...',
     'update.status.upToDate': 'אתם מעודכנים ✓',
@@ -329,6 +350,103 @@ const STRINGS = {
     'clip.time.min': "לפני {n} דק'",
     'clip.time.hour': "לפני {n} שע'",
     'clip.time.day': 'לפני {n} ימים',
+    // Tray menu, tooltip and balloon notifications (main process - see
+    // main.js's buildTrayMenu/maybeShowTrayHideHint/initAutoUpdater).
+    'tray.tooltip.active': 'TapAct - מוכן להעתקה',
+    'tray.tooltip.paused': 'TapAct - ניטור מושהה',
+    'tray.status.active': 'TapAct - פעיל',
+    'tray.status.paused': 'TapAct - מושהה',
+    'tray.openManual': 'פתח ידנית ({shortcut})',
+    'tray.recentActions': 'פעולות אחרונות',
+    'tray.recentActions.empty': '(אין פעולות אחרונות)',
+    'tray.history': 'היסטוריית העתקות ({shortcut})',
+    'tray.refreshShortcuts': 'רענן קיצורי מקלדת',
+    'tray.refreshShortcuts.warn': ' (Win+V עדיין לא נתפס ⚠)',
+    'tray.showSettings': 'הצג הגדרות',
+    'tray.openSettings': 'הגדרות ותבניות...',
+    'tray.about': 'מה זה TapAct? (הדרכה)',
+    'tray.exit': 'יציאה',
+    'tray.hideHint.title': 'TapAct ממשיך לרוץ',
+    'tray.hideHint.content': 'החלון נסגר אבל TapAct עדיין פעיל במגש. ליציאה מלאה: קליק ימני על האייקון > יציאה.',
+    'tray.phoneDetected.title': 'TapAct - מספר זוהה',
+    'tray.phoneDetected.fallback': 'מספר טלפון חדש זוהה',
+    'update.dialog.title': 'TapAct - עדכון מוכן',
+    'update.dialog.message': 'TapAct {version} הורד בהצלחה.',
+    'update.dialog.detail': 'הפעל מחדש כדי להתקין את העדכון, או שהוא יותקן אוטומטית בפעם הבאה ש-TapAct נסגר. ייתכן שיופיע חלון הרשאה של Windows בזמן ההתקנה.',
+    'update.dialog.btn.restart': 'הפעל מחדש כעת',
+    'update.dialog.btn.later': 'מאוחר יותר',
+    // Native save/open dialog titles (main process - dialog.showSaveDialog /
+    // dialog.showOpenDialog have no renderer/DOM, so these never went
+    // through window.i18n either).
+    'dialog.export.clipboardHistory': 'ייצוא היסטוריית לוח',
+    'dialog.import.clipboardHistory': 'ייבוא היסטוריית לוח',
+    'dialog.export.sendHistory': 'ייצוא היסטוריית שליחות',
+    'dialog.export.leadHistory': 'ייצוא היסטוריית לידים',
+    'dialog.export.diagnostics': 'ייצוא אבחון',
+    // BrowserWindow titles (main process - taskbar/Alt+Tab text).
+    'settings.windowTitle': 'TapAct - הגדרות',
+    // Lead delivery-channel errors (main process, returned to the renderer
+    // by ipcMain.handle('lead:send'/'lead:test-channel') and shown as-is by
+    // settings.js's onTestChannel/showTestResult).
+    'lead.error.unknownChannel': 'ערוץ לא מוכר',
+    'lead.error.urlRequired': 'URL ריק - הגדר אותו בהגדרות',
+    'lead.error.connection': 'שגיאת חיבור',
+    // Lead test-channel UI (settings.js onTestChannel/showTestResult).
+    'leads.test.checking': '⏳ בודק...',
+    'leads.test.urlRequired': 'נדרש URL',
+    'leads.test.ok': 'חיבור תקין ✓',
+    'leads.test.error': 'שגיאה',
+    'leads.export.error': 'שגיאה בייצוא',
+    // Generic CSV export success message (history CSV, lead CSV - see
+    // settings.js's onExportCsv/onExportLeadCsv).
+    'export.success': 'יוצא בהצלחה: {path}',
+    'export.saved': 'הקובץ נשמר ✓',
+    // CSV export column headers (main process - buildHistoryCsv/
+    // buildLeadHistoryCsv have no renderer/DOM either).
+    'csv.header.number': 'מספר',
+    'csv.header.name': 'שם',
+    'csv.header.template': 'תבנית',
+    'csv.header.datetime': 'תאריך ושעה',
+    'csv.header.phone': 'טלפון',
+    'csv.header.role': 'תפקיד',
+    'csv.header.source': 'מקור',
+    'csv.header.channel': 'ערוץ',
+    // Generic-action detectors (src/lib/detectors/*.js, main process) - the
+    // title/action-labels shown in the action-popup for a detected tracking
+    // number/address/link/email/date. These returned hardcoded Hebrew
+    // regardless of language, unlike the phone popup's markup.
+    'detect.tracking.title': 'מספר מעקב זוהה ({carrier})',
+    'detect.tracking.action.carrier': 'עקוב אחר המשלוח ב-{carrier} 📦',
+    'detect.tracking.action.generic': 'חיפוש כללי (17track) 🔍',
+    'detect.carrier.israelpost': 'דואר ישראל',
+    'detect.address.title': 'כתובת זוהתה',
+    'detect.address.action.maps': 'נווט עם Google Maps 🗺️',
+    'detect.address.action.waze': 'נווט עם Waze 🚗',
+    'detect.url.title': 'קישור זוהה',
+    'detect.url.action.open': 'פתח את {host} 🔗',
+    'detect.email.title': 'כתובת אימייל זוהתה',
+    'detect.email.action.mailto': 'פתח מייל חדש אל {email} ✉️',
+    'detect.email.action.gmail': 'פתח ב-Gmail 📧',
+    'detect.datetime.title': 'תאריך זוהה',
+    'detect.datetime.action.gcal': 'שמור ביומן Google 📅',
+    'detect.custom.defaultLabel': 'כלל מותאם אישית',
+    'detect.custom.title': '{label} זוהה',
+    'detect.custom.action.open': 'פתח ({label}) 🔗',
+    // Settings ▸ Auto Tags / Custom Rules cards (settings.js - built
+    // entirely in JS with no data-i18n markup to hook into, so placeholders
+    // and the remove button stayed hardcoded Hebrew).
+    'tags.placeholder.label': 'שם התגית',
+    'tags.placeholder.keywords': 'מילות מפתח, מופרדות בפסיק (למשל: פרויקט, project)',
+    'customRules.placeholder.label': 'שם הכלל (למשל: מספר הזמנה פנימי)',
+    'customRules.placeholder.pattern': 'ביטוי רגולרי, למשל: ORD-(\\d{6})',
+    'customRules.placeholder.actionLabel': 'טקסט לכפתור (אופציונלי)',
+    'rule.remove': '✕ מחק',
+    // Templates panel (settings.js - JS-built rows).
+    'templates.new.label': 'תבנית חדשה',
+    'templates.unnamed': 'ללא שם',
+    'templates.resetConfirm': 'לאפס את כל התבניות לברירת המחדל? שינויים שלא נשמרו יאבדו.',
+    'templates.remove': 'מחק',
+    'clip.cleared': 'נוקה ✓',
   },
   en: {
     // Nav groups
@@ -520,6 +638,23 @@ const STRINGS = {
     'popup.source.whatsapp': 'Incoming WhatsApp',
     'popup.source.referral': 'Referral',
     'popup.source.other': 'Other',
+    // Popup dynamic status strings (popup.js - the WhatsApp lead popup's
+    // JS-built send/AI-assist status text bypassed i18n entirely; only the
+    // static markup above went through data-i18n).
+    'popup.dupWarning.text': 'A lead was already sent to this number {time}{who}.',
+    'popup.sending': '⏳ Sending...',
+    'popup.genericError': 'Error',
+    'popup.allSent': '✓ Sent successfully to all channels!',
+    'popup.someFailed': 'Some channels failed:',
+    'popup.aiAnalyzing': '⏳ Analyzing...',
+    'popup.aiSending': 'Sending to AI...',
+    'popup.aiImproved': '✓ AI improved the data',
+    'popup.aiError': 'AI error',
+    'popup.name.placeholder': 'John Doe',
+    'popup.role.placeholder': 'Sales Manager',
+    'leads.template.tokens': 'Tokens:',
+    'leads.template.placeholder': 'New lead\nName: {{name}}\nPhone: {{phone}}\nRole: {{role}}\nSource: {{source}}',
+    'leads.custom.sources.placeholder': 'TikTok, YouTube, Conference',
     // Welcome screen
     'welcome.step0.title': 'Welcome to TapAct',
     'welcome.step0.body': 'A small background app that runs in your system tray. When you copy something it recognizes, a small popup appears near your cursor with a one-click action — no switching between apps.',
@@ -545,6 +680,9 @@ const STRINGS = {
     'welcome.btn.skip': 'Skip',
     'welcome.btn.back': '← Back',
     'welcome.btn.next': 'Next →',
+    'welcome.btn.done': '✓ Done',
+    'welcome.doc.title': 'Welcome to TapAct',
+    'welcome.theme.title': 'Theme',
     // Nav — About
     'nav.group.about': 'About',
     'nav.about': 'About',
@@ -555,6 +693,7 @@ const STRINGS = {
     'about.buildDate': 'Build date',
     'about.btn.changelog': 'Changelog',
     'about.btn.site': 'TapAct Website',
+    'about.copyright': '© 2024-2026 TapAct. All rights reserved.',
     'update.title': 'Updates',
     'update.status.checking': 'Checking for updates...',
     'update.status.upToDate': "You're up to date ✓",
@@ -656,6 +795,103 @@ const STRINGS = {
     'clip.time.min': '{n} min ago',
     'clip.time.hour': '{n} hr ago',
     'clip.time.day': '{n} d ago',
+    // Tray menu, tooltip and balloon notifications (main process - see
+    // main.js's buildTrayMenu/maybeShowTrayHideHint/initAutoUpdater).
+    'tray.tooltip.active': 'TapAct - Ready to copy',
+    'tray.tooltip.paused': 'TapAct - Monitoring paused',
+    'tray.status.active': 'TapAct - Active',
+    'tray.status.paused': 'TapAct - Paused',
+    'tray.openManual': 'Open Manually ({shortcut})',
+    'tray.recentActions': 'Recent Actions',
+    'tray.recentActions.empty': '(No recent actions)',
+    'tray.history': 'Clipboard History ({shortcut})',
+    'tray.refreshShortcuts': 'Refresh Keyboard Shortcuts',
+    'tray.refreshShortcuts.warn': ' (Win+V not yet captured ⚠)',
+    'tray.showSettings': 'Show Settings',
+    'tray.openSettings': 'Settings & Templates...',
+    'tray.about': "What's TapAct? (Guide)",
+    'tray.exit': 'Exit',
+    'tray.hideHint.title': 'TapAct is still running',
+    'tray.hideHint.content': 'The window closed, but TapAct is still active in the tray. To fully quit: right-click the icon > Exit.',
+    'tray.phoneDetected.title': 'TapAct - Number Detected',
+    'tray.phoneDetected.fallback': 'New phone number detected',
+    'update.dialog.title': 'TapAct Update Ready',
+    'update.dialog.message': 'TapAct {version} has been downloaded.',
+    'update.dialog.detail': 'Restart now to install the update, or it will install automatically the next time you quit TapAct. You may see a Windows permission prompt during install.',
+    'update.dialog.btn.restart': 'Restart Now',
+    'update.dialog.btn.later': 'Later',
+    // Native save/open dialog titles (main process - dialog.showSaveDialog /
+    // dialog.showOpenDialog have no renderer/DOM, so these never went
+    // through window.i18n either).
+    'dialog.export.clipboardHistory': 'Export Clipboard History',
+    'dialog.import.clipboardHistory': 'Import Clipboard History',
+    'dialog.export.sendHistory': 'Export Send History',
+    'dialog.export.leadHistory': 'Export Lead History',
+    'dialog.export.diagnostics': 'Export Diagnostics',
+    // BrowserWindow titles (main process - taskbar/Alt+Tab text).
+    'settings.windowTitle': 'TapAct - Settings',
+    // Lead delivery-channel errors (main process, returned to the renderer
+    // by ipcMain.handle('lead:send'/'lead:test-channel') and shown as-is by
+    // settings.js's onTestChannel/showTestResult).
+    'lead.error.unknownChannel': 'Unrecognized channel',
+    'lead.error.urlRequired': 'URL is empty - set it in Settings',
+    'lead.error.connection': 'Connection error',
+    // Lead test-channel UI (settings.js onTestChannel/showTestResult).
+    'leads.test.checking': '⏳ Checking...',
+    'leads.test.urlRequired': 'URL required',
+    'leads.test.ok': 'Connection OK ✓',
+    'leads.test.error': 'Error',
+    'leads.export.error': 'Export failed',
+    // Generic CSV export success message (history CSV, lead CSV - see
+    // settings.js's onExportCsv/onExportLeadCsv).
+    'export.success': 'Exported successfully: {path}',
+    'export.saved': 'File saved ✓',
+    // CSV export column headers (main process - buildHistoryCsv/
+    // buildLeadHistoryCsv have no renderer/DOM either).
+    'csv.header.number': 'Number',
+    'csv.header.name': 'Name',
+    'csv.header.template': 'Template',
+    'csv.header.datetime': 'Date & Time',
+    'csv.header.phone': 'Phone',
+    'csv.header.role': 'Role',
+    'csv.header.source': 'Source',
+    'csv.header.channel': 'Channel',
+    // Generic-action detectors (src/lib/detectors/*.js, main process) - the
+    // title/action-labels shown in the action-popup for a detected tracking
+    // number/address/link/email/date. These returned hardcoded Hebrew
+    // regardless of language, unlike the phone popup's markup.
+    'detect.tracking.title': 'Tracking number detected ({carrier})',
+    'detect.tracking.action.carrier': 'Track shipment with {carrier} 📦',
+    'detect.tracking.action.generic': 'General search (17track) 🔍',
+    'detect.carrier.israelpost': 'Israel Post',
+    'detect.address.title': 'Address detected',
+    'detect.address.action.maps': 'Navigate with Google Maps 🗺️',
+    'detect.address.action.waze': 'Navigate with Waze 🚗',
+    'detect.url.title': 'Link detected',
+    'detect.url.action.open': 'Open {host} 🔗',
+    'detect.email.title': 'Email address detected',
+    'detect.email.action.mailto': 'Compose new email to {email} ✉️',
+    'detect.email.action.gmail': 'Open in Gmail 📧',
+    'detect.datetime.title': 'Date detected',
+    'detect.datetime.action.gcal': 'Save to Google Calendar 📅',
+    'detect.custom.defaultLabel': 'Custom rule',
+    'detect.custom.title': '{label} detected',
+    'detect.custom.action.open': 'Open ({label}) 🔗',
+    // Settings ▸ Auto Tags / Custom Rules cards (settings.js - built
+    // entirely in JS with no data-i18n markup to hook into, so placeholders
+    // and the remove button stayed hardcoded Hebrew).
+    'tags.placeholder.label': 'Tag name',
+    'tags.placeholder.keywords': 'Keywords, comma-separated (e.g. project, פרויקט)',
+    'customRules.placeholder.label': 'Rule name (e.g. Internal order number)',
+    'customRules.placeholder.pattern': 'Regular expression, e.g. ORD-(\\d{6})',
+    'customRules.placeholder.actionLabel': 'Button text (optional)',
+    'rule.remove': '✕ Delete',
+    // Templates panel (settings.js - JS-built rows).
+    'templates.new.label': 'New Template',
+    'templates.unnamed': 'Unnamed',
+    'templates.resetConfirm': 'Reset all templates to default? Unsaved changes will be lost.',
+    'templates.remove': 'Delete',
+    'clip.cleared': 'Cleared ✓',
   }
 };
 

@@ -12,12 +12,26 @@ const els = {};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+// Named popT (not `t`) because this file already uses `t` as a template
+// loop variable below - a same-named module-level helper would shadow it.
+// Reads document.documentElement.lang, which applyI18n() (called once at
+// init from the saved settings) already set, so this always matches
+// whatever language the rest of the popup is actually rendered in - this
+// popup previously built every one of its *dynamic* strings (send-status,
+// AI-assist status, duplicate-lead warning, time-ago labels) as raw Hebrew
+// literals that never went through window.i18n at all, unlike its static
+// markup (popup.html's data-i18n attributes) - a real language-purity leak.
+function popT(key) {
+  const lang = document.documentElement.lang || 'he';
+  return window.i18n ? window.i18n.t(lang, key) : key;
+}
+
 function timeAgoLabel(ts) {
   const mins = Math.max(1, Math.round((Date.now() - ts) / 60000));
-  if (mins < 60) return `לפני ${mins} דק'`;
+  if (mins < 60) return popT('clip.time.min').replace('{n}', mins);
   const hours = Math.round(mins / 60);
-  if (hours < 24) return `לפני ${hours} שע'`;
-  return `לפני ${Math.round(hours / 24)} ימים`;
+  if (hours < 24) return popT('clip.time.hour').replace('{n}', hours);
+  return popT('clip.time.day').replace('{n}', Math.round(hours / 24));
 }
 
 function fillWhatsappTemplate(text, name) {
@@ -60,7 +74,9 @@ function refreshDupWarning() {
   const recent = waRecent || leadRecent;
   if (recent) {
     const who = recent.name ? ` (${recent.name})` : '';
-    els.dupWarningText.textContent = `כבר נשלח ליד למספר הזה ${timeAgoLabel(recent.sentAt)}${who}.`;
+    els.dupWarningText.textContent = popT('popup.dupWarning.text')
+      .replace('{time}', timeAgoLabel(recent.sentAt))
+      .replace('{who}', who);
     els.dupWarningBlock.classList.remove('hidden');
   } else {
     els.dupWarningBlock.classList.add('hidden');
@@ -142,23 +158,23 @@ async function doSendChannel(channel) {
 
 async function onSendChannel(channel) {
   const btn = els[`btn${channel.charAt(0).toUpperCase() + channel.slice(1)}`];
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ שולח...'; }
+  if (btn) { btn.disabled = true; btn.textContent = popT('popup.sending'); }
 
   const result = await doSendChannel(channel);
 
   if (btn) {
     btn.disabled = false;
-    const labels = { whatsapp: '💬 WhatsApp', webhook: '🔗 Webhook', slack: '💼 Slack', email: '✉️ מייל', copy: '📋 העתק' };
-    btn.textContent = result.ok ? '✓ ' + (labels[channel] || channel) : '✗ שגיאה';
+    const labels = { whatsapp: '💬 WhatsApp', webhook: '🔗 Webhook', slack: '💼 Slack', email: popT('popup.email'), copy: popT('popup.copy') };
+    btn.textContent = result.ok ? '✓ ' + (labels[channel] || channel) : '✗ ' + popT('popup.genericError');
     setTimeout(() => { btn.textContent = labels[channel] || channel; }, 2000);
   }
 
-  if (!result.ok && result.error) showStatus('שגיאה: ' + result.error, 'fail');
+  if (!result.ok && result.error) showStatus(popT('popup.genericError') + ': ' + result.error, 'fail');
 }
 
 async function onSendAll() {
   els.sendAllBtn.disabled = true;
-  els.sendAllBtn.textContent = '⏳ שולח...';
+  els.sendAllBtn.textContent = popT('popup.sending');
 
   const ls = state.leadSettings;
   const channels = ['whatsapp', 'webhook', 'slack', 'email', 'copy'].filter((c) => ls[`channel${c.charAt(0).toUpperCase() + c.slice(1)}`]);
@@ -167,12 +183,12 @@ async function onSendAll() {
   const errors = results.filter((r) => !r.ok).map((r) => r.error).filter(Boolean);
 
   els.sendAllBtn.disabled = false;
-  els.sendAllBtn.textContent = 'שלח לכל הערוצים';
+  els.sendAllBtn.textContent = popT('popup.sendAll');
 
   if (allOk) {
-    showStatus('✓ נשלח בהצלחה לכל הערוצים!', 'ok');
+    showStatus(popT('popup.allSent'), 'ok');
   } else {
-    showStatus('חלק מהערוצים נכשלו: ' + errors.join(', '), 'fail');
+    showStatus(popT('popup.someFailed') + ' ' + errors.join(', '), 'fail');
   }
 }
 
@@ -180,15 +196,15 @@ async function onSendAll() {
 
 async function onAiImprove() {
   els.aiImproveBtn.disabled = true;
-  els.aiImproveBtn.textContent = '⏳ מנתח...';
-  els.aiStatus.textContent = 'שולח ל-AI...';
+  els.aiImproveBtn.textContent = popT('popup.aiAnalyzing');
+  els.aiStatus.textContent = popT('popup.aiSending');
   els.aiStatus.classList.remove('hidden');
 
   const lead = currentLead();
   const result = await window.tapact.aiCleanupLead(lead);
 
   els.aiImproveBtn.disabled = false;
-  els.aiImproveBtn.textContent = '✨ שפר עם AI';
+  els.aiImproveBtn.textContent = popT('popup.aiImprove');
 
   if (result.ok) {
     els.nameInput.value = result.lead.name || els.nameInput.value;
@@ -196,11 +212,11 @@ async function onAiImprove() {
     if (result.lead.source && result.lead.source !== 'אחר') {
       els.sourceSelect.value = result.lead.source;
     }
-    els.aiStatus.textContent = '✓ AI שיפר את הנתונים';
+    els.aiStatus.textContent = popT('popup.aiImproved');
     refreshMessage();
     setTimeout(() => els.aiStatus.classList.add('hidden'), 2000);
   } else {
-    els.aiStatus.textContent = '✗ ' + (result.error || 'שגיאת AI');
+    els.aiStatus.textContent = '✗ ' + (result.error || popT('popup.aiError'));
     setTimeout(() => els.aiStatus.classList.add('hidden'), 3000);
   }
 }

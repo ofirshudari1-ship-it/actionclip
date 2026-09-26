@@ -21,15 +21,18 @@ const DETECTORS = [
 // customRules: settings.customActionRules — user-defined pattern -> URL rules
 // (see ./custom.js), checked last so a mature built-in detector always gets
 // first refusal over a user-authored regex that might be looser.
-function findGenericAction(text, enabledMap, customRules) {
+// `lang` ('he'/'en') decides the language of each detector's returned
+// title/action labels - see the language-consistency guarantee: this must
+// match whatever the rest of the running app is set to, not always Hebrew.
+function findGenericAction(text, enabledMap, customRules, lang) {
   const enabled = enabledMap || {};
   for (const detector of DETECTORS) {
     if (enabled[detector.key] === false) continue;
-    const result = detector.find(text);
+    const result = detector.find(text, lang);
     if (result) return result;
   }
   if (customRules && customRules.length) {
-    const result = findCustomAction(text, customRules);
+    const result = findCustomAction(text, customRules, lang);
     if (result) return result;
   }
   return null;

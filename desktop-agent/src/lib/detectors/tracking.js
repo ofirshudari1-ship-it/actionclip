@@ -9,12 +9,18 @@
 //    appears in the copied text (e.g. the label a courier/webshop prints
 //    next to the number: "מספר מעקב", "AWB", "tracking", "משלוח").
 
+const { t } = require('../i18n-renderer');
+
 const KEYWORD_RE = /(מעקב|משלוח|חבילה|שליח|tracking|track|shipment|parcel|awb|consignment|courier|דואר)/i;
 
+// `label` is a carrier-name lookup key (not display text) for carriers whose
+// name is itself language-dependent (Israel Post - "דואר ישראל"/"Israel
+// Post"; see detect.carrier.* below). Carriers whose brand name doesn't
+// change across languages (UPS/DHL/FedEx) just use the brand name directly.
 const CARRIERS = [
   {
     name: 'israelpost',
-    label: 'דואר ישראל',
+    labelKey: 'detect.carrier.israelpost',
     // UPU S10 standard: 2 letters, 9 digits, 2 letters (e.g. RR123456789IL)
     re: /\b([A-Z]{2}\d{9}[A-Z]{2})\b/,
     confident: true,
@@ -51,7 +57,7 @@ const CARRIERS = [
   }
 ];
 
-function findTrackingNumber(text) {
+function findTrackingNumber(text, lang) {
   if (typeof text !== 'string' || !text) return null;
   const hasKeyword = KEYWORD_RE.test(text);
 
@@ -60,15 +66,16 @@ function findTrackingNumber(text) {
     const m = text.match(carrier.re);
     if (!m) continue;
     const code = m[1];
+    const carrierLabel = carrier.labelKey ? t(lang, carrier.labelKey) : carrier.label;
     return {
       type: 'tracking',
       subtype: carrier.name,
       raw: code,
       display: code,
-      title: `מספר מעקב זוהה (${carrier.label})`,
+      title: t(lang, 'detect.tracking.title').replace('{carrier}', carrierLabel),
       actions: [
-        { id: 'carrier', label: `עקוב אחר המשלוח ב-${carrier.label} 📦`, url: carrier.url(code) },
-        { id: '17track', label: 'חיפוש כללי (17track) 🔍', url: `https://www.17track.net/en#nums=${encodeURIComponent(code)}` }
+        { id: 'carrier', label: t(lang, 'detect.tracking.action.carrier').replace('{carrier}', carrierLabel), url: carrier.url(code) },
+        { id: '17track', label: t(lang, 'detect.tracking.action.generic'), url: `https://www.17track.net/en#nums=${encodeURIComponent(code)}` }
       ]
     };
   }

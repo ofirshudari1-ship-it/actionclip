@@ -55,6 +55,18 @@ const { shouldHideToTray, shouldShowTrayHideHint, autoLaunchNeedsReconcile, reso
 const { sanitizeSettingsPatch } = require('./lib/settings-guard');
 const { buildRedactedSettingsSnapshot, buildSystemInfoText } = require('./lib/diagnostics');
 const { createZip } = require('./lib/zip-writer');
+const i18n = require('./lib/i18n-renderer');
+
+// The tray menu, tray tooltip/balloons and native dialogs below are all
+// main-process UI with no renderer/DOM in the loop, so they never went
+// through window.i18n.applyI18n() and stayed hardcoded in Hebrew (tray) or
+// English (the update-ready dialog) regardless of the language the user
+// actually has TapAct set to - a real language-purity leak (`STANDARDS.md`
+// / language-consistency guarantee). i18n-renderer.js's `t(lang, key)`
+// export has no DOM dependency, so it's reused here directly.
+function tr(key) {
+  return i18n.t(store.getSettings().language || 'en', key);
+}
 const { version: APP_VERSION } = require('../package.json');
 const { buildDate: APP_BUILD_DATE } = (() => { try { return require('../../version.json'); } catch { return {}; } })();
 
@@ -150,7 +162,7 @@ function applyActionPreference(action, settings) {
 }
 
 function categorizeForHistory(text) {
-  const action = findGenericAction(text, { tracking: true, address: true, url: true, email: true }, store.getCustomActionRules());
+  const action = findGenericAction(text, { tracking: true, address: true, url: true, email: true }, store.getCustomActionRules(), store.getSettings().language);
   if (action) {
     const preferred = applyActionPreference(action, store.getSettings());
     return { category: preferred.type, actions: preferred.actions };
@@ -237,7 +249,7 @@ async function checkClipboard() {
   if (text.length > MAX_ACTION_DETECT_LENGTH) return; // large copy - see MAX_ACTION_DETECT_LENGTH
 
   const detectors = settings.detectors || {};
-  const action = findGenericAction(text, detectors, store.getCustomActionRules());
+  const action = findGenericAction(text, detectors, store.getCustomActionRules(), settings.language);
   if (action) {
     const dedupeKey = `${action.type}:${action.raw}`;
     const lastSeen = lastGenericNotifiedAt.get(dedupeKey) || 0;
@@ -308,7 +320,7 @@ async function triggerManualPopup() {
   const settings = store.getSettings();
 
   const detectorsCfg = settings.detectors || {};
-  const action = findGenericAction(text, detectorsCfg, store.getCustomActionRules()); // see checkClipboard for why this runs first
+  const action = findGenericAction(text, detectorsCfg, store.getCustomActionRules(), settings.language); // see checkClipboard for why this runs first
   if (action) {
     currentGenericAction = applyActionPreference(action, settings);
     openActionPopupWindow();
@@ -383,8 +395,8 @@ function openPopupWindow() {
     if (s.showTrayNotification !== false && tray && !tray.isDestroyed()) {
       tray.displayBalloon({
         iconType: 'info',
-        title: 'TapAct — מספר זוהה',
-        content: currentPopupPhone ? currentPopupPhone.display : 'מספר טלפון חדש זוהה',
+        title: tr('tray.phoneDetected.title'),
+        content: currentPopupPhone ? currentPopupPhone.display : tr('tray.phoneDetected.fallback'),
         largeIcon: false,
         noSound: true
       });
@@ -684,7 +696,7 @@ function showFirstRunWelcomeWithSplash() {
     frame: false,
     center: true,
     show: false,
-    title: 'ברוכים הבאים ל-TapAct',
+    title: tr('welcome.doc.title'),
     webPreferences: {
       preload: path.join(__dirname, 'welcome', 'preload.js'),
       contextIsolation: true,
@@ -735,7 +747,7 @@ function openWelcomeWindow() {
     resizable: false,
     frame: false,
     center: true,
-    title: 'ברוכים הבאים ל-TapAct',
+    title: tr('welcome.doc.title'),
     webPreferences: {
       preload: path.join(__dirname, 'welcome', 'preload.js'),
       contextIsolation: true,
@@ -765,7 +777,7 @@ function openSettingsWindow() {
     height: 780,
     minWidth: 860,
     minHeight: 620,
-    title: 'TapAct - הגדרות',
+    title: tr('settings.windowTitle'),
     webPreferences: {
       preload: path.join(__dirname, 'settings', 'preload.js'),
       contextIsolation: true,
@@ -797,8 +809,8 @@ function maybeShowTrayHideHint(settings) {
   if (tray && !tray.isDestroyed()) {
     tray.displayBalloon({
       iconType: 'info',
-      title: 'TapAct ממשיך לרוץ',
-      content: 'החלון נסגר אבל TapAct עדיין פעיל במגש. ליציאה מלאה: קליק ימני על האייקון > יציאה.',
+      title: tr('tray.hideHint.title'),
+      content: tr('tray.hideHint.content'),
       largeIcon: false,
       noSound: true
     });
@@ -822,7 +834,7 @@ function trayActionLabel(item) {
 function buildRecentActionsSubmenu() {
   const recent = store.getRecentActionableHistory(5);
   if (!recent.length) {
-    return [{ label: '(אין פעולות אחרונות)', enabled: false }];
+    return [{ label: tr('tray.recentActions.empty'), enabled: false }];
   }
   return recent.map((item) => ({
     label: trayActionLabel(item),
@@ -837,28 +849,28 @@ function buildRecentActionsSubmenu() {
 function buildTrayMenu() {
   const settings = store.getSettings();
   const configured = { ...DEFAULT_SHORTCUTS, ...(settings.shortcuts || {}) };
-  if (tray) tray.setToolTip(settings.enabled ? 'TapAct - מוכן להעתקה' : 'TapAct - ניטור מושהה');
+  if (tray) tray.setToolTip(settings.enabled ? tr('tray.tooltip.active') : tr('tray.tooltip.paused'));
   return Menu.buildFromTemplate([
-    { label: settings.enabled ? 'TapAct - פעיל' : 'TapAct - מושהה', enabled: false },
+    { label: settings.enabled ? tr('tray.status.active') : tr('tray.status.paused'), enabled: false },
     { type: 'separator' },
     {
-      label: 'ניטור לוח פעיל',
+      label: tr('settings.monitor.enabled'),
       type: 'checkbox',
       checked: settings.enabled,
       click: (menuItem) => toggleMonitoring(menuItem.checked)
     },
-    { label: `פתח ידנית (${configured.manual.replace('CommandOrControl', 'Ctrl')})`, click: triggerManualPopup },
-    { label: 'פעולות אחרונות', submenu: buildRecentActionsSubmenu() },
-    { label: `היסטוריית העתקות (${configured.history} / ${configured.historyFallback.replace('CommandOrControl', 'Ctrl')})`, click: openHistoryWindow },
+    { label: tr('tray.openManual').replace('{shortcut}', configured.manual.replace('CommandOrControl', 'Ctrl')), click: triggerManualPopup },
+    { label: tr('tray.recentActions'), submenu: buildRecentActionsSubmenu() },
+    { label: tr('tray.history').replace('{shortcut}', `${configured.history} / ${configured.historyFallback.replace('CommandOrControl', 'Ctrl')}`), click: openHistoryWindow },
     {
-      label: `רענן קיצורי מקלדת ${shortcutStatus.history ? '' : '(Win+V עדיין לא נתפס ⚠)'}`,
+      label: tr('tray.refreshShortcuts') + (shortcutStatus.history ? '' : tr('tray.refreshShortcuts.warn')),
       click: () => {
         registerAllShortcuts();
         tray.setContextMenu(buildTrayMenu());
       }
     },
     {
-      label: settingsWindow && !settingsWindow.isDestroyed() ? 'הצג הגדרות' : 'הגדרות ותבניות...',
+      label: settingsWindow && !settingsWindow.isDestroyed() ? tr('tray.showSettings') : tr('tray.openSettings'),
       click: () => {
         if (settingsWindow && !settingsWindow.isDestroyed()) {
           settingsWindow.show();
@@ -868,10 +880,10 @@ function buildTrayMenu() {
         }
       }
     },
-    { label: 'מה זה TapAct? (הדרכה)', click: openWelcomeWindow },
+    { label: tr('tray.about'), click: openWelcomeWindow },
     { type: 'separator' },
     {
-      label: 'יציאה',
+      label: tr('tray.exit'),
       click: () => {
         // Must be set before app.quit(): see the isQuitting comment at its
         // declaration and shouldHideToTray in lib/window-behavior.js. Without
@@ -1007,7 +1019,7 @@ ipcMain.handle('lead:send-channel', async (_event, { channel, lead }) => {
       store.addLeadHistoryEntry({ ...lead, channel: 'copy' });
       return { ok: true };
     }
-    return { ok: false, error: `ערוץ לא מוכר: ${channel}` };
+    return { ok: false, error: `${tr('lead.error.unknownChannel')}: ${channel}` };
   } catch (err) {
     return { ok: false, error: err.message };
   }
@@ -1026,13 +1038,13 @@ ipcMain.handle('lead:test-channel', async (_event, { channel }) => {
   let headerValue = '';
   if (channel === 'webhook') { url = ls.webhookUrl; headerName = ls.webhookHeaderName || ''; headerValue = ls.webhookHeaderValue || ''; }
   else if (channel === 'slack') { url = ls.slackWebhookUrl; }
-  if (!url) return { ok: false, error: 'URL ריק — הגדר אותו בהגדרות' };
+  if (!url) return { ok: false, error: tr('lead.error.urlRequired') };
   try {
     const testPayload = { test: true, source: 'TapAct', timestamp: new Date().toISOString() };
     const result = await postJson(url, testPayload, headerName, headerValue);
     return result;
   } catch (e) {
-    return { ok: false, error: e.message || 'שגיאת חיבור' };
+    return { ok: false, error: e.message || tr('lead.error.connection') };
   }
 });
 
@@ -1129,7 +1141,7 @@ ipcMain.on('history-panel:toggle-pin', (_event, id) => {
 ipcMain.handle('history-panel:export', async () => {
   const win = historyWindow || settingsWindow || BrowserWindow.getFocusedWindow();
   const { canceled, filePath } = await dialog.showSaveDialog(win, {
-    title: 'ייצוא היסטוריית לוח',
+    title: tr('dialog.export.clipboardHistory'),
     defaultPath: `tapact-clipboard-history-${new Date().toISOString().slice(0, 10)}.json`,
     filters: [{ name: 'JSON', extensions: ['json'] }]
   });
@@ -1145,7 +1157,7 @@ ipcMain.handle('history-panel:export', async () => {
 ipcMain.handle('history-panel:import', async () => {
   const win = historyWindow || settingsWindow || BrowserWindow.getFocusedWindow();
   const { canceled, filePaths } = await dialog.showOpenDialog(win, {
-    title: 'ייבוא היסטוריית לוח',
+    title: tr('dialog.import.clipboardHistory'),
     filters: [{ name: 'JSON', extensions: ['json'] }],
     properties: ['openFile']
   });
@@ -1304,12 +1316,13 @@ function csvEscape(value) {
 }
 
 function buildHistoryCsv(history) {
-  const header = ['מספר', 'שם', 'תבנית', 'תאריך ושעה'];
+  const locale = store.getSettings().language === 'he' ? 'he-IL' : 'en-US';
+  const header = [tr('csv.header.number'), tr('csv.header.name'), tr('csv.header.template'), tr('csv.header.datetime')];
   const rows = history.map((h) => [
     h.display || h.normalized,
     h.name || '',
     h.templateLabel || '',
-    new Date(h.sentAt).toLocaleString('he-IL')
+    new Date(h.sentAt).toLocaleString(locale)
   ]);
   return [header, ...rows].map((r) => r.map(csvEscape).join(',')).join('\r\n');
 }
@@ -1317,7 +1330,7 @@ function buildHistoryCsv(history) {
 ipcMain.handle('settings:export-history-csv', async () => {
   const win = settingsWindow || BrowserWindow.getFocusedWindow();
   const { canceled, filePath } = await dialog.showSaveDialog(win, {
-    title: 'ייצוא היסטוריית שליחות',
+    title: tr('dialog.export.sendHistory'),
     defaultPath: `tapact-history-${new Date().toISOString().slice(0, 10)}.csv`,
     filters: [{ name: 'CSV', extensions: ['csv'] }]
   });
@@ -1329,10 +1342,11 @@ ipcMain.handle('settings:export-history-csv', async () => {
 });
 
 function buildLeadHistoryCsv(history) {
-  const header = ['שם', 'טלפון', 'תפקיד', 'מקור', 'ערוץ', 'תאריך ושעה'];
+  const locale = store.getSettings().language === 'he' ? 'he-IL' : 'en-US';
+  const header = [tr('csv.header.name'), tr('csv.header.phone'), tr('csv.header.role'), tr('csv.header.source'), tr('csv.header.channel'), tr('csv.header.datetime')];
   const rows = history.map((h) => [
     h.name || '', h.phone || '', h.role || '', h.source || '',
-    h.channel || '', new Date(h.sentAt).toLocaleString('he-IL')
+    h.channel || '', new Date(h.sentAt).toLocaleString(locale)
   ]);
   return [header, ...rows].map((r) => r.map(csvEscape).join(',')).join('\r\n');
 }
@@ -1340,7 +1354,7 @@ function buildLeadHistoryCsv(history) {
 ipcMain.handle('settings:export-lead-history-csv', async () => {
   const win = settingsWindow || BrowserWindow.getFocusedWindow();
   const { canceled, filePath } = await dialog.showSaveDialog(win, {
-    title: 'ייצוא היסטוריית לידים',
+    title: tr('dialog.export.leadHistory'),
     defaultPath: `tapact-leads-${new Date().toISOString().slice(0, 10)}.csv`,
     filters: [{ name: 'CSV', extensions: ['csv'] }]
   });
@@ -1363,7 +1377,7 @@ ipcMain.handle('settings:export-diagnostics', async () => {
   const win = settingsWindow || BrowserWindow.getFocusedWindow();
   const today = new Date().toISOString().slice(0, 10);
   const { canceled, filePath } = await dialog.showSaveDialog(win, {
-    title: 'ייצוא אבחון',
+    title: tr('dialog.export.diagnostics'),
     defaultPath: `TapAct-Diagnostics-${APP_VERSION}-${today}.zip`,
     filters: [{ name: 'ZIP', extensions: ['zip'] }]
   });
@@ -1566,8 +1580,8 @@ function initAutoUpdater() {
     dialog
       .showMessageBox({
         type: 'info',
-        title: 'TapAct Update Ready',
-        message: `TapAct ${info.version} has been downloaded.`,
+        title: tr('update.dialog.title'),
+        message: tr('update.dialog.message').replace('{version}', info.version),
         // Honest about the installer possibly needing a Windows permission
         // prompt: TapAct's own .exe is already set to run elevated
         // (requireAdministrator - see package.json's build.win config), so
@@ -1576,8 +1590,8 @@ function initAutoUpdater() {
         // back to an explicit elevation request (its own UAC prompt) if the
         // direct install attempt hits a permissions error, so this doesn't
         // promise zero prompts.
-        detail: 'Restart now to install the update, or it will install automatically the next time you quit TapAct. You may see a Windows permission prompt during install.',
-        buttons: ['Restart Now', 'Later'],
+        detail: tr('update.dialog.detail'),
+        buttons: [tr('update.dialog.btn.restart'), tr('update.dialog.btn.later')],
         defaultId: 0,
         cancelId: 1,
       })
