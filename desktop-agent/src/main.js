@@ -1097,6 +1097,70 @@ ipcMain.on('history-panel:run-action', (_event, { id, index }) => {
   if (historyWindow && !historyWindow.isDestroyed()) historyWindow.close();
 });
 
+// Multi-select "paste stack" (Ditto/ClipboardFusion's most-requested
+// feature): the panel lets the user tick several history items in order,
+// then this joins their text (in that same order) with a blank line between
+// each and writes ONE combined block to the clipboard, ready for a single
+// paste. Electron has no keystroke-injection API to actually drive a
+// sequential "paste, advance, paste again" into another app's focused
+// field, so this is the closest honest equivalent: one paste that carries
+// everything the user picked, in the order they picked it.
+ipcMain.on('history-panel:copy-merged', async (_event, ids) => {
+  if (!Array.isArray(ids) || !ids.length) return;
+  const all = store.getClipboardHistory();
+  const byId = new Map(all.map((i) => [i.id, i]));
+  const merged = ids.map((id) => byId.get(id)).filter(Boolean).map((i) => i.text).join('\n\n');
+  if (merged) {
+    lastClipboardText = merged; // don't let the merged block re-trigger its own detector popup
+    await clipboard.writeText(merged);
+  }
+  if (historyWindow && !historyWindow.isDestroyed()) historyWindow.close();
+});
+
+ipcMain.on('history-panel:toggle-pin', (_event, id) => {
+  if (typeof id !== 'string') return;
+  store.togglePinClipboardHistoryItem(id);
+  broadcastHistoryItemsChanged();
+});
+
+// Export/import (local-only backup, and the realistic stand-in for
+// cross-device sync without a backend: export on one PC, import on
+// another). Same save/open-dialog pattern as the CSV exporters below.
+ipcMain.handle('history-panel:export', async () => {
+  const win = historyWindow || settingsWindow || BrowserWindow.getFocusedWindow();
+  const { canceled, filePath } = await dialog.showSaveDialog(win, {
+    title: 'ייצוא היסטוריית לוח',
+    defaultPath: `tapact-clipboard-history-${new Date().toISOString().slice(0, 10)}.json`,
+    filters: [{ name: 'JSON', extensions: ['json'] }]
+  });
+  if (canceled || !filePath) return { canceled: true };
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(store.exportClipboardHistoryData(), null, 2), 'utf8');
+    return { canceled: false, filePath };
+  } catch (err) {
+    return { canceled: false, error: err?.message || String(err) };
+  }
+});
+
+ipcMain.handle('history-panel:import', async () => {
+  const win = historyWindow || settingsWindow || BrowserWindow.getFocusedWindow();
+  const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+    title: 'ייבוא היסטוריית לוח',
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['openFile']
+  });
+  if (canceled || !filePaths || !filePaths[0]) return { canceled: true };
+  try {
+    const data = JSON.parse(fs.readFileSync(filePaths[0], 'utf8'));
+    const result = store.importClipboardHistoryData(data);
+    broadcastHistoryItemsChanged();
+    refreshHistorySummaries();
+    return { canceled: false, ...result };
+  } catch (err) {
+    return { canceled: false, imported: 0, error: err?.message || String(err) };
+  }
+});
+
 ipcMain.on('history-panel:delete-item', (_event, id) => {
   if (typeof id !== 'string') return;
   store.deleteClipboardHistoryItem(id);

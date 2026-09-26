@@ -292,11 +292,42 @@ function addClipboardHistoryItem(entry) {
     category: entry.category || 'text',
     actions: entry.actions || null,
     tags: entry.tags || [],
+    pinned: false,
     copiedAt: Date.now()
   };
-  const next = [item, ...getClipboardHistory()].slice(0, limit);
+  const next = trimToLimit([item, ...getClipboardHistory()], limit);
   store.set('clipboardHistory', next);
   return item;
+}
+
+// Enforces historyStorageLimit without ever dropping a pinned item (Ditto/
+// ClipboardFusion-style "sticky" items - a rep pins a template/reply once and
+// it survives the rotation cap forever, unlike everything else that ages
+// out). Pinned items don't count against the cap; the newest unpinned
+// items fill whatever room is left. Order (newest-first overall) is
+// preserved exactly as the caller passed it in - this only decides what to
+// drop, never reorders.
+function trimToLimit(list, limit) {
+  const pinnedCount = list.filter((i) => i.pinned).length;
+  const room = Math.max(0, limit - pinnedCount);
+  let unpinnedKept = 0;
+  return list.filter((item) => {
+    if (item.pinned) return true;
+    if (unpinnedKept < room) { unpinnedKept += 1; return true; }
+    return false;
+  });
+}
+
+// Pin/unpin (ClipboardFusion's "Pinned Items", Ditto's "sticky" entries) -
+// exempts the item from the historyStorageLimit rotation above, so a rep can
+// keep a frequently-reused snippet (a standard reply, an account number)
+// around indefinitely instead of it aging out with everything else.
+function togglePinClipboardHistoryItem(id) {
+  const next = getClipboardHistory().map((item) =>
+    item.id === id ? { ...item, pinned: !item.pinned } : item
+  );
+  store.set('clipboardHistory', next);
+  return next;
 }
 
 function deleteClipboardHistoryItem(id) {
@@ -307,6 +338,42 @@ function deleteClipboardHistoryItem(id) {
 
 function clearClipboardHistory() {
   store.set('clipboardHistory', []);
+}
+
+// --- Export / import clipboard history (local-only JSON backup, and a
+// genuinely-usable stand-in for cross-device sync without a backend: export
+// on one PC, import on another - see CHANGELOG for why real sync wasn't
+// feasible here) ---
+
+function exportClipboardHistoryData() {
+  return { version: 1, exportedAt: Date.now(), items: getClipboardHistory() };
+}
+
+// Merges an exported file's items into the current history: skips anything
+// already present (by id, so re-importing the same file twice is a no-op),
+// then re-applies the same pinned-aware rotation cap as a normal new copy so
+// importing a huge history from another machine can't blow past
+// historyStorageLimit. Returns how many items were actually added.
+function importClipboardHistoryData(data) {
+  if (!data || !Array.isArray(data.items)) return { imported: 0 };
+  const existingIds = new Set(getClipboardHistory().map((i) => i.id));
+  const incoming = data.items.filter((i) => i && typeof i.text === 'string' && i.id && !existingIds.has(i.id));
+  if (!incoming.length) return { imported: 0 };
+
+  const sanitized = incoming.map((i) => ({
+    id: i.id,
+    text: i.text,
+    category: i.category || 'text',
+    actions: i.actions || null,
+    tags: Array.isArray(i.tags) ? i.tags : [],
+    pinned: i.pinned === true,
+    copiedAt: typeof i.copiedAt === 'number' ? i.copiedAt : Date.now()
+  }));
+
+  const merged = [...sanitized, ...getClipboardHistory()].sort((a, b) => b.copiedAt - a.copiedAt);
+  const limit = getSettings().historyStorageLimit || 1000;
+  store.set('clipboardHistory', trimToLimit(merged, limit));
+  return { imported: sanitized.length };
 }
 
 // --- Auto-tag rules (keyword -> tag label, for finding copies by context
@@ -452,8 +519,11 @@ module.exports = {
   getClipboardHistory,
   getClipboardHistoryPage,
   addClipboardHistoryItem,
+  togglePinClipboardHistoryItem,
   deleteClipboardHistoryItem,
   clearClipboardHistory,
+  exportClipboardHistoryData,
+  importClipboardHistoryData,
   getTagRules,
   saveTagRules,
   computeTags,

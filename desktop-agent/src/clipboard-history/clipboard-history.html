@@ -11,6 +11,7 @@
   <div class="app">
     <header class="app-header">
       <span class="title">📋 <span data-i18n="clip.title">Clipboard History</span></span>
+      <button id="selectModeBtn" class="icon-btn" data-i18n-title="clip.panel.selectMode" title="Select">☑</button>
       <button id="closeBtn" class="icon-btn" data-i18n-title="popup.close" title="Close">✕</button>
     </header>
 
@@ -20,6 +21,7 @@
 
     <div class="filters" id="filters">
       <button class="chip active" data-cat="all" data-i18n="clip.filter.all">All</button>
+      <button class="chip" data-cat="pinned" data-i18n="clip.filter.pinned">📌 Pinned</button>
       <button class="chip" data-cat="phone" data-i18n="clip.filter.phone">📞 Phone</button>
       <button class="chip" data-cat="tracking" data-i18n="clip.filter.tracking">📦 Tracking</button>
       <button class="chip" data-cat="address" data-i18n="clip.filter.address">🗺️ Address</button>
@@ -37,13 +39,25 @@
       <span id="emptyStateText" data-i18n="clip.panel.empty">No copies in history yet</span>
     </div>
 
+    <div class="select-bar hidden" id="selectBar">
+      <span id="selectCountLabel"></span>
+      <span class="select-bar-actions">
+        <button id="copySelectedBtn" data-i18n="clip.panel.copySelected">Copy selected</button>
+        <button id="cancelSelectBtn" data-i18n="clip.panel.selectModeExit">Cancel</button>
+      </span>
+    </div>
+
     <footer class="footer">
       <span class="status">
         <span id="pauseDot" class="pause-dot"></span>
         <span id="statusText" data-i18n="clip.panel.recording">Recording</span>
         <button id="toggleBtn" data-i18n="clip.pause">Pause</button>
       </span>
-      <button id="clearBtn" data-i18n="clip.panel.clearAll">Clear All</button>
+      <span class="footer-actions">
+        <button id="exportBtn" data-i18n="clip.panel.export">Export</button>
+        <button id="importBtn" data-i18n="clip.panel.import">Import</button>
+        <button id="clearBtn" data-i18n="clip.panel.clearAll">Clear All</button>
+      </span>
     </footer>
   </div>
 

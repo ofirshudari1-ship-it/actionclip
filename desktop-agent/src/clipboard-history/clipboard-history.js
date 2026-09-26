@@ -15,6 +15,12 @@ let historyEnabled = true;
 let activeCategory = 'all';
 let searchTerm = '';
 let lang = 'en';
+// Multi-select "paste stack" (see main.js's history-panel:copy-merged) -
+// selectMode toggles the checkboxes on; selectedIds is a plain array (not a
+// Set) so it preserves the ORDER the user ticked items in, since that order
+// is exactly what copy-merged uses to build the combined paste.
+let selectMode = false;
+let selectedIds = [];
 
 const els = {};
 
@@ -39,6 +45,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   els.pauseDot = document.getElementById('pauseDot');
   els.statusText = document.getElementById('statusText');
   els.countLabel = document.getElementById('countLabel');
+  els.selectModeBtn = document.getElementById('selectModeBtn');
+  els.selectBar = document.getElementById('selectBar');
+  els.selectCountLabel = document.getElementById('selectCountLabel');
+  els.copySelectedBtn = document.getElementById('copySelectedBtn');
+  els.cancelSelectBtn = document.getElementById('cancelSelectBtn');
+  els.exportBtn = document.getElementById('exportBtn');
+  els.importBtn = document.getElementById('importBtn');
 
   document.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c.classList.contains('active'))));
 
@@ -81,6 +94,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateStatus();
   });
 
+  els.selectModeBtn.addEventListener('click', () => setSelectMode(!selectMode));
+  els.cancelSelectBtn.addEventListener('click', () => setSelectMode(false));
+  els.copySelectedBtn.addEventListener('click', () => {
+    if (!selectedIds.length) return;
+    window.tapactHistory.copyMerged(selectedIds);
+    setSelectMode(false);
+  });
+
+  els.exportBtn.addEventListener('click', async () => {
+    await window.tapactHistory.exportHistory();
+  });
+  els.importBtn.addEventListener('click', async () => {
+    const result = await window.tapactHistory.importHistory();
+    if (result && !result.canceled) {
+      await load();
+      render();
+    }
+  });
+
   window.tapactHistory.onItemsChanged(async () => {
     await load();
     render();
@@ -105,6 +137,29 @@ async function load(limit) {
   }
 
   updateStatus();
+}
+
+function setSelectMode(on) {
+  selectMode = on;
+  if (!on) selectedIds = [];
+  els.selectModeBtn.classList.toggle('active', on);
+  updateSelectBar();
+  render();
+}
+
+function toggleSelected(id) {
+  const idx = selectedIds.indexOf(id);
+  if (idx === -1) selectedIds.push(id); // append - preserves the order the user ticked items in
+  else selectedIds.splice(idx, 1);
+  updateSelectBar();
+  render();
+}
+
+function updateSelectBar() {
+  const t = (key) => window.i18n ? window.i18n.t(lang, key) : key;
+  els.selectBar.classList.toggle('hidden', !selectMode);
+  els.copySelectedBtn.disabled = selectedIds.length === 0;
+  els.selectCountLabel.textContent = t('clip.panel.selectedCount').replace('{n}', selectedIds.length);
 }
 
 function updateStatus() {
@@ -139,7 +194,8 @@ function matchesSearch(item, term) {
 function render() {
   const t = (key) => window.i18n ? window.i18n.t(lang, key) : key;
   const filtered = items.filter((item) => {
-    if (activeCategory !== 'all' && item.category !== activeCategory) return false;
+    if (activeCategory === 'pinned') { if (!item.pinned) return false; }
+    else if (activeCategory !== 'all' && item.category !== activeCategory) return false;
     if (!matchesSearch(item, searchTerm)) return false;
     return true;
   });
@@ -173,13 +229,26 @@ function render() {
 }
 
 function buildRow(item) {
+  const t = (key) => window.i18n ? window.i18n.t(lang, key) : key;
   const row = document.createElement('div');
   row.className = 'item';
+  if (item.pinned) row.classList.add('pinned');
   // Keyboard-operable, not just clickable: Tab reaches the row, Enter/Space
   // copies it — matching what a mouse click does (see keydown handler below).
   row.tabIndex = 0;
   row.setAttribute('role', 'button');
   row.setAttribute('aria-label', item.text);
+
+  if (selectMode) {
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'select-checkbox';
+    checkbox.checked = selectedIds.includes(item.id);
+    checkbox.setAttribute('aria-label', t('clip.panel.selectItem'));
+    checkbox.addEventListener('click', (e) => e.stopPropagation());
+    checkbox.addEventListener('change', () => toggleSelected(item.id));
+    row.appendChild(checkbox);
+  }
 
   const icon = document.createElement('span');
   icon.className = 'icon';
@@ -189,7 +258,16 @@ function buildRow(item) {
   content.className = 'content';
   const text = document.createElement('div');
   text.className = 'text';
-  text.textContent = item.text;
+  if (item.pinned) {
+    // Always-visible pin badge (unlike the .item-actions pin/delete buttons,
+    // which only show on hover/focus) - so a pinned item is recognizable at
+    // a glance even without hovering it.
+    const pinBadge = document.createElement('span');
+    pinBadge.className = 'pin-badge';
+    pinBadge.textContent = '📌';
+    text.appendChild(pinBadge);
+  }
+  text.appendChild(document.createTextNode(item.text));
   const meta = document.createElement('div');
   meta.className = 'meta';
   meta.title = fullDateLabel(item.copiedAt);
@@ -225,8 +303,21 @@ function buildRow(item) {
     actions.appendChild(goBtn);
   }
 
+  const pinBtn = document.createElement('button');
+  pinBtn.className = 'pin' + (item.pinned ? ' active' : '');
+  const pinLabel = t(item.pinned ? 'clip.panel.unpin' : 'clip.panel.pin');
+  pinBtn.title = pinLabel;
+  pinBtn.setAttribute('aria-label', pinLabel);
+  pinBtn.setAttribute('aria-pressed', String(Boolean(item.pinned)));
+  pinBtn.textContent = '📌';
+  pinBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.tapactHistory.togglePin(item.id);
+  });
+  actions.appendChild(pinBtn);
+
   const delBtn = document.createElement('button');
-  const deleteLabel = window.i18n ? window.i18n.t(lang, 'clip.panel.delete') : 'Delete';
+  const deleteLabel = t('clip.panel.delete');
   delBtn.title = deleteLabel;
   delBtn.setAttribute('aria-label', deleteLabel);
   delBtn.textContent = '✕';
@@ -243,12 +334,16 @@ function buildRow(item) {
   row.appendChild(content);
   row.appendChild(actions);
 
-  row.addEventListener('click', () => window.tapactHistory.copyItem(item.id));
+  const activate = () => {
+    if (selectMode) toggleSelected(item.id);
+    else window.tapactHistory.copyItem(item.id);
+  };
+  row.addEventListener('click', activate);
   row.addEventListener('keydown', (e) => {
-    if (e.target !== row) return; // let the go/delete buttons handle their own Enter/Space
+    if (e.target !== row) return; // let the go/pin/delete/checkbox handle their own Enter/Space
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault(); // Space must not also scroll the list
-    window.tapactHistory.copyItem(item.id);
+    activate();
   });
 
   return row;

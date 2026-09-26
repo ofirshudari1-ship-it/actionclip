@@ -249,6 +249,69 @@ describe('templates', () => {
   });
 });
 
+// ─── Clipboard history: pin, rotation cap, export/import ──────────────────────
+
+describe('clipboard history pinning', () => {
+  test('addClipboardHistoryItem defaults pinned to false', () => {
+    const store = freshStore();
+    const item = store.addClipboardHistoryItem({ text: 'hello' });
+    expect(item.pinned).toBe(false);
+  });
+
+  test('togglePinClipboardHistoryItem flips pinned and persists', () => {
+    const store = freshStore();
+    const item = store.addClipboardHistoryItem({ text: 'hello' });
+    store.togglePinClipboardHistoryItem(item.id);
+    expect(store.getClipboardHistory()[0].pinned).toBe(true);
+    store.togglePinClipboardHistoryItem(item.id);
+    expect(store.getClipboardHistory()[0].pinned).toBe(false);
+  });
+
+  test('pinned items survive the historyStorageLimit rotation, unpinned ones age out', () => {
+    const store = freshStore();
+    store.saveSettings({ historyStorageLimit: 10 });
+    const first = store.addClipboardHistoryItem({ text: 'keep me pinned' });
+    store.togglePinClipboardHistoryItem(first.id);
+    for (let i = 0; i < 15; i++) store.addClipboardHistoryItem({ text: `filler ${i}` });
+    const history = store.getClipboardHistory();
+    expect(history.length).toBeLessThanOrEqual(11); // 10 unpinned slots + 1 pinned
+    expect(history.some((h) => h.id === first.id)).toBe(true);
+  });
+});
+
+describe('clipboard history export / import', () => {
+  test('exportClipboardHistoryData returns items with a version marker', () => {
+    const store = freshStore();
+    store.addClipboardHistoryItem({ text: 'a' });
+    store.addClipboardHistoryItem({ text: 'b' });
+    const data = store.exportClipboardHistoryData();
+    expect(data.version).toBe(1);
+    expect(data.items.length).toBe(2);
+  });
+
+  test('importClipboardHistoryData adds new items and skips already-present ids', () => {
+    const store = freshStore();
+    const existing = store.addClipboardHistoryItem({ text: 'already here' });
+    const result = store.importClipboardHistoryData({
+      version: 1,
+      items: [
+        { id: existing.id, text: 'already here', copiedAt: existing.copiedAt },
+        { id: 'imported-1', text: 'from another pc', copiedAt: Date.now() }
+      ]
+    });
+    expect(result.imported).toBe(1);
+    expect(store.getClipboardHistory().some((h) => h.id === 'imported-1')).toBe(true);
+    expect(store.getClipboardHistory().length).toBe(2); // no duplicate of the existing id
+  });
+
+  test('importClipboardHistoryData ignores malformed input', () => {
+    const store = freshStore();
+    expect(store.importClipboardHistoryData(null)).toEqual({ imported: 0 });
+    expect(store.importClipboardHistoryData({})).toEqual({ imported: 0 });
+    expect(store.importClipboardHistoryData({ items: [{ id: 'x' }] })).toEqual({ imported: 0 }); // no text
+  });
+});
+
 // ─── WhatsApp send history ────────────────────────────────────────────────────
 
 describe('send history (WhatsApp)', () => {
