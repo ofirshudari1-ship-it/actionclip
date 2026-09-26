@@ -344,7 +344,7 @@
         <svg viewBox="0 0 24 24" fill="none"><rect x="6.5" y="5" width="11" height="15" rx="2.2" fill="none" stroke="#fff" stroke-width="1.4"/><rect x="9.5" y="3.5" width="5" height="2.6" rx="1" fill="#fff"/><path d="M13.2 8.5 L8.8 14.5 L11.3 14.5 L10 19.5 L15.2 12.7 L12.6 12.7 Z" fill="#fde68a"/></svg>
       </span>
       <span class="brand-word">TapAct</span>
-      <span class="ver-badge" data-gh-version="tapact">v3.5.0</span>
+      <span class="ver-badge" data-gh-version="tapact">v3.6.0</span>
     </div>
     <nav class="links">
       <a href="#how">How it works</a>
@@ -372,14 +372,12 @@
         like Windows' built-in Win+V.
       </p>
       <div class="stat-row">
-        <span class="stat-num old">90s</span>
-        <span class="stat-arrow">←</span>
-        <span class="stat-num new">5s</span>
+        <span class="stat-num new">1 click</span>
       </div>
-      <p class="stat-cap">Average time to reach out to a lead: from finding the number to hitting send</p>
+      <p class="stat-cap">From copying the number to WhatsApp opening with the message ready to send</p>
       <div class="cta-row">
-        <a class="btn primary" href="#how">How it works ↓</a>
-        <a class="btn ghost" href="#install">Go to install</a>
+        <a class="btn primary" href="#install">⬇ Download for Windows</a>
+        <a class="btn ghost" href="#how">See how it works ↓</a>
       </div>
     </div>
 
@@ -453,14 +451,19 @@
   <div class="wrap">
     <div class="section-head">
       <p class="eyebrow">What's detected</p>
-      <h2>Four built-in detectors, plus your own custom rules</h2>
+      <h2>Six built-in detectors, plus your own custom rules</h2>
       <p>All active by default in the desktop agent, each can be turned off individually. The browser extension currently detects phone numbers only. A copied number with a non-Israeli <span class="mono">+</span> country code now also opens WhatsApp instead of being ignored.</p>
     </div>
-    <div class="comp-grid" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="comp-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
       <div class="feat">
         <span class="fi">📞</span>
         <h3>Phone</h3>
         <p><span class="mono">050-1234567</span> → opens WhatsApp with a message template based on lead type.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">✉️</span>
+        <h3>Email address</h3>
+        <p><span class="mono">dana@example.com</span> → opens a new message in your local mail app or Gmail in the browser.</p>
       </div>
       <div class="feat">
         <span class="fi">📦</span>
@@ -476,6 +479,11 @@
         <span class="fi">🔗</span>
         <h3>Single link</h3>
         <p>Only when the copied text is <em>exclusively</em> a link → opens in the default browser.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">📅</span>
+        <h3>Date / time</h3>
+        <p>A copied date → a ready shortcut to save it as a Google Calendar event.</p>
       </div>
       <div class="feat">
         <span class="fi">⚡</span>
@@ -528,7 +536,7 @@
           </div>
         </div>
         <div class="comp-facts">
-          <div class="comp-fact"><span class="k">Detects</span><span class="v">Phone + tracking + address + link + your own custom rules</span></div>
+          <div class="comp-fact"><span class="k">Detects</span><span class="v">Phone + email + tracking + address + link + date/time + your own custom rules</span></div>
           <div class="comp-fact"><span class="k">Trigger</span><span class="v">Automatic (in the background), or <code>Ctrl+Alt+P</code> anytime</span></div>
           <div class="comp-fact"><span class="k">Best for</span><span class="v">Excel, documents, any desktop app</span></div>
           <div class="comp-fact"><span class="k">Install</span><span class="v">A real Setup.exe file (NSIS), standard uninstall</span></div>
@@ -599,6 +607,58 @@
     </div>
     <div class="timeline">
       <div class="tl-item current">
+        <div class="tl-head">
+          <span class="tl-ver">v3.6.0</span>
+          <span class="tl-date">2026-09-26</span>
+        </div>
+        <p class="tl-title">Auto-install-updates toggle, honest update-install copy</p>
+        <ul class="tl-list">
+          <li><b>New setting:</b> Settings ▸ About ▸ Updates now has an "Automatically install updates in the background" checkbox — previously this was always on with no way to turn it off.</li>
+          <li><b>Honest copy:</b> the update-ready dialog no longer promises a fully silent install; it now says you may see one Windows permission prompt, matching what was actually verified against electron-updater's behavior.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v3.5.0</span>
+          <span class="tl-date">2026-09-25</span>
+        </div>
+        <p class="tl-title">Settings clarity pass, OS-locale language default</p>
+        <ul class="tl-list">
+          <li>Added missing explanations for several Settings options that had no sub-text (tray-click action, poll interval, dedupe window, popup auto-close, display density).</li>
+          <li><b>Fixed:</b> a fresh install now defaults the interface language to the Windows display language instead of always English.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v3.4.0</span>
+          <span class="tl-date">2026-09-25</span>
+        </div>
+        <p class="tl-title">Export Diagnostics (Settings ▸ About)</p>
+        <ul class="tl-list">
+          <li>One button bundles the log file, version info, and a redacted settings snapshot into a .zip for support requests — never includes clipboard content, message templates, or secrets.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.10.1</span>
+          <span class="tl-date">2026-09-24</span>
+        </div>
+        <p class="tl-title">Clipboard history tab is now real inline content, not a floating popup</p>
+        <ul class="tl-list">
+          <li>Settings ▸ "Clipboard history" used to embed the standalone history popup as a small fixed-height overlay with its own duplicate header. It's now built directly into the tab, matching the rest of Settings and filling the available space.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.10.0</span>
+          <span class="tl-date">2026-09-23</span>
+        </div>
+        <p class="tl-title">Shared cross-product splash + installer branding</p>
+        <ul class="tl-list">
+          <li>The splash screen and installer wizard now use the same dark/blue palette shared across this tool portfolio. The running app itself (main window, tray, popups, Settings) keeps TapAct's own indigo-purple brand — unchanged.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
         <div class="tl-head">
           <span class="tl-ver">v2.9.0</span>
           <span class="tl-date">2026-09-23</span>
@@ -797,7 +857,7 @@
       </div>
       <div class="install-card">
         <h3>🖥️ Desktop agent</h3>
-        <span class="path" data-gh-filename="tapact">TapAct-Setup-3.5.0.exe</span>
+        <span class="path" data-gh-filename="tapact">TapAct-Setup-3.6.0.exe</span>
         <a class="btn primary" data-gh-download="tapact" href="https://github.com/ofirshudari1-ship-it/tapact/releases/latest" style="margin-top:6px;width:100%;justify-content:center;">⬇ Download the installer</a>
         <ol class="install-steps">
           <li>Run the Setup file (admin rights required — the agent installs per-machine)</li>
@@ -886,7 +946,7 @@
         <svg viewBox="0 0 24 24" fill="none"><rect x="6.5" y="5" width="11" height="15" rx="2.2" fill="none" stroke="#fff" stroke-width="1.4"/><rect x="9.5" y="3.5" width="5" height="2.6" rx="1" fill="#fff"/><path d="M13.2 8.5 L8.8 14.5 L11.3 14.5 L10 19.5 L15.2 12.7 L12.6 12.7 Z" fill="#fde68a"/></svg>
       </span>
       <span class="brand-word">TapAct</span>
-      <span class="ver-badge" data-gh-version="tapact">v3.5.0</span>
+      <span class="ver-badge" data-gh-version="tapact">v3.6.0</span>
     </div>
     <nav class="links">
       <a href="#how-he">איך זה עובד</a>
@@ -908,19 +968,17 @@
       <p class="lede">
         מספר טלפון פותח שיחת WhatsApp עם הודעה מוכנה לפי סוג הליד. מספר
         מעקב משלוח פותח מעקב אצל החברה המשלחת. כתובת פותחת ניווט. קישור
-        נפתח בדפדפן. וכל מה שמעתיקים — גם אם לא זוהה כלום — נשמר בהיסטוריית
+        נפתח בדפדפן. וכל מה שמעתיקים - גם אם לא זוהה כלום - נשמר בהיסטוריית
         העתקות מקומית שאפשר לחפש ולהדביק חזרה, כמו ה-Win+V המובנה של
         Windows.
       </p>
       <div class="stat-row">
-        <span class="stat-num old">90s</span>
-        <span class="stat-arrow">←</span>
-        <span class="stat-num new">5s</span>
+        <span class="stat-num new">קליק אחד</span>
       </div>
-      <p class="stat-cap">זמן ממוצע לפנייה לליד: מחיפוש המספר ועד לחיצת שליחה</p>
+      <p class="stat-cap">מהעתקת המספר ועד שהוואטסאפ נפתח עם ההודעה מוכנה לשליחה</p>
       <div class="cta-row">
-        <a class="btn primary" href="#how-he">איך זה עובד ↓</a>
-        <a class="btn ghost" href="#install-he">להתקנה</a>
+        <a class="btn primary" href="#install-he">⬇ הורדה ל-Windows</a>
+        <a class="btn ghost" href="#how-he">איך זה עובד ↓</a>
       </div>
     </div>
 
@@ -952,7 +1010,7 @@
             <div class="mock-send">פתח בוואטסאפ 💬</div>
           </div>
         </div>
-        <p class="mock-caption">חלונית הטלפון האמיתית — הדוגמה העשירה ביותר מבין ארבעת הגלאים</p>
+        <p class="mock-caption">חלונית הטלפון האמיתית - הדוגמה העשירה ביותר מבין ארבעת הגלאים</p>
       </div>
     </div>
   </div>
@@ -963,13 +1021,13 @@
     <div class="section-head">
       <p class="eyebrow">התהליך</p>
       <h2>ארבעה שלבים, בלי לעזוב את המקלדת</h2>
-      <p>אותו תהליך בדיוק לכל סוגי הזיהוי — רק הפעולה בסוף שונה.</p>
+      <p>אותו תהליך בדיוק לכל סוגי הזיהוי - רק הפעולה בסוף שונה.</p>
     </div>
     <div class="steps">
       <div class="step">
         <div class="n">01</div>
         <h3>מעתיקים</h3>
-        <p>כל טקסט — טלפון, מספר מעקב, כתובת, קישור, או סתם טקסט רגיל.</p>
+        <p>כל טקסט - טלפון, מספר מעקב, כתובת, קישור, או סתם טקסט רגיל.</p>
       </div>
       <div class="step">
         <div class="n">02</div>
@@ -979,12 +1037,12 @@
       <div class="step">
         <div class="n">03</div>
         <h3>נפתחת חלונית</h3>
-        <p>לטלפון — תבנית הודעה עם שם. לשאר — כפתור פעולה מוכן.</p>
+        <p>לטלפון - תבנית הודעה עם שם. לשאר - כפתור פעולה מוכן.</p>
       </div>
       <div class="step">
         <div class="n">04</div>
         <h3>לוחצים, נגמר</h3>
-        <p>וואטסאפ / מפות / אתר מעקב / הקישור נפתח — לחיצה אחת וזהו.</p>
+        <p>וואטסאפ / מפות / אתר מעקב / הקישור נפתח - לחיצה אחת וזהו.</p>
       </div>
     </div>
   </div>
@@ -994,14 +1052,19 @@
   <div class="wrap">
     <div class="section-head">
       <p class="eyebrow">מה מזהים</p>
-      <h2>ארבעה גלאים מובנים, ועוד כללים משלך</h2>
+      <h2>שישה גלאים מובנים, ועוד כללים משלך</h2>
       <p>כולם פעילים כברירת מחדל בסוכן שולחן העבודה, כל אחד ניתן לכיבוי בנפרד. התוסף לדפדפן מזהה טלפון בלבד כרגע. מספר שהועתק עם קידומת <span class="mono">+</span> בינלאומית שאינה ישראלית פותח כעת גם הוא WhatsApp, במקום להתעלם ממנו.</p>
     </div>
-    <div class="comp-grid" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="comp-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
       <div class="feat">
         <span class="fi">📞</span>
         <h3>טלפון</h3>
         <p><span class="mono">050-1234567</span> → פתיחת WhatsApp עם תבנית הודעה לפי סוג ליד.</p>
+      </div>
+      <div class="feat">
+        <span class="fi">✉️</span>
+        <h3>כתובת אימייל</h3>
+        <p><span class="mono">dana@example.com</span> → פתיחת הודעה חדשה באפליקציית המייל המקומית או ב-Gmail בדפדפן.</p>
       </div>
       <div class="feat">
         <span class="fi">📦</span>
@@ -1019,9 +1082,14 @@
         <p>רק כשההעתקה היא <em>אך ורק</em> קישור → פתיחה בדפדפן ברירת המחדל.</p>
       </div>
       <div class="feat">
+        <span class="fi">📅</span>
+        <h3>תאריך / שעה</h3>
+        <p>תאריך שהועתק → קיצור מוכן לשמירה כאירוע ביומן Google.</p>
+      </div>
+      <div class="feat">
         <span class="fi">⚡</span>
         <h3>כללים מותאמים אישית</h3>
-        <p>הגדרת תבנית regex משלך → כתובת URL (הגדרות ▸ "כללים מותאמים אישית") — עד 30 כללים, נבדקים אחרי הגלאים המובנים.</p>
+        <p>הגדרת תבנית regex משלך → כתובת URL (הגדרות ▸ "כללים מותאמים אישית") - עד 30 כללים, נבדקים אחרי הגלאים המובנים.</p>
       </div>
     </div>
     <div class="install-note" style="margin-top:28px; max-width:640px;">
@@ -1037,7 +1105,7 @@
     <div class="section-head">
       <p class="eyebrow">שני רכיבים</p>
       <h2>אותה חוויה, שתי נקודות כניסה</h2>
-      <p>אפשר להתקין רכיב אחד או את שניהם יחד — הם לא תלויים זה בזה.</p>
+      <p>אפשר להתקין רכיב אחד או את שניהם יחד - הם לא תלויים זה בזה.</p>
     </div>
     <div class="comp-grid">
       <div class="comp-card">
@@ -1068,7 +1136,7 @@
           </div>
         </div>
         <div class="comp-facts">
-          <div class="comp-fact"><span class="k">מזהה</span><span class="v">טלפון + מעקב + כתובת + קישור + כללים מותאמים אישית</span></div>
+          <div class="comp-fact"><span class="k">מזהה</span><span class="v">טלפון + אימייל + מעקב + כתובת + קישור + תאריך/שעה + כללים מותאמים אישית</span></div>
           <div class="comp-fact"><span class="k">טריגר</span><span class="v">אוטומטי (ברקע), או <code>Ctrl+Alt+P</code> בכל רגע</span></div>
           <div class="comp-fact"><span class="k">מתאים ל</span><span class="v">Excel, מסמכים, כל אפליקציה שולחנית</span></div>
           <div class="comp-fact"><span class="k">התקנה</span><span class="v">קובץ Setup.exe אמיתי (NSIS), הסרה רגילה</span></div>
@@ -1094,17 +1162,17 @@
       <div class="feat">
         <span class="fi">🔍</span>
         <h3>זיהוי ונירמול מספרים</h3>
-        <p>נייד וקווי, עם או בלי מקף, <span class="mono">+972</span> או אפס מוביל — הפלט תמיד מנורמל לפורמט ש-WhatsApp דורש.</p>
+        <p>נייד וקווי, עם או בלי מקף, <span class="mono">+972</span> או אפס מוביל - הפלט תמיד מנורמל לפורמט ש-WhatsApp דורש.</p>
       </div>
       <div class="feat">
         <span class="fi">✍️</span>
         <h3>תבניות לפי סוג ליד</h3>
-        <p>5 תבניות ברירת מחדל — ליד חדש, פולואפ, תזכורת ועוד — לגמרי ניתנות לעריכה, עם טוקן <span class="mono">{שם}</span> דינמי.</p>
+        <p>5 תבניות ברירת מחדל - ליד חדש, פולואפ, תזכורת ועוד - לגמרי ניתנות לעריכה, עם טוקן <span class="mono">{שם}</span> דינמי.</p>
       </div>
       <div class="feat">
         <span class="fi">🔁</span>
         <h3>התרעת כפילות שליחה</h3>
-        <p>"כבר נשלחה הודעה למספר הזה לפני 6 דק'" — לא חוסם, רק מזכיר לפני שליחה כפולה בטעות.</p>
+        <p>"כבר נשלחה הודעה למספר הזה לפני 6 דק'" - לא חוסם, רק מזכיר לפני שליחה כפולה בטעות.</p>
       </div>
       <div class="feat">
         <span class="fi">📋</span>
@@ -1114,17 +1182,17 @@
       <div class="feat">
         <span class="fi">🕑</span>
         <h3>היסטוריית לוח (Win+V), בסוכן</h3>
-        <p>כל העתקה נרשמת — לא רק מה שזוהה. חיפוש, סינון לפי קטגוריה, והדבקה חוזרת בלחיצה. פתיחה עם <span class="mono">Ctrl+Alt+V</span>.</p>
+        <p>כל העתקה נרשמת - לא רק מה שזוהה. חיפוש, סינון לפי קטגוריה, והדבקה חוזרת בלחיצה. פתיחה עם <span class="mono">Ctrl+Alt+V</span>.</p>
       </div>
       <div class="feat">
         <span class="fi">⌨️</span>
         <h3>פתיחה ידנית בכל רגע</h3>
-        <p>גם בלי מספר בלוח ההעתקה — קיצור מקלדת פותח את החלונית עם שדה הזנה ידני.</p>
+        <p>גם בלי מספר בלוח ההעתקה - קיצור מקלדת פותח את החלונית עם שדה הזנה ידני.</p>
       </div>
       <div class="feat">
         <span class="fi">🔒</span>
         <h3>הכל מקומי</h3>
-        <p>אין שרת חיצוני. הפעולה היחידה כלפי חוץ היא פתיחת קישור (WhatsApp/Maps/Waze/מעקב) בדפדפן — כולל העתקות רגישות (סיסמאות) שמדולגות אוטומטית מההיסטוריה.</p>
+        <p>אין שרת חיצוני. הפעולה היחידה כלפי חוץ היא פתיחת קישור (WhatsApp/Maps/Waze/מעקב) בדפדפן - כולל העתקות רגישות (סיסמאות) שמדולגות אוטומטית מההיסטוריה.</p>
       </div>
     </div>
   </div>
@@ -1135,10 +1203,62 @@
     <div class="section-head">
       <p class="eyebrow">יומן שינויים</p>
       <h2>מה השתנה, ולמה</h2>
-      <p>תיעוד מלא ב-<span class="mono">CHANGELOG.md</span>. כאן — התמצית.</p>
+      <p>תיעוד מלא ב-<span class="mono">CHANGELOG.md</span>. כאן - התמצית.</p>
     </div>
     <div class="timeline">
       <div class="tl-item current">
+        <div class="tl-head">
+          <span class="tl-ver">v3.6.0</span>
+          <span class="tl-date">2026-09-26</span>
+        </div>
+        <p class="tl-title">מתג להתקנה אוטומטית של עדכונים, ניסוח כן יותר על ההתקנה</p>
+        <ul class="tl-list">
+          <li><b>הגדרה חדשה:</b> הגדרות ▸ אודות ▸ עדכונים כוללת עכשיו תיבת סימון "התקן עדכונים אוטומטית ברקע" - קודם זה תמיד היה פעיל בלי אפשרות לכבות.</li>
+          <li><b>ניסוח כן:</b> חלונית העדכון המוכן כבר לא מבטיחה התקנה שקטה לגמרי; היא מציינת שייתכן חלון הרשאה אחד של Windows, בהתאם למה שאומת בפועל מול ההתנהגות של electron-updater.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v3.5.0</span>
+          <span class="tl-date">2026-09-25</span>
+        </div>
+        <p class="tl-title">שיפור בהירות ההגדרות, שפת ממשק לפי שפת Windows</p>
+        <ul class="tl-list">
+          <li>נוספו הסברים חסרים לכמה אפשרויות בהגדרות שלא היה להן טקסט הבהרה (פעולת לחיצה במגש, תדירות בדיקה, חלון מניעת כפילות, סגירה אוטומטית של החלונית, צפיפות תצוגה).</li>
+          <li><b>תוקן:</b> התקנה חדשה כברירת מחדל מציגה את הממשק בשפת התצוגה של Windows, במקום תמיד באנגלית.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v3.4.0</span>
+          <span class="tl-date">2026-09-25</span>
+        </div>
+        <p class="tl-title">ייצוא אבחון (הגדרות ▸ אודות)</p>
+        <ul class="tl-list">
+          <li>כפתור אחד אורז את קובץ הלוג, פרטי הגרסה, ותמונת מצב מצונזרת של ההגדרות לקובץ zip אחד לפניית תמיכה - לעולם לא כולל תוכן שהועתק, תבניות הודעה או סודות.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.10.1</span>
+          <span class="tl-date">2026-09-24</span>
+        </div>
+        <p class="tl-title">היסטוריית לוח בהגדרות היא עכשיו תוכן אמיתי בתוך הדף, לא חלונית צפה</p>
+        <ul class="tl-list">
+          <li>הלשונית "היסטוריית לוח" בהגדרות הטמיעה בעבר את חלונית ההיסטוריה העצמאית כשכבה קטנה בגובה קבוע, עם כותרת כפולה משלה. עכשיו היא בנויה ישירות בתוך הלשונית, תואמת לשאר ההגדרות וממלאת את השטח הפנוי.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head">
+          <span class="tl-ver">v2.10.0</span>
+          <span class="tl-date">2026-09-23</span>
+        </div>
+        <p class="tl-title">מסך פתיחה ומיתוג התקנה משותפים לכל הכלים</p>
+        <ul class="tl-list">
+          <li>מסך הפתיחה ואשף ההתקנה עברו לפלטת הצבעים הכהה-כחולה המשותפת לכל הכלים בסדרה הזו. האפליקציה עצמה בזמן ריצה (חלון ראשי, מגש, חלוניות, הגדרות) שומרת על המיתוג האינדיגו-סגול של TapAct - ללא שינוי.</li>
+        </ul>
+      </div>
+      <div class="tl-item">
         <div class="tl-head">
           <span class="tl-ver">v2.9.0</span>
           <span class="tl-date">2026-09-23</span>
@@ -1196,7 +1316,7 @@
         <p class="tl-title">עדכונים אוטומטיים אמיתיים דרך electron-updater</p>
         <ul class="tl-list">
           <li><b>electron-updater מחובר:</b> הסוכן בודק ב-GitHub Releases ברקע כמה שניות אחרי ההפעלה, מוריד עדכון אוטומטית, ומציע "התקן עכשיו / מאוחר יותר" כשהוא מוכן.</li>
-          <li>נכשל בשקט אם אין רשת או ש-GitHub לא זמין — נרשם לקובץ הלוג המקומי, לעולם לא חוסם את ההפעלה.</li>
+          <li>נכשל בשקט אם אין רשת או ש-GitHub לא זמין - נרשם לקובץ הלוג המקומי, לעולם לא חוסם את ההפעלה.</li>
           <li>תוקן <span class="mono">artifactName</span> כך שיכלול את מספר הגרסה בשם קובץ ההתקנה (היה חסר קודם).</li>
         </ul>
       </div>
@@ -1207,7 +1327,7 @@
         </div>
         <p class="tl-title">כללים מותאמים אישית, תמיכה בטלפונים בינלאומיים, תפריט מגש לפעולות אחרונות</p>
         <ul class="tl-list">
-          <li><b>כללים מותאמים אישית:</b> הגדרת תבנית regex משלך → כתובת URL (הגדרות ▸ "כללים מותאמים אישית"), למקרים שחמשת הגלאים המובנים לא מכסים — למשל מספר הזמנה פנימי שפותח את עמוד ה-CRM. עד 30 כללים, רק תבניות <span class="mono">http(s)://</span> מאושרות.</li>
+          <li><b>כללים מותאמים אישית:</b> הגדרת תבנית regex משלך → כתובת URL (הגדרות ▸ "כללים מותאמים אישית"), למקרים שחמשת הגלאים המובנים לא מכסים - למשל מספר הזמנה פנימי שפותח את עמוד ה-CRM. עד 30 כללים, רק תבניות <span class="mono">http(s)://</span> מאושרות.</li>
           <li><b>תמיכה בטלפונים בינלאומיים:</b> מספר שהועתק עם קידומת <span class="mono">+</span> בינלאומית שאינה ישראלית פותח כעת גם הוא WhatsApp, במקום להתעלם ממנו בשקט. זיהוי מספרים ישראליים לא השתנה.</li>
           <li><b>תפריט מגש "פעולות אחרונות":</b> חמש ההעתקות האחרונות עם פעולה מזוהה, לחיצה אחת להפעלה חוזרת בלי לפתוח את פאנל ההיסטוריה המלא.</li>
         </ul>
@@ -1217,10 +1337,10 @@
           <span class="tl-ver">v2.0.0</span>
           <span class="tl-date">2026-09-13</span>
         </div>
-        <p class="tl-title">שינוי שם — PingClip הפך ל-TapAct, זהות ויזואלית חדשה</p>
+        <p class="tl-title">שינוי שם - PingClip הפך ל-TapAct, זהות ויזואלית חדשה</p>
         <ul class="tl-list">
-          <li>מיתוג מלא: קוד, קבצי התקנה, אייקון (במקום סמל WhatsApp שכבר לא שיקף מוצר עם כמה יעדים), וגרדיאנט מותג חדש — אינדיגו-סגול במקום ירוק-טורקיז, בכל ארבעת חלונות האפליקציה ובדף הזה.</li>
-          <li>נתוני העבר (תבניות/הגדרות/היסטוריה) לא עוברים אוטומטית — קובץ הנתונים המקומי שינה שם יחד עם המוצר.</li>
+          <li>מיתוג מלא: קוד, קבצי התקנה, אייקון (במקום סמל WhatsApp שכבר לא שיקף מוצר עם כמה יעדים), וגרדיאנט מותג חדש - אינדיגו-סגול במקום ירוק-טורקיז, בכל ארבעת חלונות האפליקציה ובדף הזה.</li>
+          <li>נתוני העבר (תבניות/הגדרות/היסטוריה) לא עוברים אוטומטית - קובץ הנתונים המקומי שינה שם יחד עם המוצר.</li>
         </ul>
       </div>
       <div class="tl-item">
@@ -1229,9 +1349,9 @@
           <span class="tl-date">2026-09-13</span>
           <span class="tag-fix">תיקון שורש</span>
         </div>
-        <p class="tl-title">סוכן שולחן העבודה — זיהוי הלוח לא עבד בשקט מאז 1.3.1</p>
+        <p class="tl-title">סוכן שולחן העבודה - זיהוי הלוח לא עבד בשקט מאז 1.3.1</p>
         <ul class="tl-list">
-          <li><b>נמצא הגורם האמיתי:</b> Electron 44 הפך את <span class="mono">clipboard.readText()</span> ל-Promise-based; הקוד קרא לו כאילו הוא סינכרוני, כך שבפועל התקבל אובייקט Promise במקום מחרוזת בכל בדיקה — 1.3.1 "תיקן" את זה בצורה שעצרה את הקריסה, אבל גרמה לזיהוי להיכשל בשקט לחלוטין.</li>
+          <li><b>נמצא הגורם האמיתי:</b> Electron 44 הפך את <span class="mono">clipboard.readText()</span> ל-Promise-based; הקוד קרא לו כאילו הוא סינכרוני, כך שבפועל התקבל אובייקט Promise במקום מחרוזת בכל בדיקה - 1.3.1 "תיקן" את זה בצורה שעצרה את הקריסה, אבל גרמה לזיהוי להיכשל בשקט לחלוטין.</li>
           <li>תוקן עם <span class="mono">await</span> אמיתי על כל קריאות הלוח, ואומת ישירות על אותה גרסת Electron + התקנה אמיתית על המכונה.</li>
         </ul>
       </div>
@@ -1242,8 +1362,8 @@
         </div>
         <p class="tl-title">היסטוריית לוח מלאה (Win+V) <span class="tag-fix">תיקון</span></p>
         <ul class="tl-list">
-          <li>פאנל היסטוריית העתקות חדש — כל טקסט שמועתק נרשם, לא רק מה שזוהה. חיפוש, סינון לפי קטגוריה, הדבקה חוזרת.</li>
-          <li><b>תוקן:</b> מספרי מעקב דואר ישראל (9 ספרות) נבלעו בטעות ע"י זיהוי טלפון קווי מאז 1.3.0 — סדר בדיקת הגלאים הפוך עכשיו (כלליים לפני טלפון).</li>
+          <li>פאנל היסטוריית העתקות חדש - כל טקסט שמועתק נרשם, לא רק מה שזוהה. חיפוש, סינון לפי קטגוריה, הדבקה חוזרת.</li>
+          <li><b>תוקן:</b> מספרי מעקב דואר ישראל (9 ספרות) נבלעו בטעות ע"י זיהוי טלפון קווי מאז 1.3.0 - סדר בדיקת הגלאים הפוך עכשיו (כלליים לפני טלפון).</li>
         </ul>
       </div>
       <div class="tl-item">
@@ -1251,7 +1371,7 @@
           <span class="tl-ver">v1.3.1</span>
           <span class="tl-date">2026-09-11</span>
         </div>
-        <p class="tl-title">תיקון קריסה (חלקי — האבחון המלא הגיע רק ב-1.4.1)</p>
+        <p class="tl-title">תיקון קריסה (חלקי - האבחון המלא הגיע רק ב-1.4.1)</p>
         <ul class="tl-list">
           <li>קלט לא-מחרוזתי מהלוח גרם ל-dialog שגיאה חוזר כל 800ms. נעצר, אך שורש הבעיה (Promise API) אובחן נכון רק מאוחר יותר.</li>
         </ul>
@@ -1261,7 +1381,7 @@
           <span class="tl-ver">v1.3.0</span>
           <span class="tl-date">2026-09-10</span>
         </div>
-        <p class="tl-title">מנוע TapAct — מעקב, כתובת, קישור</p>
+        <p class="tl-title">מנוע TapAct - מעקב, כתובת, קישור</p>
         <ul class="tl-list">
           <li>שלושה גלאים חדשים בסוכן שולחן העבודה, כל אחד עם חלונית פעולה קומפקטית משלו. הגדרות ▸ "סוגי זיהוי" לכיבוי עצמאי לכל גלאי.</li>
         </ul>
@@ -1273,7 +1393,7 @@
         </div>
         <p class="tl-title">סדר בתיקייה</p>
         <ul class="tl-list">
-          <li>הוסר קובץ ה-<span class="mono">Setup.exe</span> המשולב שהתקין גם את תוסף ה-Chrome — כרום ממילא לא מאפשר התקנה שקטה לתוסף, כך שהאשף לא חסך שלב אמיתי.</li>
+          <li>הוסר קובץ ה-<span class="mono">Setup.exe</span> המשולב שהתקין גם את תוסף ה-Chrome - כרום ממילא לא מאפשר התקנה שקטה לתוסף, כך שהאשף לא חסך שלב אמיתי.</li>
           <li>נוקו כפילויות: גרסת התקנה ישנה ותיקיית build ביניים של כ-370MB.</li>
         </ul>
       </div>
@@ -1284,7 +1404,7 @@
         </div>
         <p class="tl-title">פתיחה ידנית, ייצוא CSV <span class="tag-fix">תיקון קריטי</span></p>
         <ul class="tl-list">
-          <li><b>תוקן:</b> קידוד עברית שבור באשף ההתקנה הקודם — טקסט הוואטסאפ הופיע כג'יבריש. התגלה רק בבדיקת קוד-נקודות יוניקוד, לא בקומפילציה.</li>
+          <li><b>תוקן:</b> קידוד עברית שבור באשף ההתקנה הקודם - טקסט הוואטסאפ הופיע כג'יבריש. התגלה רק בבדיקת קוד-נקודות יוניקוד, לא בקומפילציה.</li>
           <li>פתיחה ידנית של החלונית בכל רגע (<span class="mono">Ctrl+Alt+P</span> / תפריט המגש), עם שדה הזנת מספר ידני בסוכן שולחן העבודה.</li>
           <li>ייצוא היסטוריית שליחות ל-CSV, ומספר גרסה מוצג בהגדרות.</li>
         </ul>
@@ -1321,7 +1441,7 @@
     <div class="section-head">
       <p class="eyebrow">התקנה</p>
       <h2>איך מתחילים</h2>
-      <p>בוחרים רכיב אחד או את שניהם — כל אחד עומד בפני עצמו. מדריך מפורט + פתרון תקלות: <span class="mono">README.md</span>.</p>
+      <p>בוחרים רכיב אחד או את שניהם - כל אחד עומד בפני עצמו. מדריך מפורט + פתרון תקלות: <span class="mono">README.md</span>.</p>
     </div>
     <div class="install-grid">
       <div class="install-card">
@@ -1337,14 +1457,14 @@
       </div>
       <div class="install-card">
         <h3>🖥️ סוכן שולחן עבודה</h3>
-        <span class="path" data-gh-filename="tapact">TapAct-Setup-3.5.0.exe</span>
+        <span class="path" data-gh-filename="tapact">TapAct-Setup-3.6.0.exe</span>
         <a class="btn primary" data-gh-download="tapact" href="https://github.com/ofirshudari1-ship-it/tapact/releases/latest" style="margin-top:6px;width:100%;justify-content:center;">⬇ הורדת קובץ ההתקנה</a>
         <ol class="install-steps">
-          <li>מריצים את קובץ ה-Setup (נדרשות הרשאות מנהל — ההתקנה היא ברמת המחשב)</li>
+          <li>מריצים את קובץ ה-Setup (נדרשות הרשאות מנהל - ההתקנה היא ברמת המחשב)</li>
           <li>עוברים את שלבי האשף הרגילים של Windows</li>
-          <li>הסוכן עולה אוטומטית — אייקון במגש המערכת</li>
+          <li>הסוכן עולה אוטומטית - אייקון במגש המערכת</li>
         </ol>
-        <p class="install-note">Windows עשוי להציג אזהרת SmartScreen לתוכנה פנימית לא חתומה — "More info" ← "Run anyway". אחרי ההתקנה הראשונית, עדכונים עתידיים יורדים ומתקינים את עצמם אוטומטית — ראו "עדכונים אוטומטיים" למטה.</p>
+        <p class="install-note">Windows עשוי להציג אזהרת SmartScreen לתוכנה פנימית לא חתומה - "More info" ← "Run anyway". אחרי ההתקנה הראשונית, עדכונים עתידיים יורדים ומתקינים את עצמם אוטומטית - ראו "עדכונים אוטומטיים" למטה.</p>
       </div>
     </div>
   </div>
@@ -1355,20 +1475,20 @@
     <div class="section-head">
       <p class="eyebrow">עדכונים אוטומטיים</p>
       <h2>נשאר מעודכן לבד</h2>
-      <p>מגרסה 2.5.6 ואילך, הסוכן בודק ב-GitHub Releases אם יש גרסה חדשה כמה שניות אחרי שהוא עולה — בלי צורך בהורדה ידנית לעדכונים שגרתיים.</p>
+      <p>מגרסה 2.5.6 ואילך, הסוכן בודק ב-GitHub Releases אם יש גרסה חדשה כמה שניות אחרי שהוא עולה - בלי צורך בהורדה ידנית לעדכונים שגרתיים.</p>
     </div>
     <div class="install-grid">
       <div class="install-card">
         <h3>🔄 בדיקה ברקע</h3>
-        <p class="install-note">כמה שניות אחרי העלייה, TapAct בודק בשקט אם יצאה גרסה חדשה — בלי לעכב את ההפעלה, ובלי הודעה אם אין חדש.</p>
+        <p class="install-note">כמה שניות אחרי העלייה, TapAct בודק בשקט אם יצאה גרסה חדשה - בלי לעכב את ההפעלה, ובלי הודעה אם אין חדש.</p>
       </div>
       <div class="install-card">
         <h3>⬇️ הורדה אוטומטית + אישור</h3>
-        <p class="install-note">אם יש עדכון, הוא יורד ברקע, ואז חלונית קטנה מציעה "התקן עכשיו" או "מאוחר יותר" — בחירה ב"מאוחר יותר" מתקינה אוטומטית ביציאה הבאה הרגילה.</p>
+        <p class="install-note">אם יש עדכון, הוא יורד ברקע, ואז חלונית קטנה מציעה "התקן עכשיו" או "מאוחר יותר" - בחירה ב"מאוחר יותר" מתקינה אוטומטית ביציאה הבאה הרגילה.</p>
       </div>
       <div class="install-card">
         <h3>🔌 נכשל בשקט אם אין רשת</h3>
-        <p class="install-note">אין חיבור או ש-GitHub לא זמין? הבדיקה נכשלת בשקט ונרשמת לקובץ הלוג המקומי — הסוכן ממשיך לעבוד רגיל בכל מקרה.</p>
+        <p class="install-note">אין חיבור או ש-GitHub לא זמין? הבדיקה נכשלת בשקט ונרשמת לקובץ הלוג המקומי - הסוכן ממשיך לעבוד רגיל בכל מקרה.</p>
       </div>
     </div>
   </div>
@@ -1383,11 +1503,11 @@
     <div class="install-grid">
       <div class="install-card">
         <h3>האם המידע שלי נשלח לענן?</h3>
-        <p class="install-note">לא. אין שרת של TapAct בכלל — לא analytics, לא telemetry, לא קריאת AI. הפעולה היחידה שיוצאת מהמכשיר היא פתיחת קישור <span class="mono">wa.me</span> בדפדפן, בדיוק כמו הקלדת ה-URL בעצמך. פירוט מלא: <span class="mono">PRIVACY.md</span>.</p>
+        <p class="install-note">לא. אין שרת של TapAct בכלל - לא analytics, לא telemetry, לא קריאת AI. הפעולה היחידה שיוצאת מהמכשיר היא פתיחת קישור <span class="mono">wa.me</span> בדפדפן, בדיוק כמו הקלדת ה-URL בעצמך. פירוט מלא: <span class="mono">PRIVACY.md</span>.</p>
       </div>
       <div class="install-card">
         <h3>האם צריך הרשאות מנהל (Admin)?</h3>
-        <p class="install-note">לא חובה — המתקין נופל אוטומטית להתקנה per-user ב-<span class="mono">%LOCALAPPDATA%</span> אם אין הרשאות. תוסף ה-Chrome לא דורש הרשאות כלל מעבר לאישור הרגיל של Chrome בטעינת תוסף.</p>
+        <p class="install-note">לא חובה - המתקין נופל אוטומטית להתקנה per-user ב-<span class="mono">%LOCALAPPDATA%</span> אם אין הרשאות. תוסף ה-Chrome לא דורש הרשאות כלל מעבר לאישור הרגיל של Chrome בטעינת תוסף.</p>
       </div>
       <div class="install-card">
         <h3>איפה נשמרות התבניות וההיסטוריה?</h3>
@@ -1395,7 +1515,7 @@
       </div>
       <div class="install-card">
         <h3>מה קורה אם סוגרים את חלון הסוכן?</h3>
-        <p class="install-note">הסוכן ממשיך לרוץ ברקע (אייקון במגש המערכת) כדי לזהות העתקות — X לא יוצא מהתוכנה. יציאה אמיתית: קליק ימני על אייקון המגש ← יציאה.</p>
+        <p class="install-note">הסוכן ממשיך לרוץ ברקע (אייקון במגש המערכת) כדי לזהות העתקות - X לא יוצא מהתוכנה. יציאה אמיתית: קליק ימני על אייקון המגש ← יציאה.</p>
       </div>
     </div>
   </div>
