@@ -1,92 +1,49 @@
 # TapAct
 
-**מעתיקים משהו, מקבלים בלחיצה אחת את הפעולה הנכונה הבאה.** מספר טלפון
-פותח WhatsApp עם הודעה מוכנה, מספר מעקב משלוח פותח מעקב אצל החברה
-המשלחת, כתובת פותחת ניווט, קישור נפתח בדפדפן - וכל מה שמעתיקים, גם אם
-לא זוהה כלום, נשמר בהיסטוריית העתקות מקומית שאפשר לחפש ולהדביק חזרה
-(כמו Win+V המובנה של Windows, רק חכם יותר).
+Copy something, get the right action in one click. A phone number opens WhatsApp with a message ready to send, a tracking number opens the courier's tracking page, an address opens navigation, a link opens in your browser - and everything you copy, even when nothing is detected, lands in a searchable local clipboard history (like Windows' own Win+V, only smarter).
 
-נבנה במקור עבור מוקד המכירות של פספורטוגו (זיהוי טלפון → WhatsApp),
-והתרחב לכלי-רקע כללי לכל מי שמעתיק הרבה דברים במחשב.
+Two independent components, install either or both:
 
-**גרסה נוכחית:** 2.5.0 (סוכן שולחן עבודה) / 1.2.1 (תוסף Chrome) - ממוספרים
-בנפרד בכוונה (הסוכן משתחרר בקצב מהיר יותר לתיקוני באגים; לתוסף יש מחזור
-פרסום איטי יותר כי כל שינוי דורש בדיקה מול Chrome). שונה שם מ-PingClip
-ל-TapAct ב-2.0.0.
-
-## מפת המסמכים - איפה מה
-
-| רוצה... | תמצא ב... |
-|---|---|
-| להבין מה זה עושה, למה, ואיך - בהרחבה | [`SPEC.md`](SPEC.md) |
-| להתקין (למשתמש קצה) | ראה סעיף **התקנה** למטה |
-| מדריך שימוש מלא | [`USER-GUIDE.md`](USER-GUIDE.md) |
-| לראות דף שיווקי/הסבר ויזואלי | [`site/index.html`](site/index.html) |
-| לדעת מה השתנה בין גרסאות | [`CHANGELOG.md`](CHANGELOG.md) |
-| להריץ/לפתח את סוכן שולחן העבודה | [`desktop-agent/`](desktop-agent/) |
-| להתקין/לפתח את תוסף ה-Chrome | [`chrome-extension/`](chrome-extension/) |
-| רשימת בדיקות לפני שחרור | [`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md) |
-| מדיניות פרטיות (מה נאסף, מה לא, למה) | [`PRIVACY.md`](PRIVACY.md) |
-
-## מבנה התיקייה
-
-```
-TapAct - WhatsApp Copy Tool/
-├── README.md                 המסמך הזה - נקודת כניסה
-├── INSTALL.md                מדריך התקנה למשתמש קצה
-├── CHANGELOG.md              יומן גרסאות מלא (כולל כל באג שנמצא ותוקן)
-├── docs/
-│   ├── SPEC.md                מסמך האפיון המורחב - מה/איך/למה
-│   └── TAPACT-SPEC.md     מחקר תחרותי + החלטות ארכיטקטורה, מנוע הגלאים
-├── site/
-│   └── index.html             דף נחיתה שיווקי (Artifact מפורסם)
-├── desktop-agent/             קוד המקור של סוכן שולחן העבודה (Electron)
-│   ├── src/                    - main.js, lib/detectors, popup/action-popup/
-│   │                            clipboard-history/settings (UI לכל חלון)
-│   ├── package.json             גרסה + קונפיגורציית build (electron-builder)
-│   └── dist/                    פלט בנייה (נוצר ע"י npm run dist)
-├── chrome-extension/          קוד המקור של תוסף ה-Chrome (טלפון בלבד)
-└── TapAct/                  קובץ ההתקנה המוכן להפצה
-    └── TapAct-Setup-<version>.exe
-```
-
-**כלל אצבע:** מקור אמת יחיד לכל דבר. הגרסה - `desktop-agent/package.json`.
-ההיסטוריה וההחלטות - `CHANGELOG.md`. הקוד - `desktop-agent/src/`. אף מידע
-לא כפול בין קבצים; מסמכים מפנים זה לזה במקום לחזור על תוכן.
-
-## שני רכיבים עצמאיים
-
-| רכיב | מתי מתאים | טריגר | מה מזהה |
+| Component | Best for | Trigger | Detects |
 |---|---|---|---|
-| **סוכן שולחן עבודה** (`desktop-agent/`) | המידע מגיע מכל מקום - Excel, מסמך, כל אפליקציה | אוטומטי ברקע, או `Ctrl+Alt+P`/`Ctrl+Alt+V` בכל רגע | טלפון + מעקב + כתובת + קישור, ומתעד הכל בהיסטוריית לוח |
-| **תוסף Chrome** (`chrome-extension/`) | עבודה בעיקר בדפדפן | לחיצה על האייקון, או `Alt+Shift+P` | טלפון בלבד |
+| **Desktop agent** (`desktop-agent/`) | Copying from anywhere - Excel, a document, any app | Runs in the background automatically, or `Ctrl+Alt+P`/`Ctrl+Alt+V` any time | Phone, tracking number, address, link - plus a full local clipboard history |
+| **Chrome extension** (`chrome-extension/`) | Working mostly in the browser | Click the icon, or `Alt+Shift+P` | Phone numbers only |
 
-אפשר להתקין אחד או את שניהם - הם לא תלויים זה בזה. פרטים מלאים:
-[`docs/SPEC.md`](docs/SPEC.md).
+## Download & install
 
-## התקנה מהירה
+**[Download the latest version](https://github.com/ofirshudari1-ship-it/tapact/releases/latest)**
 
-**משתמש קצה:** ראו [`INSTALL.md`](INSTALL.md).
+1. Go to the [releases page](https://github.com/ofirshudari1-ship-it/tapact/releases/latest) and download `TapAct-Setup-<version>.exe`.
+2. Run the installer and follow the setup wizard (choose your language, installation folder, and shortcuts - English is the default if you just click Next).
+3. Launch TapAct - it lives in the system tray.
 
-**מפתחים (הרצה מהמקור):**
+For the Chrome extension: load `chrome-extension/` unpacked via `chrome://extensions` (Developer mode), or check the [Chrome Web Store listing](chrome-extension/) if published.
+
+**Current version:** 3.8.0 (desktop agent) / 1.2.1 (Chrome extension) - versioned separately on purpose: the desktop agent ships bug fixes faster, while the extension has a slower release cycle since every change needs review against Chrome's store policy.
+
+## Where to find things
+
+| Want... | Find it in... |
+|---|---|
+| What it does, why, and how - in depth | [`SPEC.md`](SPEC.md) |
+| A full usage guide | [`USER-GUIDE.md`](USER-GUIDE.md) |
+| The marketing/landing page | [`site/index.html`](site/index.html) |
+| What changed between versions | [`CHANGELOG.md`](CHANGELOG.md) |
+| Desktop agent source | [`desktop-agent/`](desktop-agent/) |
+| Chrome extension source | [`chrome-extension/`](chrome-extension/) |
+| Privacy policy (what's collected, what isn't, why) | [`PRIVACY.md`](PRIVACY.md) |
+
+**Single source of truth for everything:** the version lives in `desktop-agent/package.json`. History and decisions live in `CHANGELOG.md`. The code lives in `desktop-agent/src/`. Nothing is duplicated between files; documents link to each other instead of repeating content.
+
+## Building from source
+
 ```bash
 cd desktop-agent
 npm install
-npm start
+npm start        # run from source
+npm run dist      # build the Windows installer -> desktop-agent/dist/TapAct-Setup-<version>.exe
 ```
 
-**בניית קובץ ההתקנה:**
-```bash
-cd desktop-agent
-npm run dist
-```
-מייצר `dist/TapAct-Setup-<version>.exe`. יש להעתיק אותו ל-
-`TapAct/` ולמחוק את גרסת ה-exe הקודמת משם ומ-`dist/`, כדי שלא יישארו
-כפילויות. `generate-icons.cjs` (בשורש) מייצר מחדש את ערכת האייקונים
-(תוסף Chrome + אייקון מגש/exe) ממקור SVG יחיד, למי שרוצה למתג מחדש.
+## Privacy, in short
 
-## פרטיות בקצרה
-
-אין שרת חיצוני. כל הזיהוי וההיסטוריה רצים ונשמרים מקומית על המכונה. הפעולה
-החיצונית היחידה היא פתיחת קישור בדפדפן ברירת המחדל. פירוט מלא:
-[`docs/SPEC.md §6`](docs/SPEC.md#6-פרטיות-ואבטחה).
+No external server. All detection and clipboard history run and stay local on your machine. The only outbound action is opening a link in your default browser. Full detail: [`PRIVACY.md`](PRIVACY.md).
